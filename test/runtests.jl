@@ -1,6 +1,7 @@
 using WinchControllers
 using Test
 
-@testset "WinchControllers.jl" begin
-    # Write your tests here.
-end
+# @testset "WinchControllers.jl" begin
+#     # Write your tests here.
+# end
+include("test_utils.jl")
