@@ -78,17 +78,7 @@ for i in 1:SAMPLES
     end
 end
 
-p1=plotx(TIME, V_WIND, V_RO, V_SET_OUT;
-      ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "v_set_out [m/s]"],
-      fig="test_winchcontroller_a")
 
-p2=plotx(TIME, F_ERR*0.001, V_ERR;
-      ylabels=["f_err [kN]","v_error [m/s]"],
-      fig="test_winchcontroller_b")
-
-p3=plotx(TIME, FORCE*0.001, STATE;
-      ylabels=["force [kN]","state"],
-      fig="test_winchcontroller_c")
 if @isdefined __TEST__
     dt = wcs.dt
     @test V_WIND[Int64(2/0.02)+1] ≈ 9.0 rtol=1e-4
@@ -111,6 +101,17 @@ if @isdefined __TEST__
 
 
 else
+    p1=plotx(TIME, V_WIND, V_RO, V_SET_OUT;
+             ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "v_set_out [m/s]"],
+             fig="test_winchcontroller_a")
+
+    p2=plotx(TIME, F_ERR*0.001, V_ERR;
+             ylabels=["f_err [kN]","v_error [m/s]"],
+             fig="test_winchcontroller_b")
+
+    p3=plotx(TIME, FORCE*0.001, STATE;
+             ylabels=["force [kN]","state"],
+             fig="test_winchcontroller_c")
     display(p1); display(p2); display(p3)
 end
 toc()
