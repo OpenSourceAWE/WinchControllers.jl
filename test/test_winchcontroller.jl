@@ -99,6 +99,9 @@ if @isdefined __TEST__
     @test STATE[Int64(2.0/dt)] == 2
     @test STATE[Int64(3.0/dt)] == 1
     @test STATE[Int64(4.0/dt)] == 0
+    @test mean(F_ERR) ≈ 27.65 rtol=0.1
+    @test maximum(F_ERR) < 470
+    @test minimum(F_ERR) > -400
 
 else
     display(p1); display(p2); display(p3)
