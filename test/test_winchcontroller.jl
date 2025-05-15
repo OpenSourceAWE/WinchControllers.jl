@@ -91,6 +91,9 @@ p3=plotx(TIME, FORCE*0.001, STATE;
       fig="test_winchcontroller_c")
 if @isdefined __TEST__
     dt = wcs.dt
+    @test V_WIND[Int64(2/0.02)+1] ≈ 9.0 rtol=1e-4
+    @test V_WIND[Int64(4/0.02)+1] ≈ 0.0 atol=1e-4
+    @test V_WIND[Int64(6/0.02)+1] ≈ 9.0 rtol=1e-4
     @test mean(FORCE) ≈ 1791.0028035171347 rtol=1e-4
     @test maximum(FORCE) < 4270
     @test minimum(FORCE[10:end]) > 10.0
@@ -102,6 +105,10 @@ if @isdefined __TEST__
     @test mean(F_ERR) ≈ 27.65 rtol=0.1
     @test maximum(F_ERR) < 470
     @test minimum(F_ERR) > -400
+    @test mean(V_ERR) ≈ 0.0125 rtol=0.1
+    @test maximum(V_ERR) < 0.12
+    @test minimum(V_ERR) > -0.13
+
 
 else
     display(p1); display(p2); display(p3)
