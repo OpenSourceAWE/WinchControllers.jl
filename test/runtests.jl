@@ -1,7 +1,8 @@
 using WinchControllers
 using Test
 
-# @testset "WinchControllers.jl" begin
-#     # Write your tests here.
-# end
-include("test_utils.jl")
+const __TEST__ = true
+
+@testset "WinchControllers.jl" begin
+    include("test_winchcontroller.jl")
+end

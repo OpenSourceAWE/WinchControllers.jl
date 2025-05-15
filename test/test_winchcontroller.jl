@@ -2,6 +2,7 @@
 using Pkg
 if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
     using TestEnv; TestEnv.activate()
+    using Test
 end
 using Timers; tic()
 
@@ -88,7 +89,11 @@ p2=plotx(TIME, F_ERR*0.001, V_ERR;
 p3=plotx(TIME, FORCE*0.001, STATE;
       ylabels=["force [kN]","state"],
       fig="test_winchcontroller_c")
-display(p1); display(p2); display(p3)
+if @isdefined __TEST__
+    @test mean(FORCE) ≈ 1791.0028035171347 rtol=1e-4
+else
+    display(p1); display(p2); display(p3)
+end
 toc()
 
 println("Max iterations needed: $(wcs.iter)")
