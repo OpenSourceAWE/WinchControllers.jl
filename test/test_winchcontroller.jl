@@ -90,7 +90,16 @@ p3=plotx(TIME, FORCE*0.001, STATE;
       ylabels=["force [kN]","state"],
       fig="test_winchcontroller_c")
 if @isdefined __TEST__
+    dt = wcs.dt
     @test mean(FORCE) ≈ 1791.0028035171347 rtol=1e-4
+    @test maximum(FORCE) < 4270
+    @test minimum(FORCE[10:end]) > 10.0
+    @test STATE[Int64(0.5/dt)] == 0
+    @test STATE[Int64(1.0/dt)] == 1
+    @test STATE[Int64(2.0/dt)] == 2
+    @test STATE[Int64(3.0/dt)] == 1
+    @test STATE[Int64(4.0/dt)] == 0
+
 else
     display(p1); display(p2); display(p3)
 end
