@@ -1,5 +1,6 @@
 # WinchControllers
 
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://aenarete.github.io/WinchControllers.jl/dev)
 [![Build Status](https://github.com/aenarete/WinchControllers.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/aenarete/WinchControllers.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 Discrete controllers for Winches.
