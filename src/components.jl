@@ -26,10 +26,31 @@ $(TYPEDFIELDS)
     last_output = 0.0
 end
 
+"""
+    Integrator(dt, i=1.0, x0=0.0)
+
+Constructor for discrete integrator with external reset.
+
+# Parameters
+
+- dt: timestep [s]
+- i:  integration constant
+- x0: initial and last output
+"""
 function  Integrator(dt, i=1.0, x0=0.0)
     Integrator(dt, i, x0, x0)
 end
 
+"""
+    reset(int::Integrator, x0=0.0)
+
+Reset the integrator `int` to the value `x0`.
+
+# Parameters
+
+- int::Integrator: An integrator struct
+- x0: default value =0.0; initial and last output
+"""
 function reset(int::Integrator, x0=0.0)
     int.output = x0
     int.last_output = x0

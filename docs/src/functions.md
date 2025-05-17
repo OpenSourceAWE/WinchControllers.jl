@@ -4,6 +4,7 @@ CurrentModule = WinchControllers
 ## Input functions
 ```@docs
 set_vset_pc
+reset
 ```
 
 ## Output functions
