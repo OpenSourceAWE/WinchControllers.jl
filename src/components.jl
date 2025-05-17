@@ -129,9 +129,15 @@ function calc_output(m2::Mixer_2CH, input_a, input_b)
     input_b * m2.factor_b + input_a * (1.0 - m2.factor_b)
 end
 
-# Mixer_3CH
-# Mix three analog inputs. Implements the simulink block diagram, shown in
-# docs/mixer_3ch.png
+"""
+    mutable struct Mixer_3CH
+
+Mix two analog inputs. Implements the simulink block diagram, shown in `docs/mixer_3ch.png`.
+
+# Fields
+
+$(TYPEDFIELDS)
+"""
 @with_kw mutable struct Mixer_3CH @deftype Float64
     dt
     t_blend = 1.0
