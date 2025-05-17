@@ -44,9 +44,12 @@ end
     set_vset_pc(cvi::CalcVSetIn, v_set_pc, force)
 
 Parameters:
-- force:    measured tether force [N]
-- v_set_pc: only used during manual operation or park-at-length. If it is `nothing`,
-            v_set_in is calculated as function of the force.
+- force:      measured tether force [N]
+- `v_set_pc`: only used during manual operation or park-at-length. If it is `nothing`,
+              `v_set_in` is calculated as function of the force.
+
+Returns:
+- nothing
 """
 function set_vset_pc(cvi::CalcVSetIn, v_set_pc, force=nothing)
     if isnothing(v_set_pc)
@@ -62,7 +65,11 @@ end
 """
     calc_output(cvi::CalcVSetIn)
 
-Returns v_set_in: Either v_set, or a value, proportional to the sqare root of the force.
+## Parameters
+- cvi::CalcVSetIn: A struct of type CalcVSetIn
+
+## Returns 
+- `v_set_in`: Either `v_set`, or a value, proportional to the square root of the force.
 """
 function calc_output(cvi::CalcVSetIn)
     calc_output(cvi.mixer2, cvi.input_a, cvi.input_b)

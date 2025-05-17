@@ -27,15 +27,17 @@ $(TYPEDFIELDS)
 end
 
 """
-    Integrator(dt, i=1.0, x0=0.0)
+    function Integrator(dt, i=1.0, x0=0.0)
 
 Constructor for discrete integrator with external reset.
 
 # Parameters
-
 - dt: timestep [s]
 - i:  integration constant
 - x0: initial and last output
+
+# Returns
+- a new struct of type `Integrator`
 """
 function  Integrator(dt, i=1.0, x0=0.0)
     Integrator(dt, i, x0, x0)
@@ -47,9 +49,11 @@ end
 Reset the integrator `int` to the value `x0`.
 
 # Parameters
-
 - int::Integrator: An integrator struct
 - x0: default value =0.0; initial and last output
+
+# Returns
+- nothing
 """
 function reset(int::Integrator, x0=0.0)
     int.output = x0
@@ -66,6 +70,9 @@ Calculate and return the output without updating `last_output`.
 
 - int::Integrator: An integrator struct
 - input: The input value
+
+# Returns
+- the output value
 """
 function calc_output(int::Integrator, input)
     int.output = int.last_output + input * int.i * int.dt
@@ -79,6 +86,9 @@ Update the field `last_output`. Must be called once per time-step.
 # Parameters
 
 - int::Integrator: An integrator struct
+
+# Returns
+- nothing
 """
 function on_timer(int::Integrator)
     int.last_output = int.output
@@ -99,18 +109,55 @@ $(TYPEDFIELDS)
     last_input = 0
 end
 
+"""
+    calc_output(ud::UnitDelay, input)
+
+Calculate and return the output and update the `last_input`, but not the `last_output`.
+
+# Parameters
+- int::UnitDelay: A `UnitDelay` struct
+- input: The input value
+
+# Returns
+- the last output
+"""
 function calc_output(ud::UnitDelay, input)
     ud.last_input = input
     ud.last_output
 end
 
+"""
+    on_timer(ud::UnitDelay)
+
+Update the field `last_output`. Must be called once per time-step.
+
+# Parameters
+
+- ud::UnitDelay: A UnitDelay struct
+
+# Returns
+- nothing
+"""
 function on_timer(ud::UnitDelay)
     ud.last_output = ud.last_input
+    nothing
 end
 
+"""
+    reset(ud::UnitDelay)
+
+Reset the `last_input` and `last_output` of the struct ud to zero.
+
+# Parameters
+- ud::UnitDelay: A `UnitDelay` struct
+
+# Returns
+- nothing
+"""
 function reset(ud::UnitDelay)
     ud.last_input = 0.0
     ud.last_output = 0.0
+    nothing
 end
 
 """

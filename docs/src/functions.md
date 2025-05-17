@@ -1,10 +1,6 @@
 ```@meta
 CurrentModule = WinchControllers
 ```
-## Input functions
-```@docs
-set_vset_pc
-```
 
 ## Output functions
 ```@docs
