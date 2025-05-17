@@ -192,11 +192,35 @@ function RateLimiter(dt, limit=1.0, x0=0.0)
     RateLimiter(dt, limit, x0, x0)
 end
 
-function reset(ud::RateLimiter, x0=0.0)
-    ud.output = x0
-    ud.last_output = x0
+"""
+    reset(rl::RateLimiter, x0=0.0)
+
+Reset the `output` and `last_output` of the struct ud to `x0`.
+
+# Parameters
+- rl::RateLimiter: A `RateLimiter` struct
+- x0: the initial value of the output signal
+
+# Returns
+- nothing
+"""
+function reset(rl::RateLimiter, x0=0.0)
+    rl.output = x0
+    rl.last_output = x0
 end
 
+"""
+    calc_output(rl::RateLimiter, input)
+
+Calculate and return the output, but not the `last_output`.
+
+# Parameters
+- rl::RateLimiter: A `RateLimiter` struct
+- input: The input value
+
+# Returns
+- the new output
+"""
 function calc_output(rl::RateLimiter, input)
     if input - rl.last_output > rl.limit * rl.dt
         rl.output = rl.last_output + rl.limit * rl.dt
@@ -208,8 +232,20 @@ function calc_output(rl::RateLimiter, input)
     rl.output
 end
 
+"""
+    on_timer(rl::RateLimiter)
+
+Update the field `last_output`. Must be called once per time-step.
+
+# Parameters
+- rl::RateLimiter: A `RateLimiter` struct
+
+# Returns
+- nothing
+"""
 function on_timer(rl::RateLimiter)
     rl.last_output = rl.output
+    nothing
 end
 
 """

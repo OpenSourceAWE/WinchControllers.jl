@@ -22,6 +22,9 @@ on_timer(ud::UnitDelay)
 ```@docs
 RateLimiter
 RateLimiter(dt, limit=1.0, x0=0.0)
+reset(rl::RateLimiter, x0=0.0)
+calc_output(rl::RateLimiter, input)
+on_timer(rl::RateLimiter)
 ```
 
 ## CalcVSetIn
