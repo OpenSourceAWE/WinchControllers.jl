@@ -6,11 +6,11 @@ using Documenter
 makedocs(;
     modules=[WinchControllers],
     authors="Uwe Fechner <fechner@aenarete.eu>",
-    repo="https://github.com/aenarete/KiteModels.jl/blob/{commit}{path}#{line}",
+    repo="https://github.com/opensourceawe/WinchControllers.jl/blob/{commit}{path}#{line}",
     sitename="WinchControllers.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://aenarete.github.io/WinchControllers.jl",
+        canonical="https://opensourceawe.github.io/WinchControllers.jl",
         assets=String[],
     ),
     pages=[
@@ -21,6 +21,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/aenarete/WinchControllers.jl",
+    repo="github.com/opensourceawe/WinchControllers.jl",
     devbranch="main",
 )
