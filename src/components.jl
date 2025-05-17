@@ -92,7 +92,7 @@ function on_timer(rl::RateLimiter)
 end
 
 """
-    mutable struct Mixer_2CH @deftype
+    mutable struct Mixer_2CH
 
 Mix two analog inputs. Implements the simulink block diagram, shown in `docs/mixer_2ch.png`.
 
