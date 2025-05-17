@@ -18,6 +18,12 @@ calc_output(ud::UnitDelay, input)
 on_timer(ud::UnitDelay)
 ```
 
+## RateLimiter
+```@docs
+RateLimiter
+RateLimiter(dt, limit=1.0, x0=0.0)
+```
+
 ## CalcVSetIn
 ```@docs
 set_vset_pc(cvi::CalcVSetIn, v_set_pc, force)

@@ -1,5 +1,11 @@
 """
+    mutable struct WCSettings
+        
 Settings of the WinchController
+
+# Fields
+
+$(TYPEDFIELDS)
 """
 @with_kw mutable struct WCSettings @deftype Float64
     "timestep of the winch controller"

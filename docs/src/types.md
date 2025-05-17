@@ -6,7 +6,6 @@ CurrentModule = WinchControllers
 
 ## Control components
 ```@docs
-RateLimiter
 Mixer_2CH
 Mixer_3CH
 ```
