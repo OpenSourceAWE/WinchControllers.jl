@@ -10,7 +10,15 @@ Components:
 - Mixer_3CH    three channel mixer
 """
 
-# Discrete integrator with external reset
+"""
+    mutable struct Integrator
+
+Discrete integrator with external reset.
+
+# Fields
+
+$(TYPEDFIELDS)
+"""
 @with_kw mutable struct Integrator @deftype Float64
     dt                  # timestep [s]
     i           = 1.0   # integration constant
@@ -37,7 +45,15 @@ function on_timer(int::Integrator)
     nothing
 end
 
-# UnitDelay, delay the input signal by one time step.
+"""
+    mutable struct UnitDelay
+
+UnitDelay, delay the input signal by one time step.
+
+# Fields
+
+$(TYPEDFIELDS)
+"""
 @with_kw mutable struct UnitDelay @deftype Float64
     last_output = 0
     last_input = 0
@@ -57,9 +73,16 @@ function reset(ud::UnitDelay)
     ud.last_output = 0.0
 end
 
-# RateLimiter
-# Limit the rate of change of the output signal (return value of calc_output) to ± limit.
-# Unit of limit: 1/s
+"""
+    mutable struct RateLimiter
+
+Limit the rate of change of the output signal (return value of calc_output) to ± limit.
+Unit of limit: 1/s
+
+# Fields
+
+$(TYPEDFIELDS)
+"""
 @with_kw mutable struct RateLimiter @deftype Float64
     dt = 0.05
     limit = 1
