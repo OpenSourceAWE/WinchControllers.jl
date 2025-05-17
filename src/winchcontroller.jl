@@ -4,7 +4,7 @@
 
 
 """
-    @with_kw mutable struct WinchController @deftype Float64
+    mutable struct WinchController
 
 Basic winch controller. Works in one of the three modes `wcsLowerForceLimit`, `wcsSpeedControl` and
 `wcsUpperForceLimit`.
