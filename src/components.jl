@@ -57,10 +57,29 @@ function reset(int::Integrator, x0=0.0)
     nothing
 end
 
+"""
+    calc_output(int::Integrator, input)
+
+Calculate and return the output without updating `last_output`.
+
+# Parameters
+
+- int::Integrator: An integrator struct
+- input: The input value
+"""
 function calc_output(int::Integrator, input)
     int.output = int.last_output + input * int.i * int.dt
 end
 
+"""
+    on_timer(int::Integrator)
+
+Update the field `last_output`. Must be called once per time-step.
+
+# Parameters
+
+- int::Integrator: An integrator struct
+"""
 function on_timer(int::Integrator)
     int.last_output = int.output
     nothing

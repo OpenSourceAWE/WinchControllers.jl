@@ -4,12 +4,10 @@ CurrentModule = WinchControllers
 ## Input functions
 ```@docs
 set_vset_pc
-reset
 ```
 
 ## Output functions
 ```@docs
-calc_output
 calc_vro
 get_state
 ```
