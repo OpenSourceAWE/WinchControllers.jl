@@ -1,6 +1,6 @@
 module WinchControllers
 
-using Parameters, StructTypes, KiteUtils, WinchModels, StaticArrays, NLsolve
+using Parameters, StructTypes, KiteUtils, WinchModels, StaticArrays, NLsolve, DocStringExtensions
 
 export WCSettings, WinchController
 export get_speed, set_force, calc_v_set, set_v_set, on_timer, get_acc, get_state, get_status

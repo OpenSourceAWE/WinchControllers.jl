@@ -91,9 +91,15 @@ function on_timer(rl::RateLimiter)
     rl.last_output = rl.output
 end
 
-# Mixer_2CH
-# Mix two analog inputs. Implements the simulink block diagram, shown in
-# docs/mixer_2ch.png
+"""
+    @with_kw mutable struct Mixer_2CH @deftype Float64
+
+Mix two analog inputs. Implements the simulink block diagram, shown in `docs/mixer_2ch.png`.
+
+# Fields
+
+$(TYPEDFIELDS)
+"""
 @with_kw mutable struct Mixer_2CH @deftype Float64
     dt
     t_blend = 1.0

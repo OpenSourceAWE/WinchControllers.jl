@@ -4,7 +4,13 @@
 CurrentModule = WinchControllers
 ```
 
-## Basic types
+## Control components
 ```@docs
+Mixer_2CH
+```
+
+## Controller and settings
+```@docs
+WinchController
 WCSettings
 ```
