@@ -163,8 +163,8 @@ end
 """
     mutable struct RateLimiter
 
-Limit the rate of change of the output signal (return value of calc_output) to ± limit.
-Unit of limit: 1/s
+Limit the rate of change of the output signal (return value of `calc_output`) to ± limit.
+Unit of limit: 1/s. Example: ![rate_limiter](assets/rate_limiter.png).
 
 # Fields
 
