@@ -17,7 +17,7 @@ makedocs(;
         "Home" => "index.md",
         "Generic Components" => "components.md",
         "Winchcontroller" => "winchcontroller.md",
-        "Functions" => "functions.md"
+        "Functions and Macros" => "functions.md"
     ],
 )
 
