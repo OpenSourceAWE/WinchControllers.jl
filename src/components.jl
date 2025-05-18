@@ -251,7 +251,7 @@ end
 """
     mutable struct Mixer_2CH
 
-Mix two analog inputs. Implements the simulink block diagram, shown in `docs/mixer_2ch.png`.
+Mix two analog inputs. Implements the following block diagram: ![mixer_2ch](assets/mixer_2ch.png).
 
 # Fields
 
@@ -301,7 +301,7 @@ end
 """
     mutable struct Mixer_3CH
 
-Mix two analog inputs. Implements the simulink block diagram, shown in `docs/mixer_3ch.png`.
+Mix three analog inputs. Implements the following block diagram: ![mixer_3ch](assets/mixer_3ch.png).
 
 # Fields
 
