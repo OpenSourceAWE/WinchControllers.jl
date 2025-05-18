@@ -33,6 +33,7 @@ on_timer(rl::RateLimiter)
 ```@docs
 Mixer_2CH
 Mixer_2CH(dt, t_blend)
+select_b(m2::Mixer_2CH, select_b::Bool)
 ```
 
 ## Mixer_3CH
