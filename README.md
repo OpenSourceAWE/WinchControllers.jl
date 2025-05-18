@@ -4,7 +4,7 @@
 [![Build Status](https://github.com/opensourceawe/WinchControllers.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/opensourceawe/WinchControllers.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/opensourceawe/WinchControllers.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/opensourceawe/WinchControllers.jl)
 
-Discrete controllers for Winches. 
+Discrete controllers for Winches.
 
 This package is part of Julia Kite Power Tools, which consists of the following packages:
 <p align="center"><img src="./docs/kite_power_tools.png" width="500" /></p>
