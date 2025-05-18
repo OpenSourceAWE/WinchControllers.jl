@@ -103,7 +103,7 @@ end
 function WCSettings(update; dt)
     wcs = WCSettings(; dt)
     if update
-        KiteControllers.update(wcs)
+        WinchControllers.update(wcs)
     end
     wcs.dt = dt
     wcs
