@@ -5,6 +5,7 @@ using Parameters, StructTypes, KiteUtils, WinchModels, StaticArrays, NLsolve, Do
 export WCSettings, WinchController, Mixer_2CH, Mixer_3CH, Integrator
 export get_speed, set_force, calc_v_set, set_v_set, on_timer, get_acc, get_state, get_status
 export select_b, select_c
+export merge_angles
 
 abstract type AbstractForceController end
 const AFC = AbstractForceController

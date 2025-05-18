@@ -26,7 +26,7 @@ V_WIND_MAX = 9.0 # max wind speed of test wind
 V_WIND_MIN = 0.0 # min wind speed of test wind
 FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal 
 
-include("test_utils.jl")
+include("test_utilities.jl")
 
 STARTUP = get_startup(wcs)    
 V_WIND = STARTUP .* get_triangle_wind(wcs)
