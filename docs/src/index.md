@@ -31,9 +31,13 @@ pkg"test WinchControllers"
 ```
 
 ## Provides
+- a set of generic control components, see [Generic Components](@ref)
+- a winch controller [WinchController](@ref), that limits the upper and lower force and controls the speed as function of the force
+- a winch controller settings struct [WCSettings](@ref) for the settings
+- [Utility Functions and Macros](@ref)
 
 ## See also
-- [Research Fechner](https://research.tudelft.nl/en/publications/?search=Fechner+wind&pageSize=50&ordering=rating&descending=true) for the scientic background of this code
+- [Research Fechner](https://research.tudelft.nl/en/publications/?search=Fechner+wind&pageSize=50&ordering=rating&descending=true) for the scientific background of this code
 - The meta-package  [KiteSimulators](https://github.com/aenarete/KiteSimulators.jl)
 - the package [KiteUtils](https://github.com/ufechner7/KiteUtils.jl)
 - the packages [WinchModels](https://github.com/aenarete/WinchModels.jl) and [KitePodModels](https://github.com/aenarete/KitePodModels.jl) and [AtmosphericModels](https://github.com/aenarete/AtmosphericModels.jl)

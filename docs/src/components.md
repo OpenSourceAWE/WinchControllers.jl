@@ -1,6 +1,8 @@
 ```@meta
 CurrentModule = WinchControllers
 ```
+# Generic Components
+
 ## Integrator
 ```@docs
 Integrator
