@@ -34,6 +34,7 @@ on_timer(rl::RateLimiter)
 Mixer_2CH
 Mixer_2CH(dt, t_blend)
 select_b(m2::Mixer_2CH, select_b::Bool)
+calc_output(m2::Mixer_2CH, input_a, input_b)
 ```
 
 ## Mixer_3CH
@@ -42,4 +43,5 @@ Mixer_3CH
 get_state(m3::Mixer_3CH)
 select_b(m3::Mixer_3CH, select_b::Bool)
 select_c(m3::Mixer_3CH, select_c::Bool)
+calc_output(m3::Mixer_3CH, input_a, input_b, input_c)
 ```

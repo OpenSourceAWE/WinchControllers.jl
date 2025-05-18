@@ -307,6 +307,20 @@ function on_timer(m2::Mixer_2CH)
     m2.factor_b = saturate(m2.factor_b, 0, 1)
 end
 
+"""
+    calc_output(m2::Mixer_2CH, input_a, input_b)
+
+Calculate and return the output of the two channel mixer.
+
+# Parameters
+
+- m2::Mixer_2CH: a two channel mixer component
+- input_a: input value of channel A
+- input_b: input value of channel B
+
+# Returns
+- the output value
+"""
 function calc_output(m2::Mixer_2CH, input_a, input_b)
     input_b * m2.factor_b + input_a * (1.0 - m2.factor_b)
 end
@@ -398,6 +412,20 @@ function select_c(m3::Mixer_3CH, select_c::Bool)
     nothing
 end
 
+"""
+    calc_output(m3::Mixer_3CH, input_a, input_b, input_c)
+
+Calculate and return the output of the three channel mixer.
+
+# Parameters
+- m3::Mixer_3CH: a three channel mixer component
+- input_a: input value of channel A
+- input_b: input value of channel B
+- input_c: input value of channel C
+
+# Returns
+- the output value
+"""
 function calc_output(m3::Mixer_3CH, input_a, input_b, input_c)
     input_b * m3.factor_b + input_c * m3.factor_c + input_a * (1.0 - m3.factor_b - m3.factor_c)
 end
