@@ -35,6 +35,7 @@ Mixer_2CH
 Mixer_2CH(dt, t_blend)
 select_b(m2::Mixer_2CH, select_b::Bool)
 calc_output(m2::Mixer_2CH, input_a, input_b)
+on_timer(m2::Mixer_2CH)
 ```
 
 ## Mixer_3CH
@@ -44,4 +45,5 @@ get_state(m3::Mixer_3CH)
 select_b(m3::Mixer_3CH, select_b::Bool)
 select_c(m3::Mixer_3CH, select_c::Bool)
 calc_output(m3::Mixer_3CH, input_a, input_b, input_c)
+on_timer(m3::Mixer_3CH)
 ```

@@ -297,6 +297,17 @@ function select_b(m2::Mixer_2CH, select_b::Bool)
     nothing
 end
 
+"""
+    on_timer(m2::Mixer_2CH)
+
+Update the field `m2.factor_b`. Must be called once per time-step.
+
+# Parameters
+- m2::Mixer_2CH: a two channel mixer
+
+# Returns
+- nothing
+"""
 function on_timer(m2::Mixer_2CH)
     if m2.select_b
         integrator_in = 1.0 / m2.t_blend
@@ -313,7 +324,6 @@ end
 Calculate and return the output of the two channel mixer.
 
 # Parameters
-
 - m2::Mixer_2CH: a two channel mixer component
 - input_a: input value of channel A
 - input_b: input value of channel B
@@ -347,6 +357,17 @@ function Mixer_3CH(dt, t_blend = 1.0)
     Mixer_3CH(dt, t_blend, 0, 0, false, false)
 end
 
+"""
+    on_timer(m3::Mixer_3CH)
+
+Update the fields `m3.factor_b` and `m3.factor_c`. Must be called once per time-step.
+
+# Parameters
+- m3::Mixer_3CH: a three channel mixer
+
+# Returns
+- nothing
+"""
 function on_timer(m3::Mixer_3CH)
     # calc output of integrator b
     if m3.select_b
