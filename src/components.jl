@@ -32,7 +32,7 @@ end
 Constructor for discrete integrator with external reset.
 
 # Parameters
-- dt: timestep [s]
+- dt: time-step [s]
 - i:  integration constant
 - x0: initial and last output
 

@@ -15,8 +15,8 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
-        "Components" => "components.md",
-        "Types" => "types.md",
+        "Generic Components" => "components.md",
+        "Winchcontroller" => "winchcontroller.md",
         "Functions" => "functions.md"
     ],
 )

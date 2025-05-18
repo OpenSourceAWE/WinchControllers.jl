@@ -12,7 +12,15 @@ Components:
 Implemented as described in the PhD thesis of Uwe Fechner.
 """
 
-# Component for calculation v_set_in, using soft switching.
+"""
+    mutable struct CalcVSetIn
+
+Component for calculation v_set_in, using soft switching.
+
+# Fields
+
+$(TYPEDFIELDS)
+"""
 @with_kw mutable struct CalcVSetIn @deftype Float64
     wcs::WCSettings
     mixer2::Mixer_2CH = Mixer_2CH(wcs.dt, wcs.t_blend)
@@ -20,6 +28,17 @@ Implemented as described in the PhD thesis of Uwe Fechner.
     input_b     = 0
 end
 
+"""
+    function CalcVSetIn(wcs::WCSettings)
+
+Constructor for component for calculation `v_set_in`, using soft switching.
+
+# Parameters
+- wcs:: WCSettings: settings struct with the winch controller settings
+
+# Returns
+- a new struct of type `CalcVSetIn`
+"""
 function CalcVSetIn(wcs::WCSettings)
     CalcVSetIn(wcs=wcs)
 end
@@ -83,8 +102,20 @@ function calc_output(cvi::CalcVSetIn)
     calc_output(cvi.mixer2, cvi.input_a, cvi.input_b)
 end
 
+"""
+    on_timer(cvi::CalcVSetIn)
+
+Update the mixer. Must be called once per time-step.
+
+# Parameters
+- cvi::CalcVSetIn: Reference to the CalcVSetIn component
+
+# Returns
+- nothing
+"""
 function on_timer(cvi::CalcVSetIn)
     on_timer(cvi.mixer2)
+    nothing
 end
 
 # Class, that calculates the acceleration of the tether based on the tether force

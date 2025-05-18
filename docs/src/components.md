@@ -27,8 +27,12 @@ calc_output(rl::RateLimiter, input)
 on_timer(rl::RateLimiter)
 ```
 
-## CalcVSetIn
+## Mixer_2CH
 ```@docs
-set_vset_pc(cvi::CalcVSetIn, v_set_pc, force)
-calc_output(cvi::CalcVSetIn)
+Mixer_2CH
+```
+
+## Mixer_3CH
+```@docs
+Mixer_3CH
 ```
