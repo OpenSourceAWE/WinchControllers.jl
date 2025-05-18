@@ -40,4 +40,6 @@ select_b(m2::Mixer_2CH, select_b::Bool)
 ```@docs
 Mixer_3CH
 get_state(m3::Mixer_3CH)
+select_b(m3::Mixer_3CH, select_b::Bool)
+select_c(m3::Mixer_3CH, select_c::Bool)
 ```

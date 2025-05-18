@@ -353,6 +353,24 @@ function on_timer(m3::Mixer_3CH)
     nothing
 end
 
+"""
+    select_b(m3::Mixer_3CH, select_b::Bool)
+
+Make input b the active input.
+
+To make channel a the active input call:
+```julia
+select_b(m3, false)
+select_c(m3, false)
+```
+
+## Parameters
+- m3::Mixer_3CH: the three-channel mixer
+- select_b: if true, select channel b
+
+## Returns
+- nothing
+"""
 function select_b(m3::Mixer_3CH, select_b::Bool)
     m3.select_b = select_b
     if select_b
@@ -360,11 +378,24 @@ function select_b(m3::Mixer_3CH, select_b::Bool)
     end
 end
 
+"""
+    select_c(m3::Mixer_3CH, select_c::Bool)
+
+Make input c the active input.
+
+## Parameters
+- m3::Mixer_3CH: the three-channel mixer
+- select_c: if true, select channel c
+
+## Returns
+- nothing
+"""
 function select_c(m3::Mixer_3CH, select_c::Bool)
     m3.select_c = select_c
     if select_c
         select_b(m3, false)
     end
+    nothing
 end
 
 function calc_output(m3::Mixer_3CH, input_a, input_b, input_c)
