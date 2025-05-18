@@ -7,6 +7,6 @@ const __TEST__ = true
     include("test_winchcontroller.jl")
 end
 
-@testset "utils.jl" begin
+@testset verbose=true "utils.jl" begin
     include("test_utils.jl")
 end
