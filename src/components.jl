@@ -264,6 +264,18 @@ $(TYPEDFIELDS)
     select_b::Bool = false
 end
 
+"""
+    Mixer_2CH(dt, t_blend)
+
+Constructor for Mixer_2CH, a component for mixing two analog inputs.
+
+## Parameters
+- dt: the time-step [s]
+- `t_blend`: the time for blending over from one channel to the other [s]
+
+## Returns
+- a struct of type Mixer_2CH
+"""
 function Mixer_2CH(dt, t_blend)
     Mixer_2CH(dt, t_blend, 0, false)
 end
@@ -347,11 +359,14 @@ function calc_output(m3::Mixer_3CH, input_a, input_b, input_c)
 end
 
 """
+    function get_state(m3::Mixer_3CH)
+
 Return the controller state as integer.
 
-wcsLowerForceControl = 0 # input b selected 
-wcsSpeedControl = 1      # input a selected
-wcsUpperForceControl = 2 # input c selected
+Returns:
+- wcsLowerForceControl = 0 # input b selected 
+- wcsSpeedControl = 1      # input a selected
+- wcsUpperForceControl = 2 # input c selected
 """
 function get_state(m3::Mixer_3CH)
     Int(! m3.select_b && ! m3.select_c) + 2 * Int(m3.select_c)

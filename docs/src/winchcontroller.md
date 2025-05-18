@@ -2,8 +2,7 @@
 CurrentModule = WinchControllers
 ```
 
-## Control components
-### CalcVSetIn
+## CalcVSetIn
 ```@docs
 CalcVSetIn
 CalcVSetIn(wcs::WCSettings)
@@ -12,8 +11,13 @@ calc_output(cvi::CalcVSetIn)
 on_timer(cvi::CalcVSetIn)
 ```
 
-## Controller and settings
+## Winch Controller
 ```@docs
 WinchController
+```
+
+## Controller Settings
+```@docs
 WCSettings
+calc_vro
 ```

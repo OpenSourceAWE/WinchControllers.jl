@@ -15,7 +15,7 @@ Implemented as described in the PhD thesis of Uwe Fechner.
 """
     mutable struct CalcVSetIn
 
-Component for calculation v_set_in, using soft switching.
+Component for calculation `v_set_in`, using soft switching.
 
 # Fields
 

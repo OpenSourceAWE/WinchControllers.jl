@@ -2,13 +2,7 @@
 CurrentModule = WinchControllers
 ```
 
-## Output functions
-```@docs
-calc_vro
-get_state
-```
-
-## Utility functions
+## Utility Functions and Macros
 ```@docs
 @limit
 saturate

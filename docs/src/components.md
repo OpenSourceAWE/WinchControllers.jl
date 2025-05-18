@@ -30,9 +30,11 @@ on_timer(rl::RateLimiter)
 ## Mixer_2CH
 ```@docs
 Mixer_2CH
+Mixer_2CH(dt, t_blend)
 ```
 
 ## Mixer_3CH
 ```@docs
 Mixer_3CH
+get_state(m3::Mixer_3CH)
 ```
