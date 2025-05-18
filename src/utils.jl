@@ -11,7 +11,22 @@ Functions:
 Implemented as described in the PhD thesis of Uwe Fechner.
 """
 
-""" Calculate a saturated value, that stays within the given limits. """
+""" 
+    saturate(value, min_, max_)
+
+Calculate a saturated value, that stays within the given limits. 
+
+Parameters:
+- value: the input value
+- min_: the lower value to which it shall be clamped
+- max_: the upper value to which it shall be clamped
+
+Returns:
+- the clamped value
+
+Remark:
+- consider using the function `clamp` or the macro [`@limit`](@ref) instead
+"""
 function saturate(value, min_, max_)
     result = value
     if result > max_
