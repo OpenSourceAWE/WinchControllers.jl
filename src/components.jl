@@ -393,7 +393,9 @@ end
 """
     mutable struct Mixer_3CH
 
-Mix three analog inputs. Implements the following block diagram: ![mixer_3ch](assets/mixer_3ch.png).
+Mix three analog inputs. It selects either input a or input b or input c depending on the values of the digital inputs 
+and implements soft switching with a blend time `t_blend`. Implements the following block diagram:  
+![mixer_3ch](assets/mixer_3ch.png).
 
 # Fields
 
