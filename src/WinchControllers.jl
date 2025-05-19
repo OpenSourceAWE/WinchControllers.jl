@@ -9,6 +9,7 @@ export Mixer_2CH, Mixer_3CH, Integrator, UnitDelay, RateLimiter
 export get_speed, set_force, calc_v_set, set_v_set, on_timer, get_acc, get_state, get_status
 export select_b, select_c, reset, calc_output
 export merge_angles, @limit
+export SpeedController, set_inactive, set_v_act, set_v_set, set_v_set_in, set_tracking, get_v_set_out
 
 abstract type AbstractForceController end
 const AFC = AbstractForceController

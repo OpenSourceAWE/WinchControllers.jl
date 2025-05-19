@@ -17,7 +17,7 @@ Implemented as described in the PhD thesis of Uwe Fechner.
 
 Component for calculation `v_set_in`, using soft switching.
 
-# Fields
+## Fields
 
 $(TYPEDFIELDS)
 """
@@ -33,10 +33,10 @@ end
 
 Constructor for component for calculation `v_set_in`, using soft switching.
 
-# Parameters
+## Parameters
 - wcs:: WCSettings: settings struct with the winch controller settings
 
-# Returns
+## Returns
 - a new struct of type `CalcVSetIn`
 """
 function CalcVSetIn(wcs::WCSettings)
@@ -48,11 +48,11 @@ end
 
 Calculate the optimal reel-out speed for a given force. 
 
-# Parameters
+## Parameters
 - wcs::WCSettings: the settings struct
 - force: the tether force at the winch
 
-# Returns
+## Returns
 - the optimal reel-out speed
 """
 function calc_vro(wcs::WCSettings, force)
@@ -70,12 +70,12 @@ end
 """
     set_vset_pc(cvi::CalcVSetIn, v_set_pc, force)
 
-# Parameters:
+## Parameters:
 - force:      measured tether force [N]
 - `v_set_pc`: only used during manual operation or park-at-length. If it is `nothing`,
               `v_set_in` is calculated as function of the force.
 
-# Returns:
+## Returns:
 - nothing
 """
 function set_vset_pc(cvi::CalcVSetIn, v_set_pc, force=nothing)
@@ -92,10 +92,10 @@ end
 """
     calc_output(cvi::CalcVSetIn)
 
-# Parameters
+## Parameters
 - cvi::CalcVSetIn: A struct of type CalcVSetIn
 
-# Returns 
+## Returns 
 - `v_set_in`: Either `v_set`, or a value, proportional to the square root of the force.
 """
 function calc_output(cvi::CalcVSetIn)
@@ -107,10 +107,10 @@ end
 
 Update the mixer. Must be called once per time-step.
 
-# Parameters
+## Parameters
 - cvi::CalcVSetIn: Reference to the CalcVSetIn component
 
-# Returns
+## Returns
 - nothing
 """
 function on_timer(cvi::CalcVSetIn)
@@ -125,7 +125,7 @@ Component, that calculates the acceleration of the tether based on the tether fo
 and the set speed (= synchronous speed). Asynchronous motor model and drum inertia
 are taken into account. Used for testing of the winch controller.
 
-# Fields
+## Fields
 
 $(TYPEDFIELDS)
 """
@@ -145,11 +145,11 @@ end
 Constructor for a Winch struct, using the winch-controller settings and the general settings
 as parameters.
 
-# Parameters
+## Parameters
 - wcs::[WCSettings](@ref): settings of the winch controller
 - set::[Settings](https://ufechner7.github.io/KiteUtils.jl/dev/types/#KiteUtils.Settings): general settings
 
-# Returns
+## Returns
 - a struct of type [Winch](@ref)
 """
 function Winch(wcs::WCSettings, set::Settings)
@@ -161,11 +161,11 @@ end
 
 Set the reel-out speed of the winch.
 
-# Parameters
+## Parameters
 - w::[Winch](@ref): struct of type Winch
 - v_set: new set value of the reel-out speed [m/s]
 
-# Returns
+## Returns
 - nothing
 """
 function set_v_set(w::Winch, v_set)
@@ -178,11 +178,11 @@ end
 
 Set the tether force at the winch.
 
-# Parameters
+## Parameters
 - w::[Winch](@ref): struct of type Winch
 - force: new set value of the tether force [N]
 
-# Returns
+## Returns
 - nothing
 """
 function set_force(w::Winch, force)
@@ -195,10 +195,10 @@ end
 
 Read the tether speed of the winch.
 
-# Parameters
+## Parameters
 - w::[Winch](@ref): struct of type Winch
 
-# Returns
+## Returns
 - the reel-out speed of the winch in m/s
 """
 function get_speed(w::Winch) w.speed end
@@ -208,10 +208,10 @@ function get_speed(w::Winch) w.speed end
 
 Determine the current acceleration of the winch.
 
-# Parameters
+## Parameters
 - w::[Winch](@ref): struct of type Winch
 
-# Returns
+## Returns
 - acceleration of the winch in m/s²
 """
 function get_acc(w::Winch) w.acc end
@@ -222,10 +222,10 @@ function get_acc(w::Winch) w.acc end
 Update the winch. Must be called once per time-step. calculates
 and updates the winch acceleration `w.acc` using a loop.
 
-# Parameters
+## Parameters
 - w::Winch: Reference to the [Winch](@ref) component
 
-# Returns
+## Returns
 - nothing
 """
 function on_timer(w::Winch)
@@ -248,7 +248,7 @@ Back-calculation is used as anti-windup method and for tracking. The constant fo
 anti-windup is `K_b`, the constant for tracking `K_t`
 Implements the following block diagram: ![speed_controller](assets/speed_controller.png)
 
-# Fields
+## Fields
 
 $(TYPEDFIELDS)
 """
@@ -271,10 +271,10 @@ end
 
 Constructor for a SpeedController, based on the winch controller settings.
 
-# Parameters
+## Parameters
 - wcs::WCSettings: the winch controller settings struct
 
-# Returns
+## Returns
 - a struct of type [SpeedController](@ref)
 """
 function SpeedController(wcs::WCSettings)
@@ -287,10 +287,10 @@ end
 De-activate the speed controller if the parameter inactive is true, otherwise
 activate it and reset the integrator and the limiter.
 
-# Parameters
+## Parameters
 - sc::[SpeedController](@ref): the speed controller to de-activate or activate
 
-# Returns
+## Returns
 - nothing
 """
 function set_inactive(sc::SpeedController, inactive::Bool)
@@ -309,11 +309,11 @@ end
 
 Set the actual reel-out speed of the speed controller `sc` to `v_act`.
 
-# Parameters
+## Parameters
 - sc::[SpeedController](@ref): the speed controller
 - `v_act`: the actual reel-out speed
 
-# Returns
+## Returns
 - nothing
 """
 function set_v_act(sc::SpeedController, v_act)
@@ -325,11 +325,11 @@ end
 
 Set the set speed of the speed controller `sc` to `v_set`.
 
-# Parameters
+## Parameters
 - sc::[SpeedController](@ref): the speed controller
 - `v_set`: the set value of the reel-out speed
 
-# Returns
+## Returns
 - nothing
 """
 function set_v_set(sc::SpeedController, v_set)
@@ -342,11 +342,11 @@ end
 
 Set the signal `v_set_in` of the speed controller to `v_set_in`.
 
-# Parameters
+## Parameters
 - sc::[SpeedController](@ref): the speed controller
 - `v_set_in`: the value to assign to the signal `v_set_in`
 
-# Returns
+## Returns
 - nothing
 """
 function set_v_set_in(sc::SpeedController, v_set_in)
@@ -359,11 +359,11 @@ end
 
 Set the signal `tracking` of the speed controller to `tracking`.
 
-# Parameters
+## Parameters
 - sc::[SpeedController](@ref): the speed controller
 - `tracking`: the value to assign to the signal `tracking`
 
-# Returns
+## Returns
 - nothing
 """
 function set_tracking(sc::SpeedController, tracking)
@@ -413,10 +413,10 @@ end
 
 Update the SpeedController. Must be called once per time-step. 
 
-# Parameters
+## Parameters
 - sc::SpeedController Reference to the [SpeedController](@ref) component
 
-# Returns
+## Returns
 - nothing
 """
 function on_timer(sc::SpeedController)
@@ -430,10 +430,10 @@ end
 
 Calculate the output value of the controller by using a non-linear solver.
 
-# Parameters
+## Parameters
 - sc::SpeedController Reference to the [SpeedController](@ref) component
 
-# Returns
+## Returns
 - `v_set_out`: the synchronous speed, calculated by the controller
 """
 function get_v_set_out(sc::SpeedController)

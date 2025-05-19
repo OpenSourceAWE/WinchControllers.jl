@@ -15,7 +15,7 @@ Components:
 
 Discrete integrator with external reset.
 
-# Fields
+## Fields
 
 $(TYPEDFIELDS)
 
@@ -43,12 +43,12 @@ end
 
 Constructor for discrete integrator with external reset.
 
-# Parameters
+## Parameters
 - dt: time-step [s]
 - i:  integration constant
 - x0: initial and last output
 
-# Returns
+## Returns
 - a new struct of type `Integrator`
 """
 function  Integrator(dt, i=1.0, x0=0.0)
@@ -60,11 +60,11 @@ end
 
 Reset the integrator `int` to the value `x0`.
 
-# Parameters
+## Parameters
 - int::Integrator: An integrator struct
 - x0: default value =0.0; initial and last output
 
-# Returns
+## Returns
 - nothing
 """
 function reset(int::Integrator, x0=0.0)
@@ -78,12 +78,12 @@ end
 
 Calculate and return the output without updating `last_output`.
 
-# Parameters
+## Parameters
 
 - int::Integrator: An integrator struct
 - input: The input value
 
-# Returns
+## Returns
 - the output value
 """
 function calc_output(int::Integrator, input)
@@ -95,11 +95,11 @@ end
 
 Update the field `last_output`. Must be called once per time-step.
 
-# Parameters
+## Parameters
 
 - int::Integrator: An integrator struct
 
-# Returns
+## Returns
 - nothing
 """
 function on_timer(int::Integrator)
@@ -112,7 +112,7 @@ end
 
 UnitDelay, delay the input signal by one time step.
 
-# Fields
+## Fields
 
 $(TYPEDFIELDS)
 
@@ -136,11 +136,11 @@ end
 
 Calculate and return the output and update the `last_input`, but not the `last_output`.
 
-# Parameters
+## Parameters
 - int::UnitDelay: A `UnitDelay` struct
 - input: The input value
 
-# Returns
+## Returns
 - the last output
 """
 function calc_output(ud::UnitDelay, input)
@@ -153,11 +153,11 @@ end
 
 Update the field `last_output`. Must be called once per time-step.
 
-# Parameters
+## Parameters
 
 - ud::UnitDelay: A UnitDelay struct
 
-# Returns
+## Returns
 - nothing
 """
 function on_timer(ud::UnitDelay)
@@ -170,10 +170,10 @@ end
 
 Reset the `last_input` and `last_output` of the struct ud to zero.
 
-# Parameters
+## Parameters
 - ud::UnitDelay: A `UnitDelay` struct
 
-# Returns
+## Returns
 - nothing
 """
 function reset(ud::UnitDelay)
@@ -188,7 +188,7 @@ end
 Limit the rate of change of the output signal (return value of `calc_output`) to ± limit.
 Unit of limit: 1/s.
 
-# Fields
+## Fields
 
 $(TYPEDFIELDS)
 
@@ -216,12 +216,12 @@ end
 """
     RateLimiter(dt, limit=1.0, x0=0.0)
 
-# Parameters
+## Parameters
 - dt: the time-step [s]
 - limit: the rate limit, default: 1.0 [1/s]
 - x0: the initial output, default: 0.0
 
-# Returns
+## Returns
 - a struct of type RateLimiter
 """
 function RateLimiter(dt, limit=1.0, x0=0.0)
@@ -233,11 +233,11 @@ end
 
 Reset the `output` and `last_output` of the struct ud to `x0`.
 
-# Parameters
+## Parameters
 - rl::RateLimiter: A `RateLimiter` struct
 - x0: the initial value of the output signal
 
-# Returns
+## Returns
 - nothing
 """
 function reset(rl::RateLimiter, x0=0.0)
@@ -250,11 +250,11 @@ end
 
 Calculate and return the output, but not the `last_output`.
 
-# Parameters
+## Parameters
 - rl::RateLimiter: A `RateLimiter` struct
 - input: The input value
 
-# Returns
+## Returns
 - the new output
 """
 function calc_output(rl::RateLimiter, input)
@@ -273,10 +273,10 @@ end
 
 Update the field `last_output`. Must be called once per time-step.
 
-# Parameters
+## Parameters
 - rl::RateLimiter: A `RateLimiter` struct
 
-# Returns
+## Returns
 - nothing
 """
 function on_timer(rl::RateLimiter)
@@ -290,7 +290,7 @@ end
 Mix two analog inputs.  It selects either input a or input b depending on the value of the digital input and implements 
 soft switching with a blend time `t_blend`. Implements the following block diagram: ![mixer_2ch](assets/mixer_2ch.png).
 
-# Fields
+## Fields
 
 $(TYPEDFIELDS)
 
@@ -324,11 +324,11 @@ end
 
 Constructor for Mixer_2CH, a component for mixing two analog inputs.
 
-## Parameters
+### Parameters
 - dt: the time-step [s]
 - `t_blend`: the time for blending over from one channel to the other [s]
 
-## Returns
+### Returns
 - a struct of type Mixer_2CH
 """
 function Mixer_2CH(dt, t_blend)
@@ -340,11 +340,11 @@ end
 
 Select input a or b.
 
-## Parameters
+### Parameters
 - m2::Mixer_2CH: the two-channel mixer
 - select_b: if true, select channel b, otherwise select channel a
 
-## Returns
+### Returns
 - nothing
 """
 function select_b(m2::Mixer_2CH, select_b::Bool)
@@ -357,10 +357,10 @@ end
 
 Update the field `m2.factor_b`. Must be called once per time-step.
 
-# Parameters
+## Parameters
 - m2::Mixer_2CH: a two channel mixer
 
-# Returns
+## Returns
 - nothing
 """
 function on_timer(m2::Mixer_2CH)
@@ -378,12 +378,12 @@ end
 
 Calculate and return the output of the two channel mixer.
 
-# Parameters
+## Parameters
 - m2::Mixer_2CH: a two channel mixer component
 - input_a: input value of channel A
 - input_b: input value of channel B
 
-# Returns
+## Returns
 - the output value
 """
 function calc_output(m2::Mixer_2CH, input_a, input_b)
@@ -397,7 +397,7 @@ Mix three analog inputs. It selects either input a or input b or input c dependi
 and implements soft switching with a blend time `t_blend`. Implements the following block diagram:  
 ![mixer_3ch](assets/mixer_3ch.png).
 
-# Fields
+## Fields
 
 $(TYPEDFIELDS)
 
@@ -444,10 +444,10 @@ end
 
 Update the fields `m3.factor_b` and `m3.factor_c`. Must be called once per time-step.
 
-# Parameters
+## Parameters
 - m3::Mixer_3CH: a three channel mixer
 
-# Returns
+## Returns
 - nothing
 """
 function on_timer(m3::Mixer_3CH)
@@ -481,11 +481,11 @@ select_b(m3, false)
 select_c(m3, false)
 ```
 
-## Parameters
+### Parameters
 - m3::Mixer_3CH: the three-channel mixer
 - select_b: if true, select channel b
 
-## Returns
+### Returns
 - nothing
 """
 function select_b(m3::Mixer_3CH, select_b::Bool)
@@ -500,11 +500,11 @@ end
 
 Make input c the active input.
 
-## Parameters
+### Parameters
 - m3::Mixer_3CH: the three-channel mixer
 - select_c: if true, select channel c
 
-## Returns
+### Returns
 - nothing
 """
 function select_c(m3::Mixer_3CH, select_c::Bool)
@@ -520,13 +520,13 @@ end
 
 Calculate and return the output of the three channel mixer.
 
-# Parameters
+## Parameters
 - m3::Mixer_3CH: a three channel mixer component
 - input_a: input value of channel A
 - input_b: input value of channel B
 - input_c: input value of channel C
 
-# Returns
+## Returns
 - the output value
 """
 function calc_output(m3::Mixer_3CH, input_a, input_b, input_c)
