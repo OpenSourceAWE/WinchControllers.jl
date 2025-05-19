@@ -18,6 +18,18 @@ Discrete integrator with external reset.
 # Fields
 
 $(TYPEDFIELDS)
+
+# Example
+```julia
+int = Integrator(0.05, 2, 3)      # dt, integration constant, initial output  
+reset(int)                        # reset the integrator
+input = 2
+for i in 1:3
+    out = calc_output(int, input) # calculate the output
+    println(out)
+    on_timer(int)                 # must be called on each time-step
+end
+```
 """
 @with_kw mutable struct Integrator @deftype Float64
     dt                  # timestep [s]
