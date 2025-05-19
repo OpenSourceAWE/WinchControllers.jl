@@ -16,6 +16,12 @@ on_timer(cvi::CalcVSetIn)
 WinchController
 ```
 
+## Winch
+```@docs
+Winch
+Winch(wcs::WCSettings, set::Settings)
+```
+
 ## Controller Settings
 ```@docs
 WCSettings

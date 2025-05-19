@@ -92,10 +92,10 @@ end
 """
     calc_output(cvi::CalcVSetIn)
 
-## Parameters
+# Parameters
 - cvi::CalcVSetIn: A struct of type CalcVSetIn
 
-## Returns 
+# Returns 
 - `v_set_in`: Either `v_set`, or a value, proportional to the square root of the force.
 """
 function calc_output(cvi::CalcVSetIn)
@@ -118,9 +118,17 @@ function on_timer(cvi::CalcVSetIn)
     nothing
 end
 
-# Class, that calculates the acceleration of the tether based on the tether force
-# and the set speed (= synchronous speed). Asynchronous motor model and drum inertia
-# are taken into account.
+"""
+    mutable struct Winch
+
+Component, that calculates the acceleration of the tether based on the tether force
+and the set speed (= synchronous speed). Asynchronous motor model and drum inertia
+are taken into account.
+
+# Fields
+
+$(TYPEDFIELDS)
+"""
 @with_kw mutable struct Winch @deftype Float64
     wcs::WCSettings
     set::Settings
@@ -130,6 +138,20 @@ end
     acc       = 0 # output
     speed     = 0 # output; reel-out speed; only state of this model
 end
+
+"""
+    function Winch(wcs::WCSettings, set::Settings)
+
+Constructor for a Winch struct, using the winch-controller settings and the general settings
+as parameters.
+
+# Parameters
+- wcs::[WCSettings](@ref): settings of the winch controller
+- set::[Settings](https://ufechner7.github.io/KiteUtils.jl/dev/types/#KiteUtils.Settings): general settings
+
+# Returns
+- a struct of type [Winch](@ref)
+"""
 function Winch(wcs::WCSettings, set::Settings)
     Winch(wcs=wcs, set=set)
 end
