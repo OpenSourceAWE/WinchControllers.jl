@@ -186,11 +186,25 @@ end
     mutable struct RateLimiter
 
 Limit the rate of change of the output signal (return value of `calc_output`) to ± limit.
-Unit of limit: 1/s. Example: ![rate_limiter](assets/rate_limiter.png).
+Unit of limit: 1/s.
 
 # Fields
 
 $(TYPEDFIELDS)
+
+# Example
+```julia
+using WinchControllers, ControlPlots
+rl = RateLimiter(1.0, 0.8)
+input =  [0,0,1,2,3,3,3,3,3,2,1,0,0,0,0,0]
+out = zeros(16)
+for i in 1:16
+    out[i] = calc_output(rl, input[i])
+    on_timer(rl)
+end
+plot(1:16, [input, out]; labels=["input", "output"])
+```
+![rate_limiter](assets/rate_limiter.png).
 """
 @with_kw mutable struct RateLimiter @deftype Float64
     dt = 0.05
