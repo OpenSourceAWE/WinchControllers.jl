@@ -516,17 +516,57 @@ function _update_reset(fc::LowerForceController)
     end
 end
 
+"""
+    set_v_act(fc::AFC, v_act)
+
+Set the signal `v_act` of the force controller to `v_act`.
+
+## Parameters
+- sc::AFC: abstract force controller
+- `v_act`: the value to assign to the signal `v_act`
+
+## Returns
+- nothing
+"""
 function set_v_act(fc::AFC, v_act)
     fc.v_act = v_act
+    nothing
 end
 
+"""
+    set_force(fc::AFC, force)
+
+Set the signal `force` of the force controller to `force`.
+
+## Parameters
+- sc::AFC: abstract force controller
+- `force`: the value to assign to the signal `force`
+
+## Returns
+- nothing
+"""
 function set_force(fc::AFC, force)
     fc.force = force
+    nothing
 end
 
+"""
+    set_reset(fc::AFC, reset)
+
+Set the signal `reset` of the force controller to `reset` and activate
+or de-activate the controller.
+
+## Parameters
+- sc::AFC: abstract force controller
+- `reset`: the value to assign to the signal `reset`
+
+## Returns
+- nothing
+"""
 function set_reset(fc::AFC, reset)
     fc.reset = reset
     _update_reset(fc)
+    nothing
 end
 
 function set_f_set(fc::AFC, f_set)

@@ -11,7 +11,7 @@ calc_output(cvi::CalcVSetIn)
 on_timer(cvi::CalcVSetIn)
 ```
 
-## Speed Controller
+## SpeedController
 ```@docs
 SpeedController
 SpeedController(wcs::WCSettings)
@@ -24,13 +24,20 @@ get_v_set_out(sc::SpeedController)
 on_timer(sc::SpeedController)
 ```
 
+## AbstractForceController
+```@docs
+set_v_act(fc::AFC, v_act)
+set_force(fc::AFC, force)
+set_reset(fc::AFC, reset)
+```
+
 ## LowerForceController
 ```@docs
 LowerForceController
 LowerForceController(wcs::WCSettings)
 ```
 
-## Winch Controller
+## WinchController
 ```@docs
 WinchController
 ```
