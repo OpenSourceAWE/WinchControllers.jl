@@ -448,11 +448,19 @@ function get_v_error(sc::SpeedController)
     end
 end
 
-# PI controller for the lower force of the tether.
-# While inactive, it tracks the value from the tracking input.
-# Back-calculation is used as anti-windup method and for tracking. The constant for
-# anti-windup is K_b, the constant for tracking K_t
-# Implements the simulink block diagram, shown in docs/lower_force_controller.png.
+"""
+    mutable struct LowerForceController <: AbstractForceController
+
+PI controller for the lower force of the tether.
+While inactive, it tracks the value from the tracking input.
+Back-calculation is used as anti-windup method and for tracking. The constant for
+anti-windup is `K_b`, the constant for tracking `K_t`
+Implements the following block diagram: ![lower_force_controller](assets/lower_force_controller.png)
+
+## Fields
+
+$(TYPEDFIELDS)
+"""
 @with_kw mutable struct LowerForceController <: AbstractForceController @deftype Float64
     wcs::WCSettings
     integrator::Integrator = Integrator(wcs.dt)

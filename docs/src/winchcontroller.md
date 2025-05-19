@@ -24,6 +24,11 @@ get_v_set_out(sc::SpeedController)
 on_timer(sc::SpeedController)
 ```
 
+## LowerForceController
+```@docs
+LowerForceController
+```
+
 ## Winch Controller
 ```@docs
 WinchController
