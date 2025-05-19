@@ -16,6 +16,7 @@ on_timer(cvi::CalcVSetIn)
 SpeedController
 SpeedController(wcs::WCSettings)
 set_inactive(sc::SpeedController, inactive::Bool)
+set_v_act(sc::SpeedController, v_act)
 ```
 
 ## Winch Controller
