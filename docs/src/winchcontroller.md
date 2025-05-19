@@ -11,6 +11,13 @@ calc_output(cvi::CalcVSetIn)
 on_timer(cvi::CalcVSetIn)
 ```
 
+## Speed Controller
+```@docs
+SpeedController
+SpeedController(wcs::WCSettings)
+set_inactive(sc::SpeedController, inactive::Bool)
+```
+
 ## Winch Controller
 ```@docs
 WinchController

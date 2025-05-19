@@ -48,11 +48,11 @@ end
 
 Calculate the optimal reel-out speed for a given force. 
 
-## Parameters
+# Parameters
 - wcs::WCSettings: the settings struct
 - force: the tether force at the winch
 
-## Returns
+# Returns
 - the optimal reel-out speed
 """
 function calc_vro(wcs::WCSettings, force)
@@ -70,12 +70,12 @@ end
 """
     set_vset_pc(cvi::CalcVSetIn, v_set_pc, force)
 
-Parameters:
+# Parameters:
 - force:      measured tether force [N]
 - `v_set_pc`: only used during manual operation or park-at-length. If it is `nothing`,
               `v_set_in` is calculated as function of the force.
 
-Returns:
+# Returns:
 - nothing
 """
 function set_vset_pc(cvi::CalcVSetIn, v_set_pc, force=nothing)
@@ -226,12 +226,19 @@ function on_timer(w::Winch)
     w.acc = acc/w.wcs.winch_iter
 end
 
-# PI controller for the reel-out speed of the winch in speed control mode.
-# While inactive, it tracks the value from the tracking input.
-# Back-calculation is used as anti-windup method and for tracking. The constant for
-# anti-windup is K_b, the constant for tracking K_t
-# Implements the simulink block diagram, shown in docs/speed_controller.png.
+"""
+    mutable struct SpeedController
 
+PI controller for the reel-out speed of the winch in speed control mode.
+While inactive, it tracks the value from the tracking input.
+Back-calculation is used as anti-windup method and for tracking. The constant for
+anti-windup is `K_b`, the constant for tracking `K_t`
+Implements the following block diagram: ![speed_controller](assets/speed_controller.png)
+
+# Fields
+
+$(TYPEDFIELDS)
+"""
 @with_kw mutable struct SpeedController @deftype Float64
     wcs::WCSettings
     integrator::Integrator = Integrator(wcs.dt)
@@ -246,10 +253,33 @@ end
     sat_out = 0       # output of saturate block
     res::MVector{2, Float64} = zeros(2)
 end
+"""
+    SpeedController(wcs::WCSettings)
+
+Constructor for a SpeedController, based on the winch controller settings.
+
+# Parameters
+- wcs::WCSettings: the winch controller settings struct
+
+# Returns
+- a struct of type [SpeedController](@ref)
+"""
 function SpeedController(wcs::WCSettings)
     SpeedController(wcs=wcs)
 end
 
+"""
+    set_inactive(sc::SpeedController, inactive::Bool)
+
+De-activate the speed controller if the parameter inactive is true, otherwise
+activate it and reset the integrator and the limiter.
+
+# Parameters
+- sc::[SpeedController](@ref): the speed controller to de-activate or activate
+
+# Returns
+- nothing
+"""
 function set_inactive(sc::SpeedController, inactive::Bool)
     # when it gets activated
     if sc.inactive && ! inactive
@@ -258,6 +288,7 @@ function set_inactive(sc::SpeedController, inactive::Bool)
         sc.v_set_out = sc.tracking
     end
     sc.inactive = inactive
+    nothing
 end
 
 function set_v_act(sc::SpeedController, v_act)
