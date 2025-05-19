@@ -27,6 +27,7 @@ on_timer(sc::SpeedController)
 ## LowerForceController
 ```@docs
 LowerForceController
+LowerForceController(wcs::WCSettings)
 ```
 
 ## Winch Controller

@@ -34,7 +34,7 @@ end
 Constructor for component for calculation `v_set_in`, using soft switching.
 
 ## Parameters
-- wcs:: WCSettings: settings struct with the winch controller settings
+- wcs:: [WCSettings](@ref): settings struct with the winch controller settings
 
 ## Returns
 - a new struct of type `CalcVSetIn`
@@ -49,7 +49,7 @@ end
 Calculate the optimal reel-out speed for a given force. 
 
 ## Parameters
-- wcs::WCSettings: the settings struct
+- wcs::[WCSettings](@ref): the settings struct
 - force: the tether force at the winch
 
 ## Returns
@@ -481,6 +481,17 @@ $(TYPEDFIELDS)
     res::MVector{3, Float64} = zeros(3)
 end
 
+"""
+    LowerForceController(wcs::WCSettings)
+
+Constructor for a LowerForceController, based on the winch controller settings.
+
+## Parameters
+- wcs::[WCSettings](@ref): the winch controller settings struct
+
+## Returns
+- a struct of type [LowerForceController](@ref)
+"""
 function LowerForceController(wcs::WCSettings)
     LowerForceController(wcs=wcs)
 end
