@@ -16,14 +16,20 @@ on_timer(cvi::CalcVSetIn)
 WinchController
 ```
 
-## Winch
-```@docs
-Winch
-Winch(wcs::WCSettings, set::Settings)
-```
-
 ## Controller Settings
 ```@docs
 WCSettings
 calc_vro
+```
+
+## Winch
+Only used for testing the [WinchController](@ref).
+
+```@docs
+Winch
+Winch(wcs::WCSettings, set::Settings)
+set_v_set
+set_force
+get_speed(w::Winch)
+get_acc(w::Winch)
 ```

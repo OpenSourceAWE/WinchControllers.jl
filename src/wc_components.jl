@@ -123,7 +123,7 @@ end
 
 Component, that calculates the acceleration of the tether based on the tether force
 and the set speed (= synchronous speed). Asynchronous motor model and drum inertia
-are taken into account.
+are taken into account. Used for testing of the winch controller.
 
 # Fields
 
@@ -156,15 +156,64 @@ function Winch(wcs::WCSettings, set::Settings)
     Winch(wcs=wcs, set=set)
 end
 
+"""
+    function set_v_set(w::Winch, v_set)
+
+Set the reel-out speed of the winch.
+
+# Parameters
+- w::[Winch](@ref): struct of type Winch
+- v_set: new set value of the reel-out speed [m/s]
+
+# Returns
+- nothing
+"""
 function set_v_set(w::Winch, v_set)
     w.v_set = v_set
+    nothing
 end
 
+"""
+    function set_force(w::Winch, force)
+
+Set the tether force at the winch.
+
+# Parameters
+- w::[Winch](@ref): struct of type Winch
+- force: new set value of the tether force [N]
+
+# Returns
+- nothing
+"""
 function set_force(w::Winch, force)
     w.force = force
+    nothing
 end
 
+"""
+    function get_speed(w::Winch)
+
+Read the tether speed of the winch.
+
+# Parameters
+- w::[Winch](@ref): struct of type Winch
+
+# Returns
+- the reel-out speed of the winch in m/s
+"""
 function get_speed(w::Winch) w.speed end
+
+"""
+    function get_acc(w::Winch)
+
+Determine the current acceleration of the winch.
+
+# Parameters
+- w::[Winch](@ref): struct of type Winch
+
+# Returns
+- acceleration of the winch in m/s²
+"""
 function get_acc(w::Winch) w.acc end
 
 function on_timer(w::Winch)
