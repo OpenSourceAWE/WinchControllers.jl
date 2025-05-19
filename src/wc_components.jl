@@ -216,6 +216,18 @@ Determine the current acceleration of the winch.
 """
 function get_acc(w::Winch) w.acc end
 
+"""
+    on_timer(w::Winch)
+
+Update the winch. Must be called once per time-step. calculates
+and updates the winch acceleration `w.acc` using a loop.
+
+# Parameters
+- w::Winch: Reference to the [Winch](@ref) component
+
+# Returns
+- nothing
+"""
 function on_timer(w::Winch)
     acc = 0.0
     for i in 1:w.wcs.winch_iter
@@ -224,6 +236,7 @@ function on_timer(w::Winch)
         w.speed += w.acc * w.wcs.dt/w.wcs.winch_iter
     end
     w.acc = acc/w.wcs.winch_iter
+    nothing
 end
 
 """
@@ -395,6 +408,17 @@ function solve(sc::SpeedController)
     sc.v_set_out = rate_out
 end
 
+"""
+    on_timer(sc::SpeedController)
+
+Update the SpeedController. Must be called once per time-step. 
+
+# Parameters
+- sc::SpeedController Reference to the [SpeedController](@ref) component
+
+# Returns
+- nothing
+"""
 function on_timer(sc::SpeedController)
     on_timer(sc.limiter)
     on_timer(sc.integrator)

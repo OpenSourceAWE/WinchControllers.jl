@@ -20,6 +20,7 @@ set_v_act(sc::SpeedController, v_act)
 set_v_set(sc::SpeedController, v_set)
 set_v_set_in(sc::SpeedController, v_set_in)
 set_tracking(sc::SpeedController, tracking)
+on_timer(sc::SpeedController)
 ```
 
 ## Winch Controller
@@ -43,4 +44,5 @@ set_v_set
 set_force
 get_speed(w::Winch)
 get_acc(w::Winch)
+on_timer(w::Winch)
 ```
