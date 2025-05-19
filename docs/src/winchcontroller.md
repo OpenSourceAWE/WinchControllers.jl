@@ -18,6 +18,8 @@ SpeedController(wcs::WCSettings)
 set_inactive(sc::SpeedController, inactive::Bool)
 set_v_act(sc::SpeedController, v_act)
 set_v_set(sc::SpeedController, v_set)
+set_v_set_in(sc::SpeedController, v_set_in)
+set_tracking(sc::SpeedController, tracking)
 ```
 
 ## Winch Controller

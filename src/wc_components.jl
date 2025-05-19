@@ -324,10 +324,35 @@ function set_v_set(sc::SpeedController, v_set)
     nothing
 end
 
+"""
+    set_v_set_in(sc::SpeedController, v_set_in)
+
+Set the signal `v_set_in` of the speed controller to `v_set_in`.
+
+# Parameters
+- sc::[SpeedController](@ref): the speed controller
+- `v_set_in`: the value to assign to the signal `v_set_in`
+
+# Returns
+- nothing
+"""
 function set_v_set_in(sc::SpeedController, v_set_in)
     sc.v_set_in = v_set_in
+    nothing
 end
 
+"""
+    set_tracking(sc::SpeedController, tracking)
+
+Set the signal `tracking` of the speed controller to `tracking`.
+
+# Parameters
+- sc::[SpeedController](@ref): the speed controller
+- `tracking`: the value to assign to the signal `tracking`
+
+# Returns
+- nothing
+"""
 function set_tracking(sc::SpeedController, tracking)
     sc.tracking = tracking
 end
