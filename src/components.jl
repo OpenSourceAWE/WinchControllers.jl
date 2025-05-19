@@ -22,13 +22,13 @@ $(TYPEDFIELDS)
 # Example
 ```julia
 int = Integrator(0.05, 2, 3)      # dt, integration constant, initial output  
-reset(int)                        # reset the integrator
 input = 2
 for i in 1:3
     out = calc_output(int, input) # calculate the output
     println(out)
     on_timer(int)                 # must be called on each time-step
 end
+reset(int, 3)                     # reset the integrator to the initial state
 ```
 """
 @with_kw mutable struct Integrator @deftype Float64
@@ -115,6 +115,16 @@ UnitDelay, delay the input signal by one time step.
 # Fields
 
 $(TYPEDFIELDS)
+
+# Example
+```julia
+ud = UnitDelay()
+for i in 1:3
+    out = calc_output(ud, i) # updates the input and calculates the output
+    println(out)
+    on_timer(ud)             # next time-step
+end
+```
 """
 @with_kw mutable struct UnitDelay @deftype Float64
     last_output = 0
