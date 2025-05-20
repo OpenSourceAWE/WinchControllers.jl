@@ -3,9 +3,9 @@
     @enum WinchControllerState
 
 The three values that tell us which sub-controller is active.
-- wcsLowerForceLimit
-- wcsSpeedControl
-- wcsUpperForceLimit
+- wcsLowerForceLimit = 1
+- wcsSpeedControl = 2
+- wcsUpperForceLimit = 3
 """
 @enum WinchControllerState wcsLowerForceLimit wcsSpeedControl wcsUpperForceLimit
 
@@ -60,6 +60,25 @@ function WinchController(wcs::WCSettings)
     wc
 end
 
+"""
+    calc_v_set(wc::WinchController, v_act, force, f_low; v_set_pc=nothing)
+
+Calculate the set velocity (`v_set`) for the winch.
+
+# Arguments
+- `wc::WinchController`: The winch controller instance.
+- `v_act`: The actual velocity of the winch.
+- `force`: The measured or estimated force on the winch.
+- `f_low`: The lower force threshold.
+- `v_set_pc`: (optional) Precomputed or externally provided set velocity. Defaults to `nothing`.
+
+# Returns
+- The calculated set velocity for the winch.
+
+# Notes     
+- The function logic depend on the relationship between the actual force and the lower force threshold.
+- If `v_set_pc` is provided, it overrides the computed set velocity.
+"""
 function calc_v_set(wc::WinchController, v_act, force, f_low, v_set_pc=nothing)
     set_f_set(wc.pid2, f_low)
     wc.v_act = v_act
@@ -103,6 +122,19 @@ function calc_v_set(wc::WinchController, v_act, force, f_low, v_set_pc=nothing)
     wc.v_set
 end
 
+"""
+    on_timer(wc::WinchController)
+
+Callback function that is triggered periodically by a timer event. This function is responsible for handling time-based 
+updates or actions for the given `WinchController` instance `wc`.
+
+# Arguments
+- `wc::WinchController`: The winch controller instance to be updated.
+
+# Returns
+- Nothing. This function is called for its side effects.
+
+"""
 function on_timer(wc::WinchController)
     wc.time += wc.wcs.dt
     on_timer(wc.calc)
@@ -112,6 +144,17 @@ function on_timer(wc::WinchController)
     on_timer(wc.mix3)    
 end
 
+"""
+    get_state(wc::WinchController) -> @enum WinchControllerState
+
+Returns the current state of the given `WinchController` instance `wc`. The returned value typically represents the operational state or status of the winch controller, such as position, speed, or error status.
+
+# Arguments
+- `wc::WinchController`: The winch controller object whose state is to be retrieved.
+
+# Returns
+- @enum [WinchControllerState](@ref)
+"""
 function get_state(wc::WinchController)
     get_state(wc.mix3)
 end

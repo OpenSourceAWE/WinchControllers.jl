@@ -53,6 +53,9 @@ LowerForceController(wcs::WCSettings)
 ```@docs
 WinchController
 WinchController(wcs::WCSettings)
+calc_v_set(wc::WinchController, v_act, force, f_low; v_set_pc=nothing)
+get_state(wc::WinchController)
+on_timer(wc::WinchController)
 ```
 
 ## Controller Settings
