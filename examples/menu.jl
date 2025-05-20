@@ -3,6 +3,8 @@ using REPL.TerminalMenus
 options = ["test_mixer2 = include(\"../test/test_mixer2.jl\")",
            "test_mixer3 = include(\"../test/test_mixer3.jl\")",
            "test_solver = include(\"../test/test_solver.jl\")",
+           "test_speedcontroller1 = include(\"../test/test_speedcontroller1.jl\")",
+           "test_speedcontroller2 = include(\"../test/test_speedcontroller2.jl\")",
            "test_lower_force1 = include(\"../test/test_lower_force1.jl\")",
            "test_forcespeedcontroller1 = include(\"../test/test_forcespeedcontroller1.jl\")",
            "test_forcespeedcontroller2 = include(\"../test/test_forcespeedcontroller2.jl\")",
