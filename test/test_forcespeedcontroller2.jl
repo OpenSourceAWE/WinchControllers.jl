@@ -44,11 +44,11 @@ set_inactive(pid1, false)
 set_v_set_in(pid1, 4.0)
 # set_v_set(pid1, -0.5)
 # create and initialize lower force controller
-pid2 = LowerForceController(wcs)
-set_f_set(pid2, wcs.f_low)
-set_tracking(pid2, 0.0)
-set_reset(pid2, true)
-set_v_sw(pid2, -1.0)
+sc = LowerForceController(wcs)
+set_f_set(sc, wcs.f_low)
+set_tracking(sc, 0.0)
+set_reset(sc, true)
+set_v_sw(sc, -1.0)
 # create the mixer for the output of the two controllers
 mix2 = Mixer_2CH(wcs.dt, wcs.t_blend)
 # create winch model and unit delay and the v_set_in calculator and mixer
@@ -56,17 +56,17 @@ winch = Winch(wcs, set)
 delay = UnitDelay()
 calc = CalcVSetIn(wcs)
 # create and initialize upper force controller
-pid3 = UpperForceController(wcs) 
-set_v_sw(pid3, calc_vro(wcs, pid3.f_set))
-set_reset(pid3, true)
-set_reset(pid3, false)
+ufc = UpperForceController(wcs) 
+set_v_sw(ufc, calc_vro(wcs, ufc.f_set))
+set_reset(ufc, true)
+set_reset(ufc, false)
 # create the mixer for the output of the two controllers
 mix3 = Mixer_3CH(wcs.dt, wcs.t_blend)
 last_force = Ref(0.0)
 last_v_set_out = Ref(0.0)
 
 for i in 1:SAMPLES
-    speed_controller_step4!(pid1, pid2, pid3, mix3, winch, calc, i, last_force, last_v_set_out, V_WIND, STARTUP, V_RO, ACC, FORCE, V_SET_OUT, STATE, V_ERR, F_ERR)
+    speed_controller_step4!(pid1, sc, ufc, mix3, winch, calc, i, last_force, last_v_set_out, V_WIND, STARTUP, V_RO, ACC, FORCE, V_SET_OUT, STATE, V_ERR, F_ERR)
 end
 
 p1=plotx(TIME, V_WIND, V_RO, V_SET_OUT; 
