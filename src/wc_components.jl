@@ -442,6 +442,19 @@ function get_v_set_out(sc::SpeedController)
     solve(sc)
 end
 
+"""
+    get_v_error(sc::SpeedController)
+
+Compute and return the velocity error for the given `SpeedController` instance `sc`.
+
+# Arguments
+- sc::[SpeedController](@ref): The speed controller object for which the velocity error is to be calculated.
+
+# Returns
+- The velocity error `v_err` [m/s]. 
+  If the controller is inactive, it returns `0.0`.
+
+"""
 function get_v_error(sc::SpeedController)
     if sc.inactive
         return 0.0
@@ -697,22 +710,61 @@ function get_f_err(fc::AFC)
     fc.f_err
 end
 
+"""
+    get_f_set_low(lfc::LowerForceController)
+
+Returns the lower force setpoint for the given `LowerForceController` instance `lfc`.
+
+# Arguments
+- `lfc::LowerForceController`: The lower force controller object from which to retrieve the setpoint.
+
+# Returns
+- The lower force setpoint value associated with the controller.
+
+"""
 function get_f_set_low(lfc::LowerForceController)
     lfc.active * lfc.f_set
 end
 
+"""
+    on_timer(lfc::LowerForceController)
+
+Callback function that is triggered on a timer event for a `LowerForceController` instance.
+This function handles periodic updates or control logic that needs to be executed
+at regular intervals for the lower force controller.
+
+# Arguments
+- `lfc::LowerForceController`: The instance of `LowerForceController` for which the timer event is handled.
+
+# Returns
+- nothing
+
+"""
 function on_timer(lfc::LowerForceController)
     on_timer(lfc.limiter)
     on_timer(lfc.integrator)
     on_timer(lfc.int2)
     on_timer(lfc.delay)
+    nothing
 end
 
-# PID controller for the upper force of the tether.
-# While inactive, it tracks the value from the tracking input.
-# Back-calculation is used as anti-windup method and for tracking. The constant for
-# anti-windup is K_b, the constant for tracking K_t
-# Implements the simulink block diagram, shown in docs/upper_force_controller.png.
+
+"""
+    mutable struct UpperForceController <: AbstractForceController 
+
+PID controller for the upper force of the tether.
+While inactive, it tracks the value from the tracking input.
+Back-calculation is used as anti-windup method and for tracking. The constant for
+anti-windup is `K_b`, the constant for tracking `K_t`
+Implements the following block diagram: ![upper_force_controller](assets/upper_force_controller.png)
+
+
+# Fields
+$(TYPEDFIELDS)
+
+# Usage
+Create an instance to control the upper force limit in a winch system.
+"""
 @with_kw mutable struct UpperForceController <: AbstractForceController @deftype Float64
     wcs::WCSettings
     integrator::Integrator = Integrator(wcs.dt)
@@ -732,6 +784,18 @@ end
     res::MVector{3, Float64} = zeros(3)
 end
 
+"""
+    UpperForceController(wcs::WCSettings)
+
+Creates and returns an upper force controller using the provided `WCSettings`.
+
+# Arguments
+- wcs::[WCSettings](@ref): The settings structure containing configuration parameters for the winch controller.
+
+# Returns
+- An instance of the upper force controller configured according to the provided settings.
+
+"""
 function UpperForceController(wcs::WCSettings)
     UpperForceController(wcs=wcs, f_set=wcs.f_high)
 end
