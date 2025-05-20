@@ -27,12 +27,12 @@ $(TYPEDFIELDS)
     v_set_out = 0.0 # output of the speed controller
     v_set_ufc = 0.0 # output of the upper force controller
     v_set_lfc = 0.0 # output of the lower force controller
-    v_set = 0.0     # output of the winchcontroller, going to the motor-controller/ model
+    v_set = 0.0     # output of the winch controller, going to the motor-controller/ model
     v_act = 0.0     # actual, measured speed
     force = 0.0     # actual, measured force
     calc::CalcVSetIn = CalcVSetIn(wcs)
     mix3::Mixer_3CH  = Mixer_3CH(wcs.dt, wcs.t_blend)
-    pid1::SpeedController = SpeedController(wcs)
+    sc::SpeedController = SpeedController(wcs)
     lfc::LowerForceController = LowerForceController(wcs)
     ufc::UpperForceController = UpperForceController(wcs)
 end
@@ -85,9 +85,9 @@ function calc_v_set(wc::WinchController, v_act, force, f_low, v_set_pc=nothing)
     wc.force = force
     set_vset_pc(wc.calc, v_set_pc, wc.force)
     v_set_in = calc_output(wc.calc)
-    # set the inputs of pid1
-    set_v_set_in(wc.pid1, v_set_in)
-    set_v_act(wc.pid1, v_act)
+    # set the inputs of sc
+    set_v_set_in(wc.sc, v_set_in)
+    set_v_act(wc.sc, v_act)
     if wc.time <= wc.wcs.t_startup
         reset = true
     else
@@ -100,13 +100,13 @@ function calc_v_set(wc::WinchController, v_act, force, f_low, v_set_pc=nothing)
     set_v_act(wc.lfc, v_act)
     set_v_act(wc.ufc, v_act)
     # set tracking and force for all controllers
-    set_tracking(wc.pid1, wc.v_set)
+    set_tracking(wc.sc, wc.v_set)
     set_tracking(wc.lfc, wc.v_set)
     set_tracking(wc.ufc, wc.v_set)
     set_force(wc.lfc, force)
     set_force(wc.ufc, force)
     # activate or deactivate the speed controller
-    set_inactive(wc.pid1, (wc.lfc.active || wc.ufc.active) && isnothing(v_set_pc)) 
+    set_inactive(wc.sc, (wc.lfc.active || wc.ufc.active) && isnothing(v_set_pc)) 
     if ! isnothing(v_set_pc)
         wc.lfc.active=false
         wc.ufc.active=false
@@ -114,7 +114,7 @@ function calc_v_set(wc::WinchController, v_act, force, f_low, v_set_pc=nothing)
     # calculate the output, using the mixer
     select_b(wc.mix3, wc.lfc.active)
     select_c(wc.mix3, wc.ufc.active)
-    v_set_out_A = get_v_set_out(wc.pid1)
+    v_set_out_A = get_v_set_out(wc.sc)
     v_set_out_B = get_v_set_out(wc.lfc)
     v_set_out_C = get_v_set_out(wc.ufc)
     wc.v_set = calc_output(wc.mix3, v_set_out_A, v_set_out_B, v_set_out_C)
@@ -138,7 +138,7 @@ updates or actions for the given `WinchController` instance `wc`.
 function on_timer(wc::WinchController)
     wc.time += wc.wcs.dt
     on_timer(wc.calc)
-    on_timer(wc.pid1)
+    on_timer(wc.sc)
     on_timer(wc.lfc)
     on_timer(wc.ufc)
     on_timer(wc.mix3)    
@@ -210,7 +210,7 @@ function get_status(wc::WinchController)
     result[2] = wc.ufc.active
     result[3] = wc.ufc.force
     result[4] = f_set
-    result[5] = wc.pid1.v_set_out
+    result[5] = wc.sc.v_set_out
     result[6] = wc.lfc.v_set_out
     result[7] = wc.ufc.v_set_out
     result
