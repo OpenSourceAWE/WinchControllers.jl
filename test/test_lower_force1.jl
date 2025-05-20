@@ -3,8 +3,8 @@ using Pkg
 if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
     using TestEnv; TestEnv.activate()
 end
-using KiteControllers, Timers; tic()
-if false; include("../src/KiteControllers.jl"); end
+using WinchControllers, KiteUtils, Timers; tic()
+if false; include("../src/WinchControllers.jl"); end
 if false; include("../src/winchcontroller.jl"); end
 if false; include("../src/wc_components.jl"); end
 if false; include("../src/wc_settings.jl"); end
@@ -13,7 +13,7 @@ if false; include("../src/wc_settings.jl"); end
 # do NOT use the higher level WinchController
 # set force of 350 N
 # input: data/transition.arrow
-using KiteControllers, ControlPlots, BenchmarkTools
+using WinchControllers, ControlPlots, BenchmarkTools
 
 log = load_log("transition.arrow2")
 sl  = log.syslog
@@ -36,11 +36,11 @@ update(wcs)
 wcs.dt = 0.05
 lfc = LowerForceController(wcs)
 lfc.tracking = V_RO[1]
-KiteControllers._set(lfc)
+WinchControllers._set(lfc)
 lfc.v_act = V_RO[1]
 lfc.force = force[1]
 lfc.f_set = 350
-KiteControllers._update_reset(lfc)
+WinchControllers._update_reset(lfc)
 
 for i in 1:SAMPLES
     # controller
