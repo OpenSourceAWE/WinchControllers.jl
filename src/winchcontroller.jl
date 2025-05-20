@@ -3,11 +3,11 @@
     @enum WinchControllerState
 
 The three values that tell us which sub-controller is active.
-- wcsLowerForceLimit = 1
-- wcsSpeedControl = 2
-- wcsUpperForceLimit = 3
+- wcsLowerForceLimit = 0
+- wcsSpeedControl = 1
+- wcsUpperForceLimit = 2
 """
-@enum WinchControllerState wcsLowerForceLimit wcsSpeedControl wcsUpperForceLimit
+@enum WinchControllerState wcsLowerForceLimit=0 wcsSpeedControl wcsUpperForceLimit
 
 """
     mutable struct WinchController
@@ -159,6 +159,18 @@ function get_state(wc::WinchController)
     get_state(wc.mix3)
 end
 
+"""
+    get_set_force(wc::WinchController)
+
+Returns the set force value of the `WinchController` instance `wc`.
+
+# Arguments
+- `wc::WinchController`: The winch controller object for which the set force is to be retrieved.
+
+# Returns
+- The set force value, or `nothing` if the state is not `wcsLowerForceLimit` or `wcsUpperForceLimit`.
+
+"""
 function get_set_force(wc::WinchController)
     state = get_state(wc)
     if state == 0
@@ -170,7 +182,24 @@ function get_set_force(wc::WinchController)
     end
 end
 
-# for logging and debugging
+"""
+    get_status(wc::WinchController)
+
+Retrieve the current status of the given `WinchController` instance for logging and debugging purposes.
+
+# Arguments
+- `wc::WinchController`: The winch controller object whose status is to be retrieved.
+
+# Returns
+- The current status of the winch controller, an array containing:
+    - `reset`: Boolean indicating if the controller is in reset state.
+    - `active`: Boolean indicating if the controller is active.
+    - `force`: The current set force value or zero if not set.
+    - `f_set`: The set force value.
+    - `v_set_out`: The output velocity set by the speed controller.
+    - `v_set_ufc`: The output velocity set by the upper force controller.
+    - `v_set_lfc`: The output velocity set by the lower force controller.
+"""
 function get_status(wc::WinchController)
     f_set = get_set_force(wc)
     if isnothing(f_set)
