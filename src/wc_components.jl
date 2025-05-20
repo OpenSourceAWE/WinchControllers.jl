@@ -865,13 +865,39 @@ function solve(ufc::UpperForceController)
     ufc.v_set_out = rate_out
 end
 
+"""
+    get_f_set_upper(ufc::UpperForceController)
+
+Returns the setpoint force for the given `UpperForceController` instance `ufc`.
+
+# Arguments
+- ufc::[UpperForceController](@ref): The upper force controller object from which to retrieve the force setpoint.
+
+# Returns
+- The setpoint force of the upper force controller [N].
+
+"""
 function get_f_set_upper(ufc::UpperForceController)
     ufc.active * ufc.f_set
 end
 
+"""
+    on_timer(ufc::UpperForceController)
+
+Callback function that is triggered on a timer event for an `UpperForceController` instance.
+This function is used to perform periodic updates and checks related to the controller's operation.
+
+# Arguments
+- `ufc::UpperForceController`: The upper force controller instance on which the timer event is triggered.
+
+# Returns
+- nothing
+
+"""
 function on_timer(ufc::UpperForceController)
     on_timer(ufc.limiter)
     on_timer(ufc.integrator)
     on_timer(ufc.int2)
     on_timer(ufc.delay)
+    nothing
 end

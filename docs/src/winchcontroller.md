@@ -56,6 +56,8 @@ on_timer(lfc::LowerForceController)
 ```@docs
 UpperForceController
 UpperForceController(wcs::WCSettings)
+get_f_set_upper(ufc::UpperForceController)
+on_timer(ufc::UpperForceController)
 ```
 
 ## WinchController
