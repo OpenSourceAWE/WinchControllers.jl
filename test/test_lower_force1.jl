@@ -13,7 +13,7 @@ if false; include("../src/wc_settings.jl"); end
 # do NOT use the higher level WinchController
 # set force of 350 N
 # input: data/transition.arrow
-using WinchControllers, ControlPlots, BenchmarkTools
+using WinchControllers, ControlPlots
 
 log = load_log("transition.arrow2")
 sl  = log.syslog

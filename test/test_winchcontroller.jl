@@ -4,12 +4,12 @@ if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
     using TestEnv; TestEnv.activate()
     using Test
 end
-using Timers; tic()
+using Timers, Statistics; tic()
 
 # Test the speed controller in combination with the controller for the lower and upper force.
 # Input: A varying wind speed. Implements the simulink block diagram, shown in
 # docs/force_speed_controller_test2.png
-using WinchControllers, ControlPlots, BenchmarkTools, KiteUtils
+using WinchControllers, ControlPlots, KiteUtils
 
 set = deepcopy(load_settings("system.yaml"))
 wcs = WCSettings(dt=0.02)
