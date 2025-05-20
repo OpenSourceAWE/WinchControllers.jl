@@ -37,7 +37,7 @@ Constructor for component for calculation `v_set_in`, using soft switching.
 - wcs:: [WCSettings](@ref): settings struct with the winch controller settings
 
 ## Returns
-- a new struct of type `CalcVSetIn`
+- a new struct of type [CalcVSetIn](@ref)
 """
 function CalcVSetIn(wcs::WCSettings)
     CalcVSetIn(wcs=wcs)
@@ -108,7 +108,7 @@ end
 Update the mixer. Must be called once per time-step.
 
 ## Parameters
-- cvi::CalcVSetIn: Reference to the CalcVSetIn component
+- cvi::CalcVSetIn: Reference to the [CalcVSetIn](@ref) component
 
 ## Returns
 - nothing

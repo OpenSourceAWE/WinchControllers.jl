@@ -1,6 +1,13 @@
 ```@meta
 CurrentModule = WinchControllers
 ```
+## Introduction
+For a kite power system, the reel-out speed of the winch must be controlled such that the maximal tether force is never exceeded, while the reel-out speed should be optimized for maximal power over the full cycle at wind speeds below rated wind speed. To keep the kite controllable, also a minimal tether force limit has to be kept. Depending on the mode of operation, one of the following three controllers is used:
+
+## Enum WinchControllerState
+```@docs
+WinchControllerState
+```
 
 ## CalcVSetIn
 ```@docs
@@ -40,6 +47,7 @@ LowerForceController(wcs::WCSettings)
 ## WinchController
 ```@docs
 WinchController
+WinchController(wcs::WCSettings)
 ```
 
 ## Controller Settings

@@ -1,4 +1,12 @@
 # Winch winch controller component, implemented as described in the PhD thesis of Uwe Fechner. 
+"""
+    @enum WinchControllerState
+
+The three values that tell us which sub-controller is active.
+- wcsLowerForceLimit
+- wcsSpeedControl
+- wcsUpperForceLimit
+"""
 @enum WinchControllerState wcsLowerForceLimit wcsSpeedControl wcsUpperForceLimit
 
 """
@@ -29,6 +37,17 @@ $(TYPEDFIELDS)
     pid3::UpperForceController = UpperForceController(wcs)
 end
 
+"""
+    WinchController(wcs::WCSettings)
+
+Constructor for a WinchController, based on the winch controller settings.
+
+## Parameters
+- wcs::[WCSettings](@ref): the winch controller settings struct
+
+## Returns
+- a struct of type [WinchController](@ref)
+"""
 function WinchController(wcs::WCSettings)
     wc = WinchController(wcs=wcs)
     set_f_set(wc.pid2, wcs.f_low)
