@@ -571,14 +571,50 @@ function set_reset(fc::AFC, reset)
     nothing
 end
 
+"""
+    set_f_set(fc::AFC, f_set)
+
+Set the set force of the force controller to `f_set`.
+
+## Parameters
+- sc::AFC: abstract force controller
+- `f_set`: the value to assign to the signal `f_set`
+
+## Returns
+- nothing
+"""
 function set_f_set(fc::AFC, f_set)
     fc.f_set = f_set
+    nothing
 end
 
+"""
+    set_v_sw(fc::AFC, v_sw)
+
+## Parameters
+- sc::AFC: abstract force controller
+- `v_sw`: the value to assign to the signal `v_sw`
+
+## Returns
+- nothing
+"""
 function set_v_sw(fc::AFC, v_sw)
     fc.v_sw = v_sw
+    nothing
 end
 
+"""
+    set_tracking(fc::AFC, tracking)
+
+## Set the signal `tracking` of the force controller to `tracking`.
+
+## Parameters
+- sc::AFC: abstract force controller
+- `tracking`: the value to assign to the signal `tracking`
+
+## Returns
+- nothing
+"""
 function set_tracking(fc::AFC, tracking)
     fc.tracking = tracking
 end
@@ -630,11 +666,33 @@ function solve(lfc::LowerForceController)
     lfc.v_set_out = rate_out
 end
 
+"""
+    get_v_set_out(fc::AFC)
+
+Calculate the output value of the controller by using a non-linear solver.
+
+## Parameters
+- fc::AFC: abstract force controller
+
+## Returns
+- `v_set_out`: the synchronous speed, calculated by the controller
+"""
 function get_v_set_out(fc::AFC)
     solve(fc)
     fc.v_set_out
 end
 
+"""
+    get_f_err(fc::AFC)
+
+Get the error of the force controller.
+
+## Parameters
+- fc::AFC: abstract force controller
+
+## Returns
+- `f_err`: the error of the force controller
+"""
 function get_f_err(fc::AFC)
     fc.f_err
 end

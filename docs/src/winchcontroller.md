@@ -36,6 +36,11 @@ on_timer(sc::SpeedController)
 set_v_act(fc::AFC, v_act)
 set_force(fc::AFC, force)
 set_reset(fc::AFC, reset)
+set_f_set(fc::AFC, f_set)
+set_v_sw(fc::AFC, v_sw)
+set_tracking(fc::AFC, tracking)
+get_v_set_out(fc::AFC)
+get_f_err(fc::AFC)
 ```
 
 ## LowerForceController
