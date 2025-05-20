@@ -4,8 +4,10 @@ using Parameters, StructTypes, KiteUtils, WinchModels, StaticArrays, NLsolve, Do
 
 import Base.reset
 
-export WCSettings, WinchController, update
-export Mixer_2CH, Mixer_3CH, Integrator, UnitDelay, RateLimiter
+export WCSettings, WinchController, Winch, update
+export Mixer_2CH, Mixer_3CH, Integrator, UnitDelay, RateLimiter, CalcVSetIn
+export set_f_set, set_v_sw, set_reset, set_inactive, set_vset_pc
+export set_tracking, set_f_set, get_v_error, calc_vro, get_f_err
 export get_speed, set_force, calc_v_set, set_v_set, on_timer, get_acc, get_state, get_status
 export select_b, select_c, reset, calc_output
 export merge_angles, @limit
