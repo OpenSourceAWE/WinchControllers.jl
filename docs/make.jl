@@ -9,6 +9,7 @@ makedocs(;
     repo="https://github.com/OpenSourceAWE/WinchControllers.jl/blob/{commit}{path}#{line}",
     sitename="WinchControllers.jl",
     format=Documenter.HTML(;
+        repolink = "https://github.com/OpenSourceAWE/WinchControllers.jl",
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://OpenSourceAWE.github.io/WinchControllers.jl",
         assets=String[],
