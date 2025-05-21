@@ -55,9 +55,9 @@ exit()
 In most cases -- if you want to modify, tune and understand kite controllers -- it is better
 to check out this project from git. You can do this with:
 ```bash
-git clone https://github.com/aenarete/WinchControllers.jl.git
+git clone https://github.com/opensourceawe/WinchControllers.jl.git
 cd WinchControllers.jl
-git checkout v0.1.0
+git checkout v0.5.0
 ```
 For the checkout command, use the tag of the latest version.
 </details>
