@@ -16,15 +16,15 @@ Implemented as described in the PhD thesis of Uwe Fechner.
 
 Calculate a saturated value, that stays within the given limits. 
 
-Parameters:
+## Parameters:
 - value: the input value
 - min_: the lower value to which it shall be clamped
 - max_: the upper value to which it shall be clamped
 
-Returns:
+## Returns:
 - the clamped value
 
-Remark:
+## Remark:
 - consider using the function `clamp` or the macro [`@limit`](@ref) instead
 """
 function saturate(value, min_, max_)
@@ -42,12 +42,12 @@ end
 
 Limit the value of a variable. 
 
-Parameters:
+## Parameters:
 - name: the name of the scalar variable that shall be limited
 - minmax: if max is provided, this is the lower value to which the variable is clamped, otherwise it is the upper value
 - max: the upper value to which to limit the provided variable or nothing
 
-Usage:
+## Usage:
 - @limit x 1 4 # limits the value to the range    1 .. 4,  modifies x
 - @limit x 10  # limits the value to the range -inf .. 10, modifies x
 
