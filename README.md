@@ -62,44 +62,11 @@ git checkout v0.1.0
 For the checkout command, use the tag of the latest version.
 </details>
 
-## This package provides
-### Utility functions
-```
-saturate(value, min_, max_)
-```
-Calculate a saturated value, that stays within the given limits.
-```
-wrap2pi(angle)
-```
-Convert an angle, given in radians in an infinite range to the range from -pi to pi
-
-### Generic control components
-This package contains some generic control components that are documented [here](./docs/components.md).
-
-### Types that are not generic
-```julia
-CalcVSetIn              # component that calculates the set speed using soft switching
-SpeedController         # controller for normal operation
-LowerForceController    # controller when force near lower limit
-UpperForceController    # controller when force near upper limit
-WinchController         # winch controller, combining the three controllers above
-WCSettings              # settings of the winch controller
-WinchModel              # simplified model for unit testing
-```
-
-## Winch controller
-For a kite power system, the reel-out speed of the winch must be controlled such that the
-maximal tether force is never exceeded, while the reel-out speed should be optimized for
-maximal power over the full cycle at wind speeds below rated wind speed. To keep the
-kite controllable, also a minimal tether force limit has to be kept. Depending on the mode of operation, one of the following three controllers is used:
-### Speed Controller
-<p align="center"><img src="./docs/speed_controller.png" width="500" /></p>
-
-### Lower Force Controller
-<p align="center"><img src="./docs/lower_force_controller.png" width="500" /></p>
-
-### Upper Force Controller
-<p align="center"><img src="./docs/upper_force_controller.png" width="500" /></p>
+### Provides
+- a set of generic control components, see [Generic Components](@ref)
+- a winch controller [WinchController](@ref), that limits the upper and lower force and controls the speed as function of the force
+- a winch controller settings struct [WCSettings](@ref) for the settings
+- [Utility Functions and Macros](@ref)
 
 ### WinchController - Usage -
 The WinchController combines the three controllers, mentioned above.
