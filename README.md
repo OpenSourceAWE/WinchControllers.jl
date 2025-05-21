@@ -63,10 +63,10 @@ For the checkout command, use the tag of the latest version.
 </details>
 
 ### Provides
-- a set of generic control components, see [Generic Components](@ref)
-- a winch controller [WinchController](@ref), that limits the upper and lower force and controls the speed as function of the force
-- a winch controller settings struct [WCSettings](@ref) for the settings
-- [Utility Functions and Macros](@ref)
+- a set of generic control components, see [Generic Components](https://opensourceawe.github.io/WinchControllers.jl/dev/components/#Generic-Components)
+- a winch controller [WinchController](https://opensourceawe.github.io/WinchControllers.jl/dev/winchcontroller/), that limits the upper and lower force and controls the speed as function of the force
+- a winch controller settings struct [WCSettings](https://opensourceawe.github.io/WinchControllers.jl/dev/winchcontroller/#WinchControllers.WCSettings) for the settings
+- [Utility Functions and Macros](https://opensourceawe.github.io/WinchControllers.jl/dev/functions/)
 
 ### WinchController - Usage -
 The WinchController combines the three controllers, mentioned above.
