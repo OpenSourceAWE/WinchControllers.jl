@@ -20,3 +20,9 @@ the apparent wind speed is between zero and 4 m/s. The force is proportional to 
 ![test_speedcontroller1](assets/test_speedcontroller1.png)
 
 ### SpeedController2
+
+This test is similar to the last test, but the set speed is calculated according to 
+$v_{ro} = \sqrt{f} * kv$ , 
+where $f$ is the measured tether force and $kv$ is a constant that needs to be optimized for a given kite power system. This should allow optimal energy harvesting during reel-out.
+
+![test_speedcontroller1](assets/test_speedcontroller2.png)
