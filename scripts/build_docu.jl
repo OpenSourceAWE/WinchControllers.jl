@@ -7,6 +7,7 @@ function globaldependencies()
     projectpath = Pkg.project().path
     basepath, _ = splitdir(projectpath)
     Pkg.activate()
+    Pkg.update()
     globaldependencies = keys(Pkg.project().dependencies)
     Pkg.activate(basepath)
     globaldependencies
