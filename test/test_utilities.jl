@@ -137,6 +137,9 @@ function speed_controller_step3!(pid1, sc, winch, calc, i, last_force, last_v_se
     set_force(sc, force)
     v_set_out_B = get_v_set_out(sc)
     F_ERR[i] = get_f_err(sc)
+    if ! sc.active
+        F_ERR[i] = NaN
+    end
     set_tracking(pid1, v_set_out_B)
     select_b(mix2, sc.active)
     set_inactive(pid1, sc.active)

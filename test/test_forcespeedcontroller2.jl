@@ -13,6 +13,7 @@ using WinchControllers, KiteUtils, ControlPlots
 set = deepcopy(load_settings("system.yaml"))
 
 wcs = WCSettings(dt=0.02)
+update(wcs)
 wcs.test = true
 wcs.f_low = 350
 wcs.fac = 1.0

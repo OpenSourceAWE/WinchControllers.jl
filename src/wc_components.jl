@@ -397,7 +397,7 @@ function solve(sc::SpeedController)
 
     err = sc.v_set_in - sc.v_act
     if sc.inactive
-        sc.v_err = 0.0
+        sc.v_err = NaN
     else
         sc.v_err = err
     end
@@ -452,12 +452,12 @@ Compute and return the velocity error for the given `SpeedController` instance `
 
 # Returns
 - The velocity error `v_err` [m/s]. 
-  If the controller is inactive, it returns `0.0`.
+  If the controller is inactive, it returns `NaN`.
 
 """
 function get_v_error(sc::SpeedController)
     if sc.inactive
-        return 0.0
+        return NaN
     else
         return sc.v_err
     end
