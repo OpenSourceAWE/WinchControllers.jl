@@ -208,7 +208,6 @@ function speed_controller_step4!(pid1, sc, ufc, mix3, winch, calc, i, last_force
     v_set_out_C = get_v_set_out(ufc)
     F_ERR[i] = get_f_err(sc) + get_f_err(ufc)
 
-
     select_b(mix3, sc.active)
     select_c(mix3, ufc.active)
     set_inactive(pid1, sc.active || ufc.active)
