@@ -4,6 +4,31 @@ CurrentModule = WinchControllers
 # Winchcontroller Settings
 
 ## Introductions
+Three `.yaml` files are needed to configure the winch controller:
+1. system.yaml
+2. settings.yaml
+3. wc_settings.yaml
+
+The first file lists the `yaml` files that shall be used for the current project. The second file defines the model parameters. The third file defines
+the parameters of the winch controller. All of these files must be stored in
+the `data` directory.
+
+Example for a `system.yaml` file:
+```yaml
+system:
+    sim_settings:  "settings.yaml"       # model and simulator settings
+    wc_settings:   "wc_settings.yaml"    # winch controller settings
+```
+
+The following sequence of commands will load the model and the winch controller settings for a given project:
+```julia
+using WinchControllers, KiteUtils
+
+set = load_settings("system.yaml")
+wcs = WCSettings(dt=0.02)
+update(wcs)
+``` 
+Here, the time step `dt` is specified explicitly. 
 
 ## The file wc_settings.yaml
 
