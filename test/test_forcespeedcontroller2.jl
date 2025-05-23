@@ -78,9 +78,6 @@ p1=plotx(TIME, V_WIND, [V_RO, V_SET_OUT], F_ERR*0.001, V_ERR, ACC, FORCE*0.001, 
 
 display(p1)
 
-# plot!(TIME, V_ERR, label="v_error [m/s]")
-# plot!(TIME, F_ERR*0.001, label="f_error [kN]")
-
 toc()
 
 println("Max iterations needed: $(wcs.iter)")
