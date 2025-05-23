@@ -16,9 +16,11 @@ Most of these tests are not yet unit tests.
 3. the oscillations after switching the active controller shall be low.
 4. the mean of the square of the force error shall be low
 5. the mean of the square of the speed error shall be low
+6. the robustness for model errors (for example with respect to the inertia of the drum and the drum diameter) 
+   shall be high
 
-Open question: can all these requirements be combined in one or two performance figures, for
-example **efficiency** and **damage**?
+Open question: can all these requirements be combined in two or three performance figures, for
+example **efficiency**, **robustness** and **damage**?
 
 **TODO**
 - add `max_acc` the section `winch` of of `Settings.yaml`
