@@ -70,19 +70,13 @@ for i in 1:SAMPLES
     speed_controller_step4!(pid1, sc, ufc, mix3, winch, calc, i, last_force, last_v_set_out, V_WIND, STARTUP, V_RO, ACC, FORCE, V_SET_OUT, STATE, V_ERR, F_ERR)
 end
 
-p1=plotx(TIME, V_WIND, V_RO, V_SET_OUT; 
-      ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "v_set_out [m/s]"], 
-      fig="test_forcespeed_2a")
+p1=plotx(TIME, V_WIND, [V_RO, V_SET_OUT], F_ERR*0.001, V_ERR, ACC, FORCE*0.001, STATE,
+      title="Winch controller test, only lower-force and speed controller active",
+      ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "f_err [kN]", "v_error [m/s]", "acc [m/s²]", "force [kN]", "state"], 
+      labels=["v_wind", ["v_reel_out", "v_set_out"]],
+      fig="test_forcespeed_1a")
 
-p2=plotx(TIME, F_ERR*0.001, V_ERR;
-      ylabels=["f_err [kN]", "v_error [m/s]"],
-      fig="test_forcespeed_2b")
-
-p3=plotx(TIME, ACC, FORCE*0.001, STATE;
-      ylabels=["acc [m/s²]", "force [kN]", "state"],
-      fig="test_forcespeed_2c")
-
-display(p1); display(p2); display(p3)
+display(p1)
 
 # plot!(TIME, V_ERR, label="v_error [m/s]")
 # plot!(TIME, F_ERR*0.001, label="f_error [kN]")
