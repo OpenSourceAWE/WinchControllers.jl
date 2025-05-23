@@ -7,6 +7,7 @@ options = ["test_mixer2 = include(\"../test/test_mixer2.jl\")",
            "test_speedcontroller2 = include(\"../test/test_speedcontroller2.jl\")",
            "test_forcespeedcontroller1 = include(\"../test/test_forcespeedcontroller1.jl\")",
            "test_forcespeedcontroller2 = include(\"../test/test_forcespeedcontroller2.jl\")",
+           "test_winchcontroller = include(\"../test/test_winchcontroller.jl\")",
            "quit"]
 
 function example_menu()
