@@ -17,8 +17,8 @@ update(wcs)
 wcs.test = true
 wcs.f_low = 350
 wcs.fac = 1.0
-wcs.t_blend = 0.25
-#wcs.pf_low = 1.44e-4*0.5
+# wcs.t_blend = 0.25
+# wcs.pf_low = 1.44e-4*0.5
 wcs.pf_high = 1.44e-4*1.6*0.5
 # wcs.kt_speed = 10
 
@@ -71,10 +71,10 @@ for i in 1:SAMPLES
 end
 
 p1=plotx(TIME, V_WIND, [V_RO, V_SET_OUT], F_ERR*0.001, V_ERR, ACC, FORCE*0.001, STATE,
-      title="Winch controller test, only lower-force and speed controller active",
+      title="Winch controller test, all controllers active",
       ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "f_err [kN]", "v_error [m/s]", "acc [m/s²]", "force [kN]", "state"], 
       labels=["v_wind", ["v_reel_out", "v_set_out"]],
-      fig="test_forcespeed_1a")
+      fig="test_forcespeed_2")
 
 display(p1)
 
