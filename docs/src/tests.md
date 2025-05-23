@@ -22,9 +22,6 @@ Most of these tests are not yet unit tests.
 Open question: can all these requirements be combined in two or three performance figures, for
 example **efficiency**, **robustness** and **damage**?
 
-**TODO**
-- add `max_acc` the section `winch` of of `Settings.yaml`
-
 ## SpeedController
 
 ### SpeedController1
