@@ -65,8 +65,6 @@ for i in 1:SAMPLES
     ACC[i] = acc 
     STATE[i] = state
     V_RO[i] = v_act
-    # FORCE[i] = force
-    V_SET_OUT[i] = v_set
     RESET[i] = status[1]
     ACTIVE[i] = status[2]
     FORCE[i] = status[3]
@@ -109,7 +107,7 @@ else
       title="Winch controller test, all controllers active",
       ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "f_err [kN]", "v_error [m/s]", "acc [m/s²]", "force [kN]", "state"], 
       labels=["v_wind", ["v_reel_out", "v_set_out"]],
-      fig="test_forcespeed_2")
+      fig="test_winchcontroller",)
 
     display(p1)
 end
