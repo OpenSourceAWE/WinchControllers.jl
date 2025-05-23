@@ -69,13 +69,13 @@ for i in 1:SAMPLES
     ACTIVE[i] = status[2]
     FORCE[i] = status[3]
     F_SET[i] = status[4]
-    V_SET_OUT[i] = status[5]
+    V_SET_OUT[i] = v_set
     if state in [0,2]
         F_ERR[i] = FORCE[i] - F_SET[i]
-        V_ERR[i] = NaN
+        V_ERR[i] = 0.0
     else
         V_ERR[i] = V_RO[i] - v_set
-        F_ERR[i] = NaN
+        F_ERR[i] = 0.0
     end
 end
 
