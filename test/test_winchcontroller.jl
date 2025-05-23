@@ -74,8 +74,10 @@ for i in 1:SAMPLES
     V_SET_OUT[i] = status[5]
     if state in [0,2]
         F_ERR[i] = FORCE[i] - F_SET[i]
+        V_ERR[i] = NaN
     else
         V_ERR[i] = V_RO[i] - v_set
+        F_ERR[i] = NaN
     end
 end
 
@@ -102,18 +104,14 @@ if @isdefined __TEST__
 
 
 else
-    p1=plotx(TIME, V_WIND, V_RO, V_SET_OUT;
-             ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "v_set_out [m/s]"],
-             fig="test_winchcontroller_a")
+    # plot the results  
+    p1=plotx(TIME, V_WIND, [V_RO, V_SET_OUT], F_ERR*0.001, V_ERR, ACC, FORCE*0.001, STATE,
+      title="Winch controller test, all controllers active",
+      ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "f_err [kN]", "v_error [m/s]", "acc [m/s²]", "force [kN]", "state"], 
+      labels=["v_wind", ["v_reel_out", "v_set_out"]],
+      fig="test_forcespeed_2")
 
-    p2=plotx(TIME, F_ERR*0.001, V_ERR;
-             ylabels=["f_err [kN]","v_error [m/s]"],
-             fig="test_winchcontroller_b")
-
-    p3=plotx(TIME, FORCE*0.001, STATE;
-             ylabels=["force [kN]","state"],
-             fig="test_winchcontroller_c")
-    display(p1); display(p2); display(p3)
+    display(p1)
 end
 toc()
 
