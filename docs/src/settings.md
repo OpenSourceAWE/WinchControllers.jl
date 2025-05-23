@@ -24,6 +24,7 @@ The following sequence of commands will load the model and the winch controller 
 ```julia
 using WinchControllers, KiteUtils
 
+set_data_path("data") # set the path where the yaml files are stored
 set = load_settings("system.yaml")
 wcs = WCSettings()
 update(wcs)
