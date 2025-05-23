@@ -26,3 +26,12 @@ $v_{ro} = \sqrt{f} * kv$ ,
 where $f$ is the measured tether force and $kv$ is a constant that needs to be optimized for a given kite power system. This should allow optimal energy harvesting during reel-out.
 
 ![test_speedcontroller1](assets/test_speedcontroller2.png)
+
+## ForceSpeedController
+### ForceSpeedController1
+
+This controller tests the combination of the lower force controller with the speed controller for the reel-out phase,
+where the reel-out speed shall be proportional to the square-root of the force. The lower force limit was set to
+$1500~N$.
+
+![test_forcespeedcontroller1](assets/test_forcespeed_1.png)
