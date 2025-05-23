@@ -28,7 +28,9 @@ set = load_settings("system.yaml")
 wcs = WCSettings(dt=0.02)
 update(wcs)
 ``` 
-Here, the time step `dt` is specified explicitly. 
+Here, the time step `dt` is specified explicitly. Both, `set` and `wcs` are simple structs. You can see the content of the struct by typing the name of
+one of these variables. If you type `wcs. <TAB><TAB>` you can see all elements
+of the `wcs` struct.
 
 ## The file wc_settings.yaml
 
