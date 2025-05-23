@@ -9,6 +9,20 @@ include("examples/menu.jl")
 ```
 Most of these tests are not yet unit tests.
 
+## Requirements
+1. the force must never be below zero.
+2. the max force shall not be above the nominal force of the winch, in this case 4000 N.
+3. the absolute value of the acceleration must never accede `max_acc`.
+3. the oscillations after switching the active controller shall be low.
+4. the mean of the square of the force error shall be low
+5. the mean of the square of the speed error shall be low
+
+Open question: can all these requirements be combined in one or two performance figures, for
+example **efficiency** and **damage**?
+
+**TODO**
+- add `max_acc` the section `winch` of of `Settings.yaml`
+
 ## SpeedController
 
 ### SpeedController1
@@ -20,7 +34,6 @@ the apparent wind speed is between zero and 4 m/s. The force is proportional to 
 ![test_speedcontroller1](assets/test_speedcontroller1.png)
 
 ### SpeedController2
-
 This test is similar to the last test, but the set speed is calculated according to 
 $v_{ro} = \sqrt{f} * kv$ , 
 where $f$ is the measured tether force and $kv$ is a constant that needs to be optimized for a given kite power system. This should allow optimal energy harvesting during reel-out.
@@ -29,7 +42,6 @@ where $f$ is the measured tether force and $kv$ is a constant that needs to be o
 
 ## ForceSpeedController
 ### ForceSpeedController1
-
 This controller tests the combination of the lower force controller with the speed controller for the reel-out phase,
 where the reel-out speed shall be proportional to the square-root of the force. The lower force limit was set to
 $1500~N$.
@@ -37,6 +49,13 @@ $1500~N$.
 ![test_forcespeedcontroller1](assets/test_forcespeed_1.png)
 
 ### ForceSpeedController2
-
 This controller tests all controllers. The lower force limit was set to $350~N$, the upper force limit to $3800~N$.
 ![test_forcespeedcontroller1](assets/test_forcespeed_2.png)
+
+## Ideas
+- add torque controlled winch (which will require a modified controller)
+- add static tether model
+- linearize the winch+tether models
+- create bode plots
+- analyze the stability
+- add auto-tuning script
