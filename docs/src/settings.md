@@ -25,12 +25,10 @@ The following sequence of commands will load the model and the winch controller 
 using WinchControllers, KiteUtils
 
 set = load_settings("system.yaml")
-wcs = WCSettings(dt=0.02)
+wcs = WCSettings()
 update(wcs)
 ``` 
-Here, the time step `dt` is specified explicitly. Both, `set` and `wcs` are simple structs. You can see the content of the struct by typing the name of
-one of these variables. If you type `wcs. <TAB><TAB>` you can see all elements
-of the `wcs` struct.
+Both, `set` and `wcs` are simple structs. You can see the content of the struct by typing the name of one of these variables. If you type `wcs. <TAB><TAB>` you can see all elements of the `wcs` struct.
 
 ## The file wc_settings.yaml
 
