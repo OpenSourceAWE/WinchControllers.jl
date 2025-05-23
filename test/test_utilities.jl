@@ -103,8 +103,8 @@ function speed_controller_step2!(pid, winch, calc, i, last_force, last_v_set_out
     last_v_set_out = v_set_out
 end
 
-function speed_controller_step3!(pid1, sc, winch, calc, i, last_force, last_v_set_out, V_WIND, STARTUP, V_RO, ACC, FORCE, V_SET_OUT, V_SET_OUT_B, STATE, V_ERR, F_ERR)
-
+function speed_controller_step3!(pid1, sc, winch, calc, i, last_force, last_v_set_out, V_WIND, STARTUP, V_RO, ACC, 
+                                 FORCE, V_SET_OUT, V_SET_OUT_B, STATE, V_ERR, F_ERR)
     # calc v_set_in of the speed controller
     set_vset_pc(calc, nothing, last_force[])
     v_set_in = calc_output(calc)
