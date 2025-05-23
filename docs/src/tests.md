@@ -12,7 +12,7 @@ Most of these tests are not yet unit tests.
 ## Requirements
 1. the force must never be below zero.
 2. the max force shall not be above the nominal force of the winch, in this case 4000 N.
-3. the absolute value of the acceleration must never accede `max_acc`.
+3. the absolute value of the acceleration must never exceed `max_acc`.
 3. the oscillations after switching the active controller shall be low.
 4. the mean of the square of the force error shall be low
 5. the mean of the square of the speed error shall be low
