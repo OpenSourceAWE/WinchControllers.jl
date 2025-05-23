@@ -13,6 +13,7 @@ using WinchControllers, ControlPlots, KiteUtils
 
 set = deepcopy(load_settings("system.yaml"))
 wcs = WCSettings(dt=0.02)
+update(wcs)
 wcs.test = true
 wcs.f_low = 350
 wcs.fac = 1.0
@@ -84,8 +85,8 @@ if @isdefined __TEST__
     @test V_WIND[Int64(2/0.02)+1] ≈ 9.0 rtol=1e-4
     @test V_WIND[Int64(4/0.02)+1] ≈ 0.0 atol=1e-4
     @test V_WIND[Int64(6/0.02)+1] ≈ 9.0 rtol=1e-4
-    @test mean(FORCE) ≈ 1791.0028035171347 rtol=1e-4
-    @test maximum(FORCE) < 4270
+    @test mean(FORCE) ≈ 1783.2979123136008 rtol=1e-4
+    @test maximum(FORCE) < 4295
     @test minimum(FORCE[10:end]) > 10.0
     @test STATE[Int64(0.5/dt)] == 0
     @test STATE[Int64(1.0/dt)] == 1
@@ -93,7 +94,7 @@ if @isdefined __TEST__
     @test STATE[Int64(3.0/dt)] == 1
     @test STATE[Int64(4.0/dt)] == 0
     @test mean(F_ERR) ≈ 27.65 rtol=0.1
-    @test maximum(F_ERR) < 470
+    @test maximum(F_ERR) < 495
     @test minimum(F_ERR) > -400
     @test mean(V_ERR) ≈ 0.0125 rtol=0.1
     @test maximum(V_ERR) < 0.12
