@@ -26,7 +26,7 @@ wc_settings:
     f_high: 3800     # upper force limit [N]
     pf_high: 0.0002304 # P constant of upper force controller
     if_high: 0.012     # I constant of upper force controller
-    df_high: 0.000034  # D constant of upper force controller
+    df_high: 2.04e-5  # D constant of upper force controller
     nf_high: 15.0    # filter constant n of upper force controller
     kbf_high: 1.0    # back calculation constant for the anti-windup loop of the upper force controller
     ktf_high: 10.0   # tracking constant of the upper force controller
