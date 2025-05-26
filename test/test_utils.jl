@@ -1,3 +1,5 @@
+if false include("../src/utils.jl") end
+
 @testset "merge_angles" begin
     alpha=0
     beta=pi/2
