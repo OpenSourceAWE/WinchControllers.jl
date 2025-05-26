@@ -1,10 +1,10 @@
 # Create a signal, that is rising with wcs.t_startup from zero to one and then stays constant.
-function get_startup(wcs::WCSettings)
-    result = zeros(SAMPLES)
+function get_startup(wcs::WCSettings, samples)
+    result = zeros(samples)
     startup = 0.0
     rising = true
     delta = wcs.dt/wcs.t_startup
-    for i in 1:SAMPLES
+    for i in 1:samples
         result[i] = startup
         if rising
             startup += delta
