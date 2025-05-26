@@ -33,3 +33,10 @@ end
     @limit x 10
     @test x == -22
 end
+
+@testset "get_startup" begin
+    wcs = WCSettings(dt=0.02)
+    startup_signal = get_startup(wcs, 1000)
+    @test length(startup_signal) == 1000
+    @test all(startup_signal[14:end] .== 1.0)
+end
