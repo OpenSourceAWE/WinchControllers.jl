@@ -138,7 +138,7 @@ Create a triangle wind signal, that varies between min and max with the given fr
 - a vector of length `samples` with the triangle wind signal
 """
 function  get_triangle_wind(wcs::WCSettings, min, max, freq, samples)
-    result = zeros(SAMPLES)
+    result = zeros(samples)
     v_wind = 0.0
     rising = true
     delta = freq * 2.0 * (max - min) * wcs.dt
