@@ -7,6 +7,7 @@ Functions:
 - limit 
 - merge_angles
 - moving_average
+- get_startup
 
 Implemented as described in the PhD thesis of Uwe Fechner.
 """
@@ -86,6 +87,37 @@ function moving_average(data, window)
         result = mean(data)
     else
         result = mean(data[length(data)-window:end])
+    end
+    result
+end
+
+
+"""
+    get_startup(wcs::WCSettings, samples)
+
+Create a signal, that is rising with wcs.t_startup from zero to one and then stays constant.
+
+## Parameters:
+- wcs: the winch controller settings
+- samples: the number of samples to create
+
+## Returns:
+- a vector of length `samples` with the startup signal
+"""
+function get_startup(wcs::WCSettings, samples)
+    result = zeros(samples)
+    startup = 0.0
+    rising = true
+    delta = wcs.dt/wcs.t_startup
+    for i in 1:samples
+        result[i] = startup
+        if rising
+            startup += delta
+        end
+        if startup >= 1.0
+            startup = 1.0
+            rising = false
+        end
     end
     result
 end

@@ -18,9 +18,9 @@ abstract type AbstractForceController end
 const AFC = AbstractForceController
 
 # Write your package code here.
+include("wc_settings.jl")
 include("utils.jl")
 include("components.jl")
-include("wc_settings.jl")
 include("wc_components.jl")
 include("winchcontroller.jl")
 
