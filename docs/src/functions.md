@@ -8,4 +8,5 @@ CurrentModule = WinchControllers
 saturate
 merge_angles
 get_startup
+get_triangle_wind
 ```

@@ -121,3 +121,43 @@ function get_startup(wcs::WCSettings, samples)
     end
     result
 end
+
+"""
+    get_triangle_wind(wcs::WCSettings, min, max, freq, samples)
+
+Create a triangle wind signal, that varies between min and max with the given frequency.
+
+## Parameters:
+- wcs: the winch controller settings
+- min: the minimum wind speed
+- max: the maximum wind speed
+- freq: the frequency of the triangle wave
+- samples: the number of samples to create
+
+## Returns:
+- a vector of length `samples` with the triangle wind signal
+"""
+function  get_triangle_wind(wcs::WCSettings, min, max, freq, samples)
+    result = zeros(SAMPLES)
+    v_wind = 0.0
+    rising = true
+    delta = freq * 2.0 * (max - min) * wcs.dt
+    for i in 1:samples
+        result[i] = v_wind
+        if rising
+            v_wind += delta
+        end
+        if v_wind >= max
+            v_wind = max
+            rising = false
+        end
+        if ! rising
+            v_wind -= delta
+        end
+        if v_wind <= min
+            v_wind = min + delta
+            rising = true
+        end
+    end
+    result
+end

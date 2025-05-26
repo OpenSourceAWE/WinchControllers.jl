@@ -1,30 +1,3 @@
-# Create a wind signal in triangle form, using the constants V_WIND_MIN and V_WIND_MAX with
-# the frequency FREQ_WIND.
-function  get_triangle_wind(wcs::WCSettings, min, max, freq, samples)
-    result = zeros(SAMPLES)
-    v_wind = 0.0
-    rising = true
-    delta = freq * 2.0 * (max - min) * wcs.dt
-    for i in 1:samples
-        result[i] = v_wind
-        if rising
-            v_wind += delta
-        end
-        if v_wind >= max
-            v_wind = max
-            rising = false
-        end
-        if ! rising
-            v_wind -= delta
-        end
-        if v_wind <= min
-            v_wind = min + delta
-            rising = true
-        end
-    end
-    result
-end
-
 # Calculate the pulling force of the kite as function of the reel-out speed and the wind speed in the
 # direction of the tether at the height of the kite. Most simplified model, massless, constant L/D,
 # constant elevation angle.
