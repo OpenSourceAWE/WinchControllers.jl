@@ -30,7 +30,7 @@ FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal
 include("test_utilities.jl")
 
 STARTUP = get_startup(wcs, SAMPLES)    
-V_WIND = STARTUP .* get_triangle_wind(wcs)
+V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, SAMPLES)
 V_RO, V_SET_OUT, FORCE, F_ERR = zeros(SAMPLES), zeros(SAMPLES), zeros(SAMPLES), zeros(SAMPLES)
 ACC, ACC_SET, V_ERR = zeros(SAMPLES), zeros(SAMPLES), zeros(SAMPLES)
 RESET, ACTIVE, F_SET = zeros(SAMPLES), zeros(SAMPLES), zeros(SAMPLES)

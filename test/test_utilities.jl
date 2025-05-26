@@ -1,24 +1,24 @@
 # Create a wind signal in triangle form, using the constants V_WIND_MIN and V_WIND_MAX with
 # the frequency FREQ_WIND.
-function  get_triangle_wind(wcs::WCSettings)
+function  get_triangle_wind(wcs::WCSettings, min, max, freq, samples)
     result = zeros(SAMPLES)
     v_wind = 0.0
     rising = true
-    delta = FREQ_WIND * 2.0 * (V_WIND_MAX - V_WIND_MIN) * wcs.dt
-    for i in 1:SAMPLES
+    delta = freq * 2.0 * (max - min) * wcs.dt
+    for i in 1:samples
         result[i] = v_wind
         if rising
             v_wind += delta
         end
-        if v_wind >= V_WIND_MAX
-            v_wind = V_WIND_MAX
+        if v_wind >= max
+            v_wind = max
             rising = false
         end
         if ! rising
             v_wind -= delta
         end
-        if v_wind <= V_WIND_MIN
-            v_wind = V_WIND_MIN + delta
+        if v_wind <= min
+            v_wind = min + delta
             rising = true
         end
     end

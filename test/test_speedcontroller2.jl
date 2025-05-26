@@ -25,7 +25,7 @@ BENCHMARK = false
 include("test_utilities.jl")
 
 STARTUP = get_startup(wcs, SAMPLES)    
-V_WIND = STARTUP .* get_triangle_wind(wcs)
+V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, SAMPLES)
 V_RO = zeros(SAMPLES)
 V_SET_OUT = zeros(SAMPLES)
 FORCE = zeros(SAMPLES)
