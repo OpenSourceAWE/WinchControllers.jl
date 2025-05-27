@@ -19,10 +19,6 @@ $v_\mathrm{err} = \frac{1}{\bar{v}}~\sqrt{\frac{1}{n} \sum_{i=1}^{n} (v-v_\mathr
 with
 $\bar{v} = \frac{1}{n} \sum_{i=1}^{n} \lvert v_\mathrm{set} \rvert$
 
-For now, it is assumed that the maximal reel-in and reel-out speed of the winch are identical:
-
-$v_\mathrm{max} = v_\mathrm{ro,max} = v_\mathrm{ri,max}$
-
 The reason to use the mean square error for the velocity is that in this mode of operation the error only reduces the power output. Short peak errors are usually not a problem.
 
 ## Combined performance
