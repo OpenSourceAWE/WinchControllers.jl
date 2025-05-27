@@ -8,7 +8,7 @@ using Timers; tic()
 # Test the speed controller in combination with the controller for the lower and upper force.
 # Input: A varying wind speed. Implements the simulink block diagram, shown in
 # docs/force_speed_controller_test2.png
-using WinchControllers, KiteUtils, ControlPlots
+using WinchControllers, KiteUtils, ControlPlots, LinearAlgebra
 
 set = deepcopy(load_settings("system.yaml"))
 
@@ -32,6 +32,11 @@ FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal
 BENCHMARK = false
 
 include("test_utilities.jl")
+
+function f_err(set, f_err_)
+    f_max = set.max_force
+    1/f_max * maximum(norm.(filter(!isnan, f_err_)))
+end
 
 STARTUP = get_startup(wcs, SAMPLES)    
 V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, SAMPLES)
@@ -81,4 +86,5 @@ display(p1)
 toc()
 
 println("Max iterations needed: $(wcs.iter)")
+println("Performance of force controllers: $(round(100*(1-f_err(set, F_ERR)), digits=2)) %")
     
