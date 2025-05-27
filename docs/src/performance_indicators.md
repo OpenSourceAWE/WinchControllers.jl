@@ -32,4 +32,7 @@ $\gamma = 1 - \frac{1}{2}(F_\mathrm{err} + v_\mathrm{err})~$.
 
 ## TODO
 - Take the control effort into account. This could be the average power needed to accelerate and to slow down the winch with respect to the average mechanical power at lower end of the tether.
-- Quantify the robustness. This could be done by linearizing the system and checking gain and phase margin (for example), or by varying the model parameters (e.g. inertia of the drum) and checking if the combined performance stays above a required minimum.
+- Quantify the robustness. This could be done by linearizing the system and checking gain and phase margin (for example), or by varying the model parameters (e.g. inertia of the drum) and checking if the combined performance stays above a required minimum. Possible robustness requirements:  
+    - the controller must be robust for a model uncertainty of $\pm 15\%$ inertia
+    - it must be robust against $\pm 5\%$ drum radius
+    - it must be robust against $20ms$ delay in the force control loop
