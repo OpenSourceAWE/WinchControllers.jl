@@ -8,7 +8,7 @@ using Timers; tic()
 # Test the speed controller in combination with the controller for the lower and upper force.
 # Input: A varying wind speed. Implements the simulink block diagram, shown in
 # docs/force_speed_controller_test2.png
-using WinchControllers, KiteUtils, ControlPlots, LinearAlgebra
+using WinchControllers, KiteUtils, ControlPlots, LinearAlgebra, Statistics
 
 set = deepcopy(load_settings("system.yaml"))
 
@@ -38,9 +38,20 @@ function f_err(set, f_err_)
     1/f_max * maximum(norm.(filter(!isnan, f_err_)))
 end
 
+rms(x) = norm(x) / sqrt(length(x))
+
+function v_err(v_err_, v_set)
+    v_mean =  mean(norm.(filter(!isnan, v_set)))
+    1/v_mean * sqrt(rms(filter(!isnan, v_err_)))
+end
+
+function gamma(set, f_err_, v_err_, v_set)
+    1 - 0.5(f_err(set, f_err_) + v_err(v_err_, v_set))
+end
+
 STARTUP = get_startup(wcs, SAMPLES)    
 V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, SAMPLES)
-V_RO, V_SET_OUT, FORCE, F_ERR = zeros(SAMPLES), zeros(SAMPLES), zeros(SAMPLES), zeros(SAMPLES)
+V_RO, V_SET, V_SET_OUT, FORCE, F_ERR = zeros(SAMPLES), zeros(SAMPLES), zeros(SAMPLES), zeros(SAMPLES), zeros(SAMPLES)
 ACC, ACC_SET, V_ERR = zeros(SAMPLES), zeros(SAMPLES), zeros(SAMPLES)
 STATE = zeros(Int64, SAMPLES)
 # create and initialize speed controller 
@@ -72,7 +83,8 @@ last_force = Ref(0.0)
 last_v_set_out = Ref(0.0)
 
 for i in 1:SAMPLES
-    speed_controller_step4!(pid1, sc, ufc, mix3, winch, calc, i, last_force, last_v_set_out, V_WIND, STARTUP, V_RO, ACC, FORCE, V_SET_OUT, STATE, V_ERR, F_ERR)
+    speed_controller_step4!(pid1, sc, ufc, mix3, winch, calc, i, last_force, last_v_set_out, V_WIND, STARTUP, V_RO, 
+                            ACC, FORCE, V_SET_OUT, STATE, V_ERR, F_ERR, V_SET)
 end
 
 p1=plotx(TIME, V_WIND, [V_RO, V_SET_OUT], F_ERR*0.001, V_ERR, ACC, FORCE*0.001, STATE,
@@ -87,4 +99,5 @@ toc()
 
 println("Max iterations needed: $(wcs.iter)")
 println("Performance of force controllers: $(round(100*(1-f_err(set, F_ERR)), digits=2)) %")
-    
+println("Performance of speed controller: $(round(100*(1-v_err(V_ERR, V_SET)), digits=2)) %")
+println("Combined performance γ: $(round(100*gamma(set, F_ERR, V_ERR, V_SET), digits=2)) %")    

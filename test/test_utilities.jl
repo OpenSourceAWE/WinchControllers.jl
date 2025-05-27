@@ -114,7 +114,8 @@ function speed_controller_step3!(pid1, sc, winch, calc, i, last_force, last_v_se
     last_v_set_out[] = v_set_out            
 end
 
-function speed_controller_step4!(pid1, sc, ufc, mix3, winch, calc, i, last_force, last_v_set_out, V_WIND, STARTUP, V_RO, ACC, FORCE, V_SET_OUT, STATE, V_ERR, F_ERR)
+function speed_controller_step4!(pid1, sc, ufc, mix3, winch, calc, i, last_force, last_v_set_out, V_WIND, STARTUP, 
+         V_RO, ACC, FORCE, V_SET_OUT, STATE, V_ERR, F_ERR, V_SET)
     # get the input (the wind speed)
     v_wind = V_WIND[i]
     v_ro = get_speed(winch)
@@ -168,6 +169,9 @@ function speed_controller_step4!(pid1, sc, ufc, mix3, winch, calc, i, last_force
     STATE[i] = get_state(mix3)
     if STATE[i] == 1
         F_ERR[i] = NaN
+        V_SET[i] = v_set_in
+    else
+        V_SET[i] = NaN
     end
 
     v_set_out = calc_output(mix3, v_set_out_A, v_set_out_B, v_set_out_C)
