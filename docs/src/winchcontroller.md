@@ -82,6 +82,7 @@ calc_vro
 WCLogger
 WCLogger(duration, dt)
 log(logger::WCLogger; params...)
+f_err
 ```
 
 ## Winch

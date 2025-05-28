@@ -30,7 +30,7 @@ V_WIND_MIN = 0.0 # min wind speed of test wind
 FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal 
 
 # create the logger
-lg::WCLogger = WCLogger(DURATION, wcs.dt)
+lg::WCLogger = WCLogger(DURATION, wcs.dt, set.max_force)
 
 STARTUP = get_startup(wcs, length(lg))    
 V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, length(lg))
@@ -86,3 +86,4 @@ display(p1)
 toc()
 
 println("Max iterations needed: $(wcs.iter)")
+println("Performance of force controllers: $(round(100*(1-f_err(lg)), digits=2)) %")

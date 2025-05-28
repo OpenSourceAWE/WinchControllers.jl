@@ -11,7 +11,10 @@ $(TYPEDFIELDS)
 @with_kw mutable struct WCLogger{Q} @deftype Float64
     "Index of the next log entry"
     index::Int64 = 1
+    "Vector of time stamps [s]"
     time::Vector{Float64} = zeros(Float64, Q)
+    "Maximal winch force [N]"
+    max_force::Float64 = 0.0
     "reel-out speed [m/s]"
     v_ro::Vector{Float64} = zeros(Float64, Q)
     "set reel-out speed [m/s]"
@@ -38,7 +41,7 @@ end
 WCLogger(samples::Int64) = WCLogger{samples}()
 
 """
-    WCLogger(duration, dt)
+    WCLogger(duration, dt, max_force=0.0)
 
 Create and initialize a logger for the winch controller system.
 
@@ -49,10 +52,11 @@ Create and initialize a logger for the winch controller system.
 # Returns
 A logger object configured to record data at the specified interval for the given duration.
 """
-function WCLogger(duration, dt)
+function WCLogger(duration, dt, max_force=0.0)
     samples = Int(duration / dt + 1)
     lg = WCLogger(samples)
     lg.time = range(0.0, duration, samples)
+    lg.max_force = max_force
     lg
 end
 
@@ -92,4 +96,32 @@ function log(logger::WCLogger; v_ro=0.0, v_set_out=0.0, force=0.0, f_err=0.0, ac
     logger.f_set[idx] = f_set
     logger.state[idx] = state
     logger.index += 1
-end 
+end
+
+
+"""
+    f_err(logger::WCLogger)
+
+Calculate the normalized maximal force error of a log.
+
+# Arguments
+- `logger::WCLogger`: The logger instance used to log error messages.
+
+# Returns
+The normalized maximal force error with respect to the maximum force of the winch.
+"""
+function f_err(logger::WCLogger)
+    f_max = logger.max_force
+    1/f_max * maximum(norm.(filter(!isnan, logger.f_err)))
+end
+
+# rms(x) = norm(x) / sqrt(length(x))
+
+# function v_err(v_err_, v_set)
+#     v_mean =  mean(norm.(filter(!isnan, v_set)))
+#     1/v_mean * sqrt(rms(filter(!isnan, v_err_)))
+# end
+
+# function gamma(set, f_err_, v_err_, v_set)
+#     1 - 0.5(f_err(set, f_err_) + v_err(v_err_, v_set))
+# end
