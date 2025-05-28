@@ -1,7 +1,7 @@
 """
     mutable struct WCSettings
         
-Settings of the WinchController
+Settings of the WinchController. See also: [Winchcontroller Settings](@ref).
 
 # Fields
 

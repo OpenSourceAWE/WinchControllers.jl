@@ -83,8 +83,8 @@ Only used for testing the [WinchController](@ref).
 ```@docs
 Winch
 Winch(wcs::WCSettings, set::Settings)
-set_v_set
-set_force
+set_v_set(w::Winch, v_set)
+set_force(w::Winch, force)
 get_speed(w::Winch)
 get_acc(w::Winch)
 on_timer(w::Winch)

@@ -14,13 +14,11 @@ Most of these tests are not yet unit tests.
 2. the max force shall not be above the nominal force of the winch, in this case 4000 N.
 3. the absolute value of the acceleration must never exceed `max_acc`.
 3. the oscillations after switching the active controller shall be low.
-4. the mean of the square of the force error shall be low
+4. the maximum of the force error shall be low
 5. the mean of the square of the speed error shall be low
-6. the robustness for model errors (for example with respect to the inertia of the drum and the drum diameter) 
-   shall be high
+6. the robustness for model errors (for example with respect to the inertia of the drum and the drum diameter) shall be high
 
-Open question: can all these requirements be combined in two or three performance figures, for
-example **efficiency**, **robustness** and **damage**?
+Open question: can all these requirements be combined in two or three performance indicators, fornexample **efficiency**, **robustness** and **damage**? See also: [Performance Indicators](@ref)
 
 ## SpeedController
 
