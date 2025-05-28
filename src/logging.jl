@@ -139,13 +139,18 @@ function v_err(logger::WCLogger)
     1/v_mean * rms(filter(!isnan, logger.v_err))
 end
 
+"""
+    gamma(logger::WCLogger)
 
+Compute the combined performance indicator ``\\gamma`` for the test case used to create
+the provided logs, stored in the `logger`.
 
-# function v_err(v_err_, v_set)
-#     v_mean =  mean(norm.(filter(!isnan, v_set)))
-#     1/v_mean * (rms(filter(!isnan, v_err_)))
-# end
+# Arguments
+- `logger::WCLogger`: The logger object that shall be used to calculate gamma.
 
-# function gamma(set, f_err_, v_err_, v_set)
-#     1 - 0.5(f_err(set, f_err_) + v_err(v_err_, v_set))
-# end
+# Returns
+- The gamma value associated with the log of the used test case.
+"""
+function gamma(logger::WCLogger)
+    1 - 0.5 * (f_err(logger) + v_err(logger))
+end

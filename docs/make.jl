@@ -13,6 +13,7 @@ makedocs(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://OpenSourceAWE.github.io/WinchControllers.jl",
         assets=String[],
+        mathengine = Documenter.MathJax(),
     ),
     pages=[
         "Home" => "index.md",
