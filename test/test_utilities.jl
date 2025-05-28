@@ -28,10 +28,12 @@ function speed_controller_step!(pid, winch, i, last_v_set_out, V_WIND, STARTUP, 
     last_v_set_out = v_set_out
 end
 
-function speed_controller_step2!(pid, winch, calc, i, last_force, last_v_set_out, V_WIND, STARTUP, ACC, FORCE, ACC_SET, V_SET_OUT)
+function speed_controller_step2!(pid, winch, calc, i, last_force, last_v_set_out, V_WIND, STARTUP, ACC, FORCE, 
+                                 ACC_SET, V_SET_OUT, V_SET_IN)
     # calc v_set_in
     set_vset_pc(calc, nothing, last_force[])
     v_set_in = calc_output(calc)
+    V_SET_IN[i] = v_set_in
     set_v_set_in(pid, v_set_in)
     # get the input (the wind speed)
     v_wind = V_WIND[i]

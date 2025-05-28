@@ -27,6 +27,7 @@ include("test_utilities.jl")
 STARTUP = get_startup(wcs, SAMPLES)    
 V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, SAMPLES)
 V_RO = zeros(SAMPLES)
+V_SET_IN = zeros(SAMPLES)
 V_SET_OUT = zeros(SAMPLES)
 FORCE = zeros(SAMPLES)
 ACC = zeros(SAMPLES)
@@ -46,12 +47,14 @@ if BENCHMARK
     # end
 else
     for i in 1:SAMPLES
-        speed_controller_step2!(pid1, winch, calc, i, last_force, last_v_set_out, V_WIND, STARTUP, ACC, FORCE, ACC_SET, V_SET_OUT)
+        speed_controller_step2!(pid1, winch, calc, i, last_force, last_v_set_out, V_WIND, STARTUP, 
+                                ACC, FORCE, ACC_SET, V_SET_OUT, V_SET_IN)
     end
 end
 
-p=plotx(TIME, V_WIND, V_RO, V_SET_OUT, ACC, FORCE*0.001;
+p=plotx(TIME, V_WIND, [V_SET_IN, V_RO], V_SET_OUT, ACC, FORCE*0.001;
       ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "v_set_out [m/s]", "acc [m/s²]", "force [kN]"],
+      labels=["v_wind", "v_set_in", "v_reel_out", "v_set_out", "acc", "force"],
       fig="test_speedcontroller2")
 display(p)
 
