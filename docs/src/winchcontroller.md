@@ -83,6 +83,7 @@ WCLogger
 WCLogger(duration, dt)
 log(logger::WCLogger; params...)
 f_err
+v_err
 ```
 
 ## Winch

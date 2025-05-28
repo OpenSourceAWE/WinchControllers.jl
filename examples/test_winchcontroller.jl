@@ -41,7 +41,7 @@ winch = WinchControllers.Winch(wcs, set)
 f_low = wcs.f_low
 
 for i in 1:length(lg)
-    local force
+    local force, v_set
     # model
     v_wind = V_WIND[i]
 
@@ -50,10 +50,10 @@ for i in 1:length(lg)
     set_force(winch, force)
 
     # controller
-    v_set = calc_v_set(wc, v_act, force, f_low)
+    v_set_out = calc_v_set(wc, v_act, force, f_low)
     
     # update model
-    set_v_set(winch, v_set)
+    set_v_set(winch, v_set_out)
     
     on_timer(winch)
     on_timer(wc)
@@ -63,16 +63,16 @@ for i in 1:length(lg)
     status = get_status(wc)
     force  = status[3]
     f_set  = status[4]
+    v_set = NaN
     if state in [0,2]
         f_err = force - f_set
-        v_err = NaN
     else
-        v_err = v_act - v_set
+        v_set = wc.v_set
         f_err = NaN
     end
     # log the values
     log(lg; v_ro=v_act, acc=get_acc(winch), state, reset=status[1], active=status[2], 
-            force, f_set, f_err, v_err, v_set_out=v_set)
+            force, f_set, f_err, v_err= wc.sc.v_err, v_set, v_set_out)
 end
 
 # plot the results  
@@ -87,3 +87,4 @@ toc()
 
 println("Max iterations needed: $(wcs.iter)")
 println("Performance of force controllers: $(round(100*(1-f_err(lg)), digits=2)) %")
+println("Performance of speed controller: $(round(100*(1-v_err(lg)), digits=2)) %")

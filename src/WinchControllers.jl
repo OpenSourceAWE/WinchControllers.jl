@@ -1,6 +1,7 @@
 module WinchControllers
 
-using Parameters, StructTypes, KiteUtils, WinchModels, StaticArrays, NLsolve, DocStringExtensions, YAML, LinearAlgebra
+using Parameters, StructTypes, KiteUtils, WinchModels, StaticArrays, NLsolve, DocStringExtensions, YAML
+using LinearAlgebra, Statistics
 
 import Base.reset
 import Base.log
@@ -16,7 +17,7 @@ export merge_angles, @limit
 export SpeedController, set_inactive, set_v_act, set_v_set, set_v_set_in, set_tracking, get_v_set_out
 export LowerForceController, UpperForceController
 export get_startup, get_triangle_wind
-export WCLogger, log, f_err
+export WCLogger, log, f_err, v_err, gamma
 
 abstract type AbstractForceController end
 const AFC = AbstractForceController

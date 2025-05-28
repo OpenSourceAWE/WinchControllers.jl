@@ -18,6 +18,8 @@ $(TYPEDFIELDS)
     "reel-out speed [m/s]"
     v_ro::Vector{Float64} = zeros(Float64, Q)
     "set reel-out speed [m/s]"
+    v_set::Vector{Float64} = zeros(Float64, Q)
+    "set reel-out speed of the winch [m/s]"
     v_set_out::Vector{Float64} = zeros(Float64, Q)
     "force [N]"
     force::Vector{Float64} = zeros(Float64, Q)
@@ -65,13 +67,14 @@ function length(logger::WCLogger)
 end
 
 """
-    log(logger::WCLogger; v_ro=0.0, v_set_out=0.0, force=0.0, f_err=0.0, acc=0.0, acc_set=0.0)
+    log(logger::WCLogger; v_ro=0.0, v_set=0.0, v_set_out=0.0, force=0.0, f_err=0.0, acc=0.0, acc_set=0.0)
 
 Logs the current state of the winch controller.
 
 # Arguments
 - `logger::WCLogger`: The logger instance used to record the data.
 - `v_ro`: (Optional) The measured reel-out velocity. Defaults to `0.0`.
+- `v_set`: (Optional) The input of the speed controller. Defaults to `0.0`.
 - `v_set_out`: (Optional) The setpoint output velocity. Defaults to `0.0`.
 - `force`: (Optional) The measured force. Defaults to `0.0`.
 - `f_err`: (Optional) The force error. Defaults to `0.0`.
@@ -81,10 +84,11 @@ Logs the current state of the winch controller.
 # Description
 This function records the provided parameters to the logger for analysis of the winch controller's performance.
 """
-function log(logger::WCLogger; v_ro=0.0, v_set_out=0.0, force=0.0, f_err=0.0, acc=0.0, acc_set=0.0,
+function log(logger::WCLogger; v_ro=0.0, v_set=0.0, v_set_out=0.0, force=0.0, f_err=0.0, acc=0.0, acc_set=0.0,
              v_err=0.0, reset=0, active=0, f_set=0.0, state=0)
     idx = logger.index
     logger.v_ro[idx] = v_ro
+    logger.v_set[idx] = v_set
     logger.v_set_out[idx] = v_set_out
     logger.force[idx] = force
     logger.f_err[idx] = f_err
@@ -115,11 +119,27 @@ function f_err(logger::WCLogger)
     1/f_max * maximum(norm.(filter(!isnan, logger.f_err)))
 end
 
-# rms(x) = norm(x) / sqrt(length(x))
+"""
+    v_err(logger::WCLogger)
+
+Calculate the normalized root mean square (RMS) of the reel-out speed error.
+
+# Arguments
+- `logger::WCLogger`: The logger object used to record the error message.
+
+# Returns
+The normalized RMS of the reel-out speed error with respect to the mean of the set values of the reel-out speed.
+"""
+function v_err(logger::WCLogger)
+    v_mean = mean(norm.(filter(!isnan, logger.v_set)))
+    1/v_mean * rms(filter(!isnan, logger.v_err))
+end
+
+
 
 # function v_err(v_err_, v_set)
 #     v_mean =  mean(norm.(filter(!isnan, v_set)))
-#     1/v_mean * sqrt(rms(filter(!isnan, v_err_)))
+#     1/v_mean * (rms(filter(!isnan, v_err_)))
 # end
 
 # function gamma(set, f_err_, v_err_, v_set)

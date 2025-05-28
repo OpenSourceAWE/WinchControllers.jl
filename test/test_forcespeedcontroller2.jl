@@ -33,20 +33,20 @@ BENCHMARK = false
 
 include("test_utilities.jl")
 
-function f_err(set, f_err_)
+function f_err1(set, f_err_)
     f_max = set.max_force
     1/f_max * maximum(norm.(filter(!isnan, f_err_)))
 end
 
 rms(x) = norm(x) / sqrt(length(x))
 
-function v_err(v_err_, v_set)
+function v_err1(v_err_, v_set)
     v_mean =  mean(norm.(filter(!isnan, v_set)))
     1/v_mean * sqrt(rms(filter(!isnan, v_err_)))
 end
 
 function gamma(set, f_err_, v_err_, v_set)
-    1 - 0.5(f_err(set, f_err_) + v_err(v_err_, v_set))
+    1 - 0.5(f_err1(set, f_err_) + v_err1(v_err_, v_set))
 end
 
 STARTUP = get_startup(wcs, SAMPLES)    
@@ -98,6 +98,6 @@ display(p1)
 toc()
 
 println("Max iterations needed: $(wcs.iter)")
-println("Performance of force controllers: $(round(100*(1-f_err(set, F_ERR)), digits=2)) %")
-println("Performance of speed controller: $(round(100*(1-v_err(V_ERR, V_SET)), digits=2)) %")
+println("Performance of force controllers: $(round(100*(1-f_err1(set, F_ERR)), digits=2)) %")
+println("Performance of speed controller: $(round(100*(1-v_err1(V_ERR, V_SET)), digits=2)) %")
 println("Combined performance γ: $(round(100*gamma(set, F_ERR, V_ERR, V_SET), digits=2)) %")    
