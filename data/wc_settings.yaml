@@ -1,7 +1,7 @@
 wc_settings:
     dt: 0.02         # time step of the winch controller
     test: false
-    fac: 0.25        # factor for I and P of lower force controller
+    fac: 1.0         # factor for I and P of lower force controller
     max_iter: 100    # max iterations limit for the PID solvers
     iter: 0          # actual max iterations of the PID solvers
     t_startup: 0.25  # startup time for soft start  
