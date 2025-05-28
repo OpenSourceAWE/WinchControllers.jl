@@ -23,9 +23,12 @@ wcs = WCSettings(dt=0.02)
 update(wcs)
 wcs.test = true
 
+
+
 DURATION = 10.0
 SAMPLES = Int(DURATION / wcs.dt + 1)
-TIME = range(0.0, DURATION, SAMPLES)
+lg::WCLogger = WCLogger(SAMPLES)
+lg.time = range(0.0, DURATION, SAMPLES)
 V_WIND_MAX = 9.0 # max wind speed of test wind
 V_WIND_MIN = 0.0 # min wind speed of test wind
 FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal 
@@ -83,7 +86,7 @@ end
 
 
 # plot the results  
-p1=plotx(TIME, V_WIND, [V_RO, V_SET_OUT], F_ERR*0.001, V_ERR, ACC, FORCE*0.001, STATE,
+p1=plotx(lg.time, V_WIND, [V_RO, V_SET_OUT], F_ERR*0.001, V_ERR, ACC, FORCE*0.001, STATE,
     title="Winch controller test, all controllers active",
     ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "f_err [kN]", "v_error [m/s]", "acc [m/s²]", "force [kN]", "state"], 
     labels=["v_wind", ["v_reel_out", "v_set_out"]],
