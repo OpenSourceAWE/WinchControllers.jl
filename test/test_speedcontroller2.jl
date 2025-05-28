@@ -13,6 +13,7 @@ using WinchControllers, ControlPlots, KiteUtils
 
 set = deepcopy(load_settings("system.yaml"))
 wcs = WCSettings(dt=0.02)
+update(wcs)
 
 DURATION = 10.0
 SAMPLES = Int(DURATION / wcs.dt + 1)
@@ -54,7 +55,7 @@ end
 
 p=plotx(TIME, V_WIND, [V_SET_IN, V_RO], V_SET_OUT, ACC, FORCE*0.001;
       ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "v_set_out [m/s]", "acc [m/s²]", "force [kN]"],
-      labels=["v_wind", "v_set_in", "v_reel_out", "v_set_out", "acc", "force"],
+      labels=["v_wind", ["v_set_in", "v_reel_out"], "v_set_out", "acc", "force"],
       fig="test_speedcontroller2")
 display(p)
 
