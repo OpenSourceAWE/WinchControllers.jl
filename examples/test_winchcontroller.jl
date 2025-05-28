@@ -82,6 +82,7 @@ end
 p1=plotx(lg.time, V_WIND, [lg.v_ro, lg.v_set_in], lg.f_err*0.001, lg.v_err, lg.acc, lg.force*0.001, lg.state,
     title="Winch controller test, all controllers active",
     ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "f_err [kN]", "v_error [m/s]", "acc [m/s²]", "force [kN]", "state"], 
+    ysize=10,
     labels=["v_wind", ["v_reel_out", "v_set_in"]],
     fig="test_winchcontroller",)
 
