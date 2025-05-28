@@ -75,7 +75,6 @@ for i in 1:length(lg)
             force, f_set, f_err, v_err, v_set_out=v_set)
 end
 
-
 # plot the results  
 p1=plotx(lg.time, V_WIND, [lg.v_ro, lg.v_set_out], lg.f_err*0.001, lg.v_err, lg.acc, lg.force*0.001, lg.state,
     title="Winch controller test, all controllers active",
