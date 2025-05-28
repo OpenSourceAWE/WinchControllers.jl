@@ -14,6 +14,7 @@ export merge_angles, @limit
 export SpeedController, set_inactive, set_v_act, set_v_set, set_v_set_in, set_tracking, get_v_set_out
 export LowerForceController, UpperForceController
 export get_startup, get_triangle_wind
+export WCLogger
 
 abstract type AbstractForceController end
 const AFC = AbstractForceController
@@ -24,5 +25,6 @@ include("utils.jl")
 include("components.jl")
 include("wc_components.jl")
 include("winchcontroller.jl")
+include("logging.jl")
 
 end

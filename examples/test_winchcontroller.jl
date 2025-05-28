@@ -21,11 +21,7 @@ end
 set = deepcopy(load_settings("system.yaml"))
 wcs = WCSettings(dt=0.02)
 update(wcs)
-wcs.test = true
-wcs.f_low = 350
-wcs.fac = 1.0
-wcs.t_blend = 0.25
-wcs.pf_high = 1.44e-4*1.6*0.5
+# wcs.test = true
 
 DURATION = 10.0
 SAMPLES = Int(DURATION / wcs.dt + 1)
