@@ -91,6 +91,7 @@ p1=plotx(TIME, V_WIND, [V_RO, V_SET_OUT], F_ERR*0.001, V_ERR, ACC, FORCE*0.001, 
       title="Winch controller test, all controllers active",
       ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "f_err [kN]", "v_error [m/s]", "acc [m/s²]", "force [kN]", "state"], 
       labels=["v_wind", ["v_reel_out", "v_set_out"]],
+      ysize=10,
       fig="test_forcespeed_2")
 
 display(p1)
