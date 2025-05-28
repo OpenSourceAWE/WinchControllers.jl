@@ -45,6 +45,10 @@ $1500~N$.
 
 ![test_forcespeedcontroller1](assets/test_forcespeed_1.png)
 
+**State**
+
+`0.` lower force controller active; `1.` speed controller active
+
 ### ForceSpeedController2
 This controller tests all controllers. The lower force limit was set to $350~N$, the upper force limit to $3800~N$.
 ![test_forcespeedcontroller1](assets/test_forcespeed_2.png)
