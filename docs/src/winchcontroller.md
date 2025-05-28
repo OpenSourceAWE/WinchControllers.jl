@@ -77,6 +77,13 @@ WCSettings
 calc_vro
 ```
 
+## Logger
+```@docs
+WCLogger
+WCLogger(duration, dt)
+log(logger::WCLogger; params...)
+```
+
 ## Winch
 Only used for testing the [WinchController](@ref).
 

@@ -17,8 +17,8 @@ makedocs(;
     pages=[
         "Home" => "index.md",
         "Generic Components" => "components.md",
-        "Winchcontroller" => "winchcontroller.md",
         "Functions and Macros" => "functions.md",
+        "Winchcontroller" => "winchcontroller.md",
         "Winchcontroller Settings" => "settings.md",
         "Performance Indicators" => "performance_indicators.md",
         "Tests" => "tests.md",

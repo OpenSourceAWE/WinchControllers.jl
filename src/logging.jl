@@ -1,7 +1,8 @@
 """
-    mutable struct WCLogger
+    mutable struct WCLogger{Q}
         
-Struct with the WinchController log vectors.
+Struct with the WinchController log vectors. Q is the number of 
+samples that can be logged. 
 
 # Fields
 
@@ -35,6 +36,19 @@ $(TYPEDFIELDS)
     state::Vector{Int64} = zeros(Int64, Q)
 end
 WCLogger(samples::Int64) = WCLogger{samples}()
+
+"""
+    WCLogger(duration, dt)
+
+Create and initialize a logger for the winch controller system.
+
+# Arguments
+- `duration::Number`: The total duration for which logging should occur. [s]
+- `dt::Number`:       The time step interval between log entries. [s]
+
+# Returns
+A logger object configured to record data at the specified interval for the given duration.
+"""
 function WCLogger(duration, dt)
     samples = Int(duration / dt + 1)
     lg = WCLogger(samples)
@@ -46,6 +60,23 @@ function length(logger::WCLogger)
     length(logger.time)
 end
 
+"""
+    log(logger::WCLogger; v_ro=0.0, v_set_out=0.0, force=0.0, f_err=0.0, acc=0.0, acc_set=0.0)
+
+Logs the current state of the winch controller.
+
+# Arguments
+- `logger::WCLogger`: The logger instance used to record the data.
+- `v_ro`: (Optional) The measured reel-out velocity. Defaults to `0.0`.
+- `v_set_out`: (Optional) The setpoint output velocity. Defaults to `0.0`.
+- `force`: (Optional) The measured force. Defaults to `0.0`.
+- `f_err`: (Optional) The force error. Defaults to `0.0`.
+- `acc`: (Optional) The measured acceleration. Defaults to `0.0`.
+- `acc_set`: (Optional) The setpoint acceleration. Defaults to `0.0`.
+
+# Description
+This function records the provided parameters to the logger for analysis of the winch controller's performance.
+"""
 function log(logger::WCLogger; v_ro=0.0, v_set_out=0.0, force=0.0, f_err=0.0, acc=0.0, acc_set=0.0,
              v_err=0.0, reset=0, active=0, f_set=0.0, state=0)
     idx = logger.index
