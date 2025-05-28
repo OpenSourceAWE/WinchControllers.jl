@@ -23,29 +23,24 @@ wcs = WCSettings(dt=0.02)
 update(wcs)
 wcs.test = true
 
-
-
+# define the simulation parameters
 DURATION = 10.0
-SAMPLES = Int(DURATION / wcs.dt + 1)
-lg::WCLogger = WCLogger(SAMPLES)
-lg.time = range(0.0, DURATION, SAMPLES)
 V_WIND_MAX = 9.0 # max wind speed of test wind
 V_WIND_MIN = 0.0 # min wind speed of test wind
 FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal 
 
+# create the logger
+lg::WCLogger = WCLogger(DURATION, wcs.dt)
 
-STARTUP = get_startup(wcs, SAMPLES)    
-V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, SAMPLES)
-V_RO, V_SET_OUT, FORCE, F_ERR = zeros(SAMPLES), zeros(SAMPLES), zeros(SAMPLES), zeros(SAMPLES)
-ACC, ACC_SET, V_ERR = zeros(SAMPLES), zeros(SAMPLES), zeros(SAMPLES)
-RESET, ACTIVE, F_SET = zeros(SAMPLES), zeros(SAMPLES), zeros(SAMPLES)
-STATE = zeros(Int64, SAMPLES)
+STARTUP = get_startup(wcs, length(lg))    
+V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, length(lg))
+
 # create and initialize winch controller 
 wc = WinchController(wcs)
 winch = WinchControllers.Winch(wcs, set)
 f_low = wcs.f_low
 
-for i in 1:SAMPLES
+for i in 1:length(lg)
     local force
     # model
     v_wind = V_WIND[i]
@@ -67,26 +62,23 @@ for i in 1:SAMPLES
     acc   = get_acc(winch)
     state = get_state(wc)
     status = get_status(wc)
-    ACC[i] = acc 
-    STATE[i] = state
-    V_RO[i] = v_act
-    RESET[i] = status[1]
-    ACTIVE[i] = status[2]
-    FORCE[i] = status[3]
-    F_SET[i] = status[4]
-    V_SET_OUT[i] = v_set
+    force = status[3]
+    f_set=status[4]
     if state in [0,2]
-        F_ERR[i] = FORCE[i] - F_SET[i]
-        V_ERR[i] = 0.0
+        f_err = force - f_set
+        v_err = NaN
     else
-        V_ERR[i] = V_RO[i] - v_set
-        F_ERR[i] = 0.0
+        v_err = v_act - v_set
+        f_err = NaN
     end
+    # log the values
+    log(lg; v_ro=v_act, acc, state, reset=status[1], active=status[2], 
+            force, f_set, f_err, v_err, v_set_out=v_set)
 end
 
 
 # plot the results  
-p1=plotx(lg.time, V_WIND, [V_RO, V_SET_OUT], F_ERR*0.001, V_ERR, ACC, FORCE*0.001, STATE,
+p1=plotx(lg.time, V_WIND, [lg.v_ro, lg.v_set_out], lg.f_err*0.001, lg.v_err, lg.acc, lg.force*0.001, lg.state,
     title="Winch controller test, all controllers active",
     ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "f_err [kN]", "v_error [m/s]", "acc [m/s²]", "force [kN]", "state"], 
     labels=["v_wind", ["v_reel_out", "v_set_out"]],
