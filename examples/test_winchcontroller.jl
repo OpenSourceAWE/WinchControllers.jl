@@ -24,7 +24,7 @@ update(wcs)
 wcs.test = true
 
 # define the simulation parameters
-DURATION = 10.0
+DURATION   = 10.0
 V_WIND_MAX = 9.0 # max wind speed of test wind
 V_WIND_MIN = 0.0 # min wind speed of test wind
 FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal 
@@ -58,12 +58,11 @@ for i in 1:length(lg)
     on_timer(winch)
     on_timer(wc)
 
-    # logging
-    acc   = get_acc(winch)
-    state = get_state(wc)
+    # calculate some values for logging
+    state  = get_state(wc)
     status = get_status(wc)
-    force = status[3]
-    f_set=status[4]
+    force  = status[3]
+    f_set  = status[4]
     if state in [0,2]
         f_err = force - f_set
         v_err = NaN
@@ -72,7 +71,7 @@ for i in 1:length(lg)
         f_err = NaN
     end
     # log the values
-    log(lg; v_ro=v_act, acc, state, reset=status[1], active=status[2], 
+    log(lg; v_ro=v_act, acc=get_acc(winch), state, reset=status[1], active=status[2], 
             force, f_set, f_err, v_err, v_set_out=v_set)
 end
 
