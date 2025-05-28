@@ -42,7 +42,7 @@ rms(x) = norm(x) / sqrt(length(x))
 
 function v_err1(v_err_, v_set)
     v_mean =  mean(norm.(filter(!isnan, v_set)))
-    1/v_mean * sqrt(rms(filter(!isnan, v_err_)))
+    1/v_mean * rms(filter(!isnan, v_err_))
 end
 
 function gamma(set, f_err_, v_err_, v_set)
