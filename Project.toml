@@ -1,7 +1,7 @@
 name = "WinchControllers"
 uuid = "9e74470a-8ab1-4f32-b878-f32ebd236ea2"
 authors = ["Uwe Fechner <u.fechner-1@tudelft.nl> and contributors"]
-version = "0.5.0"
+version = "0.6.0"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"

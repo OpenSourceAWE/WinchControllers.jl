@@ -1,7 +1,9 @@
-### WinchControllers v0.6 2025-05-23
+### WinchControllers v0.6 2025-05-28
 #### Added
 - all public functions document
+- add page `Performance Indicators` to documentation
 - add page `Tests` to documentation
+- add `WCLogger` for logging
 - add `menu.jl` to the folder examples
 
 #### Changed
