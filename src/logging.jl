@@ -15,9 +15,11 @@ $(TYPEDFIELDS)
     time::Vector{Float64} = zeros(Float64, Q)
     "Maximal winch force [N]"
     max_force::Float64 = 0.0
+    "set value of the reel-out speed, input of the speed controller [m/s]"    
+    v_set_in::Vector{Float64} = zeros(Float64, Q)
     "reel-out speed [m/s]"
     v_ro::Vector{Float64} = zeros(Float64, Q)
-    "set reel-out speed [m/s]"
+    "set reel-out speed, output of the speed controller [m/s]"
     v_set::Vector{Float64} = zeros(Float64, Q)
     "set reel-out speed of the winch [m/s]"
     v_set_out::Vector{Float64} = zeros(Float64, Q)
@@ -67,7 +69,7 @@ function length(logger::WCLogger)
 end
 
 """
-    log(logger::WCLogger; v_ro=0.0, v_set=0.0, v_set_out=0.0, force=0.0, f_err=0.0, acc=0.0, acc_set=0.0)
+    log(logger::WCLogger; v_ro=0.0, v_set=0.0, v_set_in=0.0, v_set_out=0.0, force=0.0, f_err=0.0, acc=0.0, acc_set=0.0)
 
 Logs the current state of the winch controller.
 
@@ -75,6 +77,7 @@ Logs the current state of the winch controller.
 - `logger::WCLogger`: The logger instance used to record the data.
 - `v_ro`: (Optional) The measured reel-out velocity. Defaults to `0.0`.
 - `v_set`: (Optional) The input of the speed controller. Defaults to `0.0`.
+- `v_set_in`: (Optional) The input of the speed controller. Defaults to `0.0`.
 - `v_set_out`: (Optional) The setpoint output velocity. Defaults to `0.0`.
 - `force`: (Optional) The measured force. Defaults to `0.0`.
 - `f_err`: (Optional) The force error. Defaults to `0.0`.
@@ -84,11 +87,12 @@ Logs the current state of the winch controller.
 # Description
 This function records the provided parameters to the logger for analysis of the winch controller's performance.
 """
-function log(logger::WCLogger; v_ro=0.0, v_set=0.0, v_set_out=0.0, force=0.0, f_err=0.0, acc=0.0, acc_set=0.0,
+function log(logger::WCLogger; v_ro=0.0, v_set=0.0, v_set_in=0.0, v_set_out=0.0, force=0.0, f_err=0.0, acc=0.0, acc_set=0.0,
              v_err=0.0, reset=0, active=0, f_set=0.0, state=0)
     idx = logger.index
     logger.v_ro[idx] = v_ro
     logger.v_set[idx] = v_set
+    logger.v_set_in[idx] = v_set_in
     logger.v_set_out[idx] = v_set_out
     logger.force[idx] = force
     logger.f_err[idx] = f_err

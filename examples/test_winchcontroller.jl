@@ -66,20 +66,23 @@ for i in 1:length(lg)
     v_set = NaN
     if state in [0,2]
         f_err = force - f_set
+        v_set_in = NaN
     else
         v_set = wc.v_set
+        v_set_in = wc.sc.v_set_in
         f_err = NaN
     end
+    
     # log the values
     log(lg; v_ro=v_act, acc=get_acc(winch), state, reset=status[1], active=status[2], 
-            force, f_set, f_err, v_err= wc.sc.v_err, v_set, v_set_out)
+            force, f_set, f_err, v_err= wc.sc.v_err, v_set, v_set_out, v_set_in)
 end
 
 # plot the results  
-p1=plotx(lg.time, V_WIND, [lg.v_ro, lg.v_set_out], lg.f_err*0.001, lg.v_err, lg.acc, lg.force*0.001, lg.state,
+p1=plotx(lg.time, V_WIND, [lg.v_ro, lg.v_set_in], lg.f_err*0.001, lg.v_err, lg.acc, lg.force*0.001, lg.state,
     title="Winch controller test, all controllers active",
     ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "f_err [kN]", "v_error [m/s]", "acc [m/s²]", "force [kN]", "state"], 
-    labels=["v_wind", ["v_reel_out", "v_set_out"]],
+    labels=["v_wind", ["v_reel_out", "v_set_in"]],
     fig="test_winchcontroller",)
 
 display(p1)
