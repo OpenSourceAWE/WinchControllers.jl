@@ -19,6 +19,7 @@ wcs.f_low = 350
 wcs.fac = 1.0
 wcs.t_blend = 0.25
 wcs.pf_high = 1.44e-4*1.6*0.5
+wcs.i_speed = 4.0
 
 DURATION = 10.0
 SAMPLES = Int(DURATION / wcs.dt + 1)
