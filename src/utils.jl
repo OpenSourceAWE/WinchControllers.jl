@@ -161,3 +161,17 @@ function  get_triangle_wind(wcs::WCSettings, min, max, freq, samples)
     end
     result
 end
+
+"""
+    rms(x)
+
+Compute the root mean square (RMS) of the input vector `x`.
+
+# Arguments
+- `x`: A vector of numerical values.
+
+# Returns
+- The root mean square value of the vector `x`, calculated as `norm(x) / sqrt(length(x))`.
+
+"""
+rms(x) = norm(x) / sqrt(length(x))
