@@ -21,7 +21,7 @@ end
 set = deepcopy(load_settings("system.yaml"))
 wcs = WCSettings(dt=0.02)
 update(wcs)
-# wcs.test = true
+wcs.test = true
 
 DURATION = 10.0
 SAMPLES = Int(DURATION / wcs.dt + 1)
