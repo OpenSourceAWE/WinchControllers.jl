@@ -143,7 +143,7 @@ end
     gamma(logger::WCLogger)
 
 Compute the combined performance indicator ``\\gamma`` for the test case used to create
-the provided logs, stored in the `logger`.
+the provided logs, stored in the `logger`. See: [Combined performance](@ref).
 
 # Arguments
 - `logger::WCLogger`: The logger object that shall be used to calculate gamma.
