@@ -5,6 +5,7 @@
 - add page `Tests` to documentation
 - add `WCLogger` for logging
 - add `menu.jl` to the folder examples
+- the functions `f_err()`, `v_err()` and `gamma()` to calculate the performance indicators of the winch controller based on the log file of a test case 
 
 #### Changed
 - reduced `df_high` in `wc_settings.yaml` to reduce oscillations
