@@ -46,7 +46,6 @@ function simulate(x::Vector{Cdouble}; return_lg::Bool = false)
     f_low = wcs.f_low
 
     for i in 1:length(lg)
-        local force, v_set
         # model
         v_wind = V_WIND[i]
 
