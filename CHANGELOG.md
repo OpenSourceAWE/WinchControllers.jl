@@ -1,3 +1,8 @@
+### Unreleased
+#### Added
+- the functions `get_v_set()`, `get_f_err()`
+- the script `autotune.jl`, using the **PRIMA** optimizer
+
 ### WinchControllers v0.5.2
 #### Added
 - the script `test_components.jl`
