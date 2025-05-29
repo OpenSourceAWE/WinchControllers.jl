@@ -1,15 +1,17 @@
 # this script shall tune the controller parameters
-using WinchControllers, KiteUtils
+using WinchControllers, KiteUtils, PRIMA
 
 function calc_force(v_wind, v_ro)
     (v_wind - v_ro)^2 * 4000.0 / 16.0
 end
 
-function simulate(params=nothing)
+# f(x::Vector{Cdouble})::Real
+function simulate(x::Vector{Cdouble}; return_lg::Bool = false)
     set = deepcopy(load_settings("system.yaml"))
     wcs = WCSettings(dt=0.02)
     update(wcs)
     wcs.test = true
+    wcs.i_speed = x[1] # set the speed controller gain
 
     # define the simulation parameters
     DURATION   = 10.0
@@ -65,21 +67,31 @@ function simulate(params=nothing)
         log(lg; v_ro=v_act, acc=get_acc(winch), state, reset=status[1], active=status[2], 
                 force, f_set, f_err, v_err=get_v_err(wc), v_set, v_set_out, v_set_in)
     end
-    lg
+    if return_lg
+        return lg
+    end
+    # calculate the performance metrics
+    -gamma(lg)
 end
 
 function autotune()
+    global info
     # Define the parameters for the autotuning
-    params = Dict(
-        "i_speed" => 4.0,
+    x0 = [4.0] # initial guess for the speed controller gain
+    x, info = prima(simulate, x0;
+        xl = [2.0],
+        xu = [20.0],
+        maxfun = 100
     )
+    println("Autotuning results: $x")
+    println("Iterations: $(info.nf)")
 
-    lg = simulate(params)
+    lg = simulate(x; return_lg=true)
 
     println("Performance of force controllers: $(round(100*(1-f_err(lg)), digits=2)) %")
     println("Performance of speed controller:  $(round(100*(1-v_err(lg)), digits=2)) %")
     println("Damage:                           $(round(100*(damage(lg)), digits=2)) %")
-    println("Combined performance γ: $(round(100*gamma(lg), digits=2)) %")    
+    println("Combined performance γ: $(round(-100*info.fx, digits=2)) %")    
 end
 
 # autotune()
