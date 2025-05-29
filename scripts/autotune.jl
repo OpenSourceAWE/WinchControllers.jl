@@ -48,7 +48,6 @@ function simulate(x::Vector{Cdouble}; return_lg::Bool = false)
     for i in 1:length(lg)
         # model
         v_wind = V_WIND[i]
-
         v_act = get_speed(winch)
         force = calc_force(v_wind, v_act)
         set_force(winch, force)
@@ -56,16 +55,15 @@ function simulate(x::Vector{Cdouble}; return_lg::Bool = false)
         # controller
         v_set_out = calc_v_set(wc, v_act, force, f_low)
         
-        # update model
+        # update model input
         set_v_set(winch, v_set_out)
         
+        # run integration step
         on_timer(winch)
         on_timer(wc)
 
-        # get values for logging
+        # get values for logging and log them
         status = get_status(wc)
-        
-        # log the values
         log(lg; v_ro=v_act, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], force=status[3], 
             f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out, v_set_in=get_v_set_in(wc))
     end
