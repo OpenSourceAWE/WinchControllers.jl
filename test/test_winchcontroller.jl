@@ -111,7 +111,7 @@ else
       fig="test_winchcontroller",)
 
     display(p1)
+    toc()
+    println("Max iterations needed: $(wcs.iter)")
 end
-toc()
 
-println("Max iterations needed: $(wcs.iter)")
