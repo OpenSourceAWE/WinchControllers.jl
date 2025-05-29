@@ -18,12 +18,11 @@ function calc_force(v_wind, v_ro)
     (v_wind - v_ro)^2 * 4000.0 / 16.0
 end
 
-
-
 set = deepcopy(load_settings("system.yaml"))
 wcs = WCSettings(dt=0.02)
 update(wcs)
 wcs.test = true
+wcs.i_speed = 6.0
 
 # define the simulation parameters
 DURATION   = 10.0
@@ -32,7 +31,7 @@ V_WIND_MIN = 0.0 # min wind speed of test wind
 FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal 
 
 # create the logger
-lg::WCLogger = WCLogger(DURATION, wcs.dt, set.max_force)
+lg::WCLogger = WCLogger(DURATION, wcs.dt, set.max_force, wcs.max_acc)
 
 STARTUP = get_startup(wcs, length(lg))    
 V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, length(lg))
@@ -96,5 +95,6 @@ toc()
 
 println("Max iterations needed: $(wcs.iter)")
 println("Performance of force controllers: $(round(100*(1-f_err(lg)), digits=2)) %")
-println("Performance of speed controller: $(round(100*(1-v_err(lg)), digits=2)) %")
+println("Performance of speed controller:  $(round(100*(1-v_err(lg)), digits=2)) %")
+println("Damage:                           $(round(100*(damage(lg)), digits=2)) %")
 println("Combined performance γ: $(round(100*gamma(lg), digits=2)) %")    
