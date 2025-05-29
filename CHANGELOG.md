@@ -1,3 +1,6 @@
+### WinchControllers v0.5.2
+- export `saturate()`
+
 ### WinchControllers v0.5.1 2025-05-28
 #### Added
 - all public functions document
