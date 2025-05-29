@@ -41,6 +41,8 @@ $(TYPEDFIELDS)
     f_set::Vector{Float64} = zeros(Float64, Q)
     "state of the controller"
     state::Vector{Int64} = zeros(Int64, Q)
+    "dynamic, mechanical power [W]"
+    p_dyn::Vector{Float64} = zeros(Float64, Q)
 end
 WCLogger(samples::Int64) = WCLogger{samples}()
 
@@ -69,7 +71,8 @@ function length(logger::WCLogger)
 end
 
 """
-    log(logger::WCLogger; v_ro=0.0, v_set=0.0, v_set_in=0.0, v_set_out=0.0, force=0.0, f_err=0.0, acc=0.0, acc_set=0.0)
+    log(logger::WCLogger; v_ro=0.0, v_set=0.0, v_set_in=0.0, v_set_out=0.0, force=0.0, f_err=0.0, 
+        acc=0.0, acc_set=0.0, p_dyn=0.0)
 
 Logs the current state of the winch controller.
 
@@ -83,12 +86,13 @@ Logs the current state of the winch controller.
 - `f_err`: (Optional) The force error. Defaults to `0.0`.
 - `acc`: (Optional) The measured acceleration. Defaults to `0.0`.
 - `acc_set`: (Optional) The setpoint acceleration. Defaults to `0.0`.
+- `p_dyn`: (Optional) The dynamic mechanical power. Defaults to `0.0`.
 
 # Description
 This function records the provided parameters to the logger for analysis of the winch controller's performance.
 """
 function log(logger::WCLogger; v_ro=0.0, v_set=0.0, v_set_in=0.0, v_set_out=0.0, force=0.0, f_err=0.0, acc=0.0, acc_set=0.0,
-             v_err=0.0, reset=0, active=0, f_set=0.0, state=0)
+             v_err=0.0, reset=0, active=0, f_set=0.0, state=0, p_dyn=0.0)
     idx = logger.index
     logger.v_ro[idx] = v_ro
     logger.v_set[idx] = v_set
@@ -103,6 +107,7 @@ function log(logger::WCLogger; v_ro=0.0, v_set=0.0, v_set_in=0.0, v_set_out=0.0,
     logger.active[idx] = active
     logger.f_set[idx] = f_set
     logger.state[idx] = state
+    logger.p_dyn[idx] = p_dyn
     logger.index += 1
 end
 

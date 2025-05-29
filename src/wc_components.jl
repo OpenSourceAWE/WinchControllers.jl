@@ -135,10 +135,28 @@ $(TYPEDFIELDS)
     wcs::WCSettings
     set::Settings
     wm::AsyncMachine = AsyncMachine(set)
+    inertia = set.inertia_total * set.gear_ratio^2
+    last_omega = 0.0 # last angular velocity of the asynchronous motor
     v_set     = 0 # input
     force     = 0 # input
     acc       = 0 # output
     speed     = 0 # output; reel-out speed; only state of this model
+    p_dyn     = 0 # output; mechanical, dynamic power of the winch
+end
+
+# calculate the angular velocity of the winch drum
+function calc_omega(set, v_ro)
+    return v_ro / set.drum_radius
+end
+# calculate the angular acceleration of the winch drum
+function calc_alpha(last_omega, omega, dt)
+    return (omega - last_omega) / dt
+end
+
+function calc_dynamic_power(set, inertia, v_ro, last_omega, dt)
+    omega = calc_omega(set, v_ro)
+    alpha = calc_alpha(last_omega, omega, dt)
+    return inertia * alpha * omega, omega
 end
 
 """
@@ -238,6 +256,7 @@ function on_timer(w::Winch)
         w.speed += w.acc * w.wcs.dt/w.wcs.winch_iter
     end
     w.acc = acc/w.wcs.winch_iter
+    w.p_dyn, w.last_omega = calc_dynamic_power(w.set, w. inertia, w.speed, w.last_omega, w.wcs.dt)
     nothing
 end
 

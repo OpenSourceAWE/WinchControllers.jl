@@ -18,6 +18,8 @@ function calc_force(v_wind, v_ro)
     (v_wind - v_ro)^2 * 4000.0 / 16.0
 end
 
+
+
 set = deepcopy(load_settings("system.yaml"))
 wcs = WCSettings(dt=0.02)
 update(wcs)
@@ -37,7 +39,7 @@ V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, le
 
 # create and initialize winch controller 
 wc = WinchController(wcs)
-winch = WinchControllers.Winch(wcs, set)
+winch = Winch(wcs, set)
 f_low = wcs.f_low
 
 for i in 1:length(lg)
@@ -72,18 +74,21 @@ for i in 1:length(lg)
         v_set_in = wc.sc.v_set_in
         f_err = NaN
     end
+    p_dyn = winch.p_dyn
     
     # log the values
     log(lg; v_ro=v_act, acc=get_acc(winch), state, reset=status[1], active=status[2], 
-            force, f_set, f_err, v_err=get_v_err(wc), v_set, v_set_out, v_set_in)
+            force, f_set, f_err, v_err=get_v_err(wc), v_set, v_set_out, v_set_in, p_dyn)
 end
 
 # plot the results  
-p1=plotx(lg.time, V_WIND, [lg.v_ro, lg.v_set_in], lg.acc, lg.force*0.001, lg.force .* lg.v_ro /1000,lg.state,
+p_tot = lg.force .* lg.v_ro /1000 .+ lg.p_dyn/1000
+p1=plotx(lg.time, V_WIND, [lg.v_ro, lg.v_set_in], lg.acc, lg.force*0.001, 
+        [lg.force .* lg.v_ro /1000, lg.p_dyn/1000, p_tot],lg.state,
     title="Winch controller test, all controllers active",
     ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "acc [m/s²]", "force [kN]", "p_mech [kW]", "state"], 
     ysize=10,
-    labels=["v_wind", ["v_reel_out", "v_set_in"]],
+    labels=["v_wind", ["v_reel_out", "v_set_in"], "acc [m/s²]", "force [kN]", ["p_mech [kW]", "p_dyn [kW]", "p_tot [kW]"]],
     fig="test_winchcontroller",)
 
 display(p1)
