@@ -1,4 +1,7 @@
 ### WinchControllers v0.5.2
+#### Added
+- the script `test_components.jl`
+#### Changed
 - export `saturate()`
 
 ### WinchControllers v0.5.1 2025-05-28
