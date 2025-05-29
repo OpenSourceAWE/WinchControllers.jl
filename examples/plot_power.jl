@@ -60,13 +60,11 @@ for i in 1:length(lg)
 
     # calculate values for logging
     status = get_status(wc)
-    force  = status[3]
-    f_set  = status[4]
     p_dyn = winch.p_dyn
     
     # log the values
     log(lg; v_ro=v_act, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], 
-            force, f_set, f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out, v_set_in=get_v_set_in(wc), p_dyn)
+            force=status[3], f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out, v_set_in=get_v_set_in(wc), p_dyn)
 end
 
 # plot the results  
