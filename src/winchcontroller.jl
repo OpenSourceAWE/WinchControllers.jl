@@ -231,3 +231,14 @@ Compute and return the velocity error for the given `WinchController` instance `
 function get_v_err(wc::WinchController)
     get_v_err(wc.sc)
 end
+
+function get_f_err(wc::WinchController)
+    state = get_state(wc)
+    if state == Int(wcsUpperForceLimit)
+        return wc.ufc.f_err
+    elseif state == Int(wcsLowerForceLimit) 
+        return wc.lfc.f_err
+    else
+        return NaN
+    end
+end

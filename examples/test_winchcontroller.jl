@@ -65,13 +65,12 @@ for i in 1:length(lg)
     f_set  = status[4]
     v_set = NaN
     if state in [0,2]
-        f_err = force - f_set
         v_set_in = NaN
     else
         v_set = wc.v_set
         v_set_in = wc.sc.v_set_in
-        f_err = NaN
     end
+    f_err= get_f_err(wc)
     
     # log the values
     log(lg; v_ro=v_act, acc=get_acc(winch), state, reset=status[1], active=status[2], 
