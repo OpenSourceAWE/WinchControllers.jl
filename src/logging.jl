@@ -17,6 +17,8 @@ $(TYPEDFIELDS)
     max_force::Float64 = 0.0
     "Maximal acceleration [m/s^2]"
     max_acc::Float64 = 0.0
+    "damage at maximum acceleration"
+    damage_factor::Float64 = 0.0
     "set value of the reel-out speed, input of the speed controller [m/s]"    
     v_set_in::Vector{Float64} = zeros(Float64, Q)
     "reel-out speed [m/s]"
@@ -60,12 +62,13 @@ Create and initialize a logger for the winch controller system.
 # Returns
 A logger object configured to record data at the specified interval for the given duration.
 """
-function WCLogger(duration, dt, max_force=0.0, max_acc=0.0)
+function WCLogger(duration, dt, max_force=0.0, max_acc=0.0, damage_factor=0.0)
     samples = Int(duration / dt + 1)
     lg = WCLogger(samples)
     lg.time = range(0.0, duration, samples)
     lg.max_force = max_force
     lg.max_acc = max_acc
+    lg.damage_factor = damage_factor
     lg
 end
 
@@ -148,7 +151,7 @@ function v_err(logger::WCLogger)
 end
 
 function damage(logger::WCLogger)
-    (maximum(norm.(logger.acc)) / logger.max_acc)^2
+    logger.damage_factor * (maximum(norm.(logger.acc)) / logger.max_acc)^2
 end
 
 """
@@ -163,6 +166,6 @@ the provided logs, stored in the `logger`. See: [Combined performance](@ref).
 # Returns
 - The gamma value associated with the log of the used test case.
 """
-function gamma(logger::WCLogger; damage_factor=0.2)
-    1 - 0.5 * (f_err(logger) + v_err(logger)) - damage_factor * damage(logger)
+function gamma(logger::WCLogger)
+    1 - 0.5 * (f_err(logger) + v_err(logger)) - damage(logger)
 end

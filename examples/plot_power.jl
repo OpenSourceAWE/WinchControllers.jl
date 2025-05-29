@@ -31,7 +31,7 @@ V_WIND_MIN = 0.0 # min wind speed of test wind
 FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal 
 
 # create the logger
-lg::WCLogger = WCLogger(DURATION, wcs.dt, set.max_force, wcs.max_acc)
+lg::WCLogger = WCLogger(DURATION, wcs.dt, set.max_force, wcs.max_acc, wcs.damage_factor)
 
 STARTUP = get_startup(wcs, length(lg))    
 V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, length(lg))

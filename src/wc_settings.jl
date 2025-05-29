@@ -72,6 +72,8 @@ $(TYPEDFIELDS)
     winch_iter = 10
     "maximal acceleration of the winch (derivative of the set value of the reel-out speed)"
     max_acc = 8.0
+    "damage at max acceleration"
+    damage_factor = 0.2 
     "proportional factor of the square root law, see function calc_vro"
     kv = 0.06
 end
