@@ -12,12 +12,12 @@ KiteUtils.set_data_path("data")
     include("test_components.jl")
 end
 
-@testset verbose=true "winchontrollers.jl " begin
-    include("test_winchcontroller.jl")
-end
-
 @testset verbose=true "utils.jl            " begin
     include("test_utils.jl")
+end
+
+@testset verbose=true "winchcontrollers.jl " begin
+    include("test_winchcontroller.jl")
 end
 
 @testset verbose=true "wc_settings.jl      " begin
