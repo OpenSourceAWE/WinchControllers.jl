@@ -78,11 +78,12 @@ end
 function autotune()
     global info, lg
     # Define the parameters for the autotuning
-    x0 = [4.0, 0.25, 0.1] # initial guess for the speed controller gain
-    x, info = prima(simulate, x0;
+    x0 = [4.0, 0.25, 0.2] # initial guess for the speed controller gain
+    x, info = bobyqa(simulate, x0;
         xl = [2.0, 0.0, 0.02],
-        xu = [10.0, 1.0, 0.5],
+        xu = [10.0, 0.5, 0.4],
         rhobeg = 0.1,
+        npt=10,
         maxfun = 500
     )
     println("Autotuning results: $x")
