@@ -81,7 +81,8 @@ function autotune()
     x0 = [4.0, 0.25] # initial guess for the speed controller gain
     x, info = prima(simulate, x0;
         xl = [2.0, 0.0],
-        xu = [20.0, 1.0],
+        xu = [10.0, 1.0],
+        rhobeg = 0.2,
         maxfun = 200
     )
     println("Autotuning results: $x")
