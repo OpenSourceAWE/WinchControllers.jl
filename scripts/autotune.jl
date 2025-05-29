@@ -1,11 +1,25 @@
 # this script shall tune the controller parameters
-using WinchControllers, KiteUtils, PRIMA
+using Pkg
+if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
+    using TestEnv; TestEnv.activate()
+    using Test
+end
+using WinchControllers, KiteUtils, PRIMA, ControlPlots
 
 function calc_force(v_wind, v_ro)
     (v_wind - v_ro)^2 * 4000.0 / 16.0
 end
 
-# f(x::Vector{Cdouble})::Real
+function plot(lg::WCLogger)
+    p1=plotx(lg.time, lg.v_wind, [lg.v_ro, lg.v_set_in], lg.f_err*0.001, lg.v_err, lg.acc, lg.force*0.001, lg.state,
+        title="Winch controller test, all controllers active",
+        ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "f_err [kN]", "v_error [m/s]", "acc [m/s²]", "force [kN]", "state"], 
+        ysize=10,
+        labels=["v_wind", ["v_reel_out", "v_set_in"]],
+        fig="test_winchcontroller",)
+    display(p1)
+end
+
 function simulate(x::Vector{Cdouble}; return_lg::Bool = false)
     set = deepcopy(load_settings("system.yaml"))
     wcs = WCSettings(dt=0.02)
@@ -65,7 +79,7 @@ function simulate(x::Vector{Cdouble}; return_lg::Bool = false)
         end
         
         # log the values
-        log(lg; v_ro=v_act, acc=get_acc(winch), state, reset=status[1], active=status[2], 
+        log(lg; v_wind, v_ro=v_act, acc=get_acc(winch), state, reset=status[1], active=status[2], 
                 force, f_set, f_err, v_err=get_v_err(wc), v_set, v_set_out, v_set_in)
     end
     if return_lg
@@ -76,7 +90,7 @@ function simulate(x::Vector{Cdouble}; return_lg::Bool = false)
 end
 
 function autotune()
-    global info
+    global info, lg
     # Define the parameters for the autotuning
     x0 = [4.0, 0.25] # initial guess for the speed controller gain
     x, info = prima(simulate, x0;

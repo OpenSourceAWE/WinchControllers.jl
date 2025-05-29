@@ -13,6 +13,8 @@ $(TYPEDFIELDS)
     index::Int64 = 1
     "Vector of time stamps [s]"
     time::Vector{Float64} = zeros(Float64, Q)
+    "wind speed [m/s]"
+    v_wind::Vector{Float64} = zeros(Float64, Q)
     "Maximal winch force [N]"
     max_force::Float64 = 0.0
     "Maximal acceleration [m/s^2]"
@@ -77,13 +79,14 @@ function length(logger::WCLogger)
 end
 
 """
-    log(logger::WCLogger; v_ro=0.0, v_set=0.0, v_set_in=0.0, v_set_out=0.0, force=0.0, f_err=0.0, 
+    log(logger::WCLogger; v_wind=0.0, v_ro=0.0, v_set=0.0, v_set_in=0.0, v_set_out=0.0, force=0.0, f_err=0.0, 
         acc=0.0, acc_set=0.0, p_dyn=0.0)
 
 Logs the current state of the winch controller.
 
 # Arguments
 - `logger::WCLogger`: The logger instance used to record the data.
+- `v_wind`: (Optional) The wind speed. Defaults to `0.0`.
 - `v_ro`: (Optional) The measured reel-out velocity. Defaults to `0.0`.
 - `v_set`: (Optional) The input of the speed controller. Defaults to `0.0`.
 - `v_set_in`: (Optional) The input of the speed controller. Defaults to `0.0`.
@@ -97,9 +100,13 @@ Logs the current state of the winch controller.
 # Description
 This function records the provided parameters to the logger for analysis of the winch controller's performance.
 """
-function log(logger::WCLogger; v_ro=0.0, v_set=0.0, v_set_in=0.0, v_set_out=0.0, force=0.0, f_err=0.0, acc=0.0, acc_set=0.0,
-             v_err=0.0, reset=0, active=0, f_set=0.0, state=0, p_dyn=0.0)
+function log(logger::WCLogger; v_wind=0.0, v_ro=0.0, v_set=0.0, v_set_in=0.0, v_set_out=0.0, force=0.0, f_err=0.0, 
+             acc=0.0, acc_set=0.0, v_err=0.0, reset=0, active=0, f_set=0.0, state=0, p_dyn=0.0)
     idx = logger.index
+    if idx > length(logger.time)
+        error("Logger is full, cannot log more data.")
+    end
+    logger.v_wind[idx] = v_wind
     logger.v_ro[idx] = v_ro
     logger.v_set[idx] = v_set
     logger.v_set_in[idx] = v_set_in
