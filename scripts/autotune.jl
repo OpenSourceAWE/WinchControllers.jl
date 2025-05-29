@@ -12,6 +12,7 @@ function simulate(x::Vector{Cdouble}; return_lg::Bool = false)
     update(wcs)
     wcs.test = true
     wcs.i_speed = x[1] # set the speed controller gain
+    wcs.p_speed = x[2] # set the speed controller proportional gain
 
     # define the simulation parameters
     DURATION   = 10.0
@@ -77,21 +78,27 @@ end
 function autotune()
     global info
     # Define the parameters for the autotuning
-    x0 = [4.0] # initial guess for the speed controller gain
+    x0 = [4.0, 0.25] # initial guess for the speed controller gain
     x, info = prima(simulate, x0;
-        xl = [2.0],
-        xu = [20.0],
-        maxfun = 100
+        xl = [2.0, 0.0],
+        xu = [20.0, 1.0],
+        maxfun = 200
     )
     println("Autotuning results: $x")
     println("Iterations: $(info.nf)")
+    println(PRIMA.reason(info.status))
 
-    lg = simulate(x; return_lg=true)
+    if issuccess(info)
+        println("Running simulation with tuned parameters...")
+        lg = simulate(x; return_lg=true)
 
-    println("Performance of force controllers: $(round(100*(1-f_err(lg)), digits=2)) %")
-    println("Performance of speed controller:  $(round(100*(1-v_err(lg)), digits=2)) %")
-    println("Damage:                           $(round(100*(damage(lg)), digits=2)) %")
-    println("Combined performance γ: $(round(-100*info.fx, digits=2)) %")    
+        println("\nPerformance of force controllers: $(round(100*(1-f_err(lg)), digits=2)) %")
+        println("Performance of speed controller:  $(round(100*(1-v_err(lg)), digits=2)) %")
+        println("Damage:                           $(round(100*(damage(lg)), digits=2)) %")
+        println("Combined performance γ: $(round(-100*info.fx, digits=2)) %")  
+    else
+        println("Autotuning failed: $(PRIMA.reason(info.status))")
+    end 
 end
 
-# autotune()
+autotune()
