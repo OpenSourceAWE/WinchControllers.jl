@@ -69,7 +69,7 @@ function simulate(x::Vector{Cdouble}; return_lg::Bool = false)
         # log the values
         log(lg; v_ro=v_act, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], force=status[3], 
             f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out, v_set_in=get_v_set_in(wc))
-   end
+    end
     if return_lg
         return lg
     end
