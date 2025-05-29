@@ -27,6 +27,7 @@ function simulate(x::Vector{Cdouble}; return_lg::Bool = false)
     wcs.test = true
     wcs.i_speed = x[1] # set the speed controller gain
     wcs.p_speed = x[2] # set the speed controller proportional gain
+    wcs.t_blend = x[3] # set the blending time for switching between controllers
 
     # define the simulation parameters
     DURATION   = 10.0
@@ -64,7 +65,7 @@ function simulate(x::Vector{Cdouble}; return_lg::Bool = false)
 
         # get values for logging and log them
         status = get_status(wc)
-        log(lg; v_ro=v_act, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], force=status[3], 
+        log(lg; v_wind, v_ro=v_act, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], force=status[3], 
             f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out, v_set_in=get_v_set_in(wc))
     end
     if return_lg
@@ -77,12 +78,12 @@ end
 function autotune()
     global info, lg
     # Define the parameters for the autotuning
-    x0 = [4.0, 0.25] # initial guess for the speed controller gain
+    x0 = [4.0, 0.25, 0.1] # initial guess for the speed controller gain
     x, info = prima(simulate, x0;
-        xl = [2.0, 0.0],
-        xu = [10.0, 1.0],
-        rhobeg = 0.2,
-        maxfun = 200
+        xl = [2.0, 0.0, 0.02],
+        xu = [10.0, 1.0, 0.5],
+        rhobeg = 0.1,
+        maxfun = 500
     )
     println("Autotuning results: $x")
     println("Iterations: $(info.nf)")
