@@ -242,3 +242,21 @@ function get_f_err(wc::WinchController)
         return NaN
     end
 end
+
+function get_v_set(wc::WinchController)
+    state = get_state(wc)
+    if state == Int(wcsSpeedControl)
+        return wc.v_set
+    else
+        return NaN
+    end
+end
+
+function get_v_set_in(wc::WinchController)
+    state = get_state(wc)
+    if state == Int(wcsSpeedControl)
+        return wc.sc.v_set_in
+    else
+        return NaN
+    end
+end
