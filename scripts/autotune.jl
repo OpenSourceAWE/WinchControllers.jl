@@ -20,7 +20,7 @@ function plot(lg::WCLogger)
     display(p1)
 end
 
-function simulate(x::Vector{Cdouble}; return_lg::Bool = false)
+function simulate_sc(x::Vector{Cdouble}; return_lg::Bool = false)
     set = deepcopy(load_settings("system.yaml"))
     wcs = WCSettings(dt=0.02)
     update(wcs)
@@ -75,24 +75,35 @@ function simulate(x::Vector{Cdouble}; return_lg::Bool = false)
     -gamma(lg)
 end
 
-function autotune()
+function autotune(controller::WinchControllerState)
     global info, lg
-    # Define the parameters for the autotuning
-    x0 = [4.0, 0.25, 0.2] # initial guess for the speed controller gain
-    x, info = bobyqa(simulate, x0;
-        xl = [2.0, 0.0, 0.02],
-        xu = [10.0, 0.5, 0.4],
-        rhobeg = 0.1,
-        npt=10,
-        maxfun = 500
-    )
+    if controller == wcsSpeedControl
+        println("Autotuning speed controller...")
+        # Define the parameters for the autotuning
+        x0 = [4.0, 0.25, 0.2] # initial guess for the speed controller gain
+        x, info = bobyqa(simulate_sc, x0;
+            xl = [2.0, 0.0, 0.02],
+            xu = [10.0, 0.5, 0.4],
+            rhobeg = 0.1,
+            npt=10,
+            maxfun = 500
+        )
+    elseif controller == wcsLowerForceLimit
+        println("Autotuning lower force limit controller...")
+    elseif controller == wcsUpperForceControl
+        println("Autotuning upper force control...")
+    else
+        error("Unknown controller state: $controller")
+        return
+    end
+
     println("Autotuning results: $x")
     println("Iterations: $(info.nf)")
     println(PRIMA.reason(info.status))
 
     if issuccess(info)
         println("Running simulation with tuned parameters...")
-        lg = simulate(x; return_lg=true)
+        lg = simulate_sc(x; return_lg=true)
 
         println("\nPerformance of force controllers: $(round(100*(1-f_err(lg)), digits=2)) %")
         println("Performance of speed controller:  $(round(100*(1-v_err(lg)), digits=2)) %")
@@ -103,4 +114,6 @@ function autotune()
     end 
 end
 
-autotune()
+autotune(wcsSpeedControl)
+# autotune(wcsLowerForceLimit)
+# autotune(wcsUpperForceControl)
