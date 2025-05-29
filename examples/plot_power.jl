@@ -22,7 +22,6 @@ set = deepcopy(load_settings("system.yaml"))
 wcs = WCSettings(dt=0.02)
 update(wcs)
 wcs.test = true
-wcs.i_speed = 6.0
 
 # define the simulation parameters
 DURATION   = 10.0
