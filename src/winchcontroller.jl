@@ -215,3 +215,7 @@ function get_status(wc::WinchController)
     result[7] = wc.ufc.v_set_out
     result
 end
+
+function get_v_err(wc::WinchController)
+    get_v_err(wc.sc)
+end

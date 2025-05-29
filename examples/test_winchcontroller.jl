@@ -75,7 +75,7 @@ for i in 1:length(lg)
     
     # log the values
     log(lg; v_ro=v_act, acc=get_acc(winch), state, reset=status[1], active=status[2], 
-            force, f_set, f_err, v_err= wc.sc.v_err, v_set, v_set_out, v_set_in)
+            force, f_set, f_err, v_err=get_v_err(wc), v_set, v_set_out, v_set_in)
 end
 
 # plot the results  

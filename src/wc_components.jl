@@ -443,7 +443,7 @@ function get_v_set_out(sc::SpeedController)
 end
 
 """
-    get_v_error(sc::SpeedController)
+    get_v_err(sc::SpeedController)
 
 Compute and return the velocity error for the given `SpeedController` instance `sc`.
 
@@ -455,7 +455,7 @@ Compute and return the velocity error for the given `SpeedController` instance `
   If the controller is inactive, it returns `NaN`.
 
 """
-function get_v_error(sc::SpeedController)
+function get_v_err(sc::SpeedController)
     if sc.inactive
         return NaN
     else

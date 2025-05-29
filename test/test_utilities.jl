@@ -77,7 +77,7 @@ function speed_controller_step3!(pid1, sc, winch, calc, i, last_force, last_v_se
     # calculate v_set_out_A from the speed controller
     set_v_act(pid1, v_ro)
     v_set_out_A = get_v_set_out(pid1)
-    V_ERR[i] = get_v_error(pid1)
+    V_ERR[i] = get_v_err(pid1)
     # calculate v_set_out_B from the force controller
     set_force(sc, last_force[])
     if i * wcs.dt <= wcs.t_startup
@@ -136,7 +136,7 @@ function speed_controller_step4!(pid1, sc, ufc, mix3, winch, calc, i, last_force
     # calculate v_set_out_A from the speed controller
     set_v_act(pid1, v_ro)
     v_set_out_A = get_v_set_out(pid1)
-    V_ERR[i] = get_v_error(pid1)
+    V_ERR[i] = get_v_err(pid1)
     # calculate v_set_out_B from the force controller
     set_force(sc, last_force[])
     if i * wcs.dt <= wcs.t_startup

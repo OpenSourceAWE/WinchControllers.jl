@@ -28,7 +28,7 @@ set_v_set(sc::SpeedController, v_set)
 set_v_set_in(sc::SpeedController, v_set_in)
 set_tracking(sc::SpeedController, tracking)
 get_v_set_out(sc::SpeedController)
-get_v_error(sc::SpeedController)
+get_v_err(sc::SpeedController)
 on_timer(sc::SpeedController)
 ```
 
