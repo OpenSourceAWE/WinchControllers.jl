@@ -6,6 +6,10 @@ const __TEST__ = true
 cd("..")
 KiteUtils.set_data_path("data") 
 
+@testset verbose=true "components.jl " begin
+    include("test_components.jl")
+end
+
 @testset verbose=true "WinchControllers.jl " begin
     include("test_winchcontroller.jl")
 end
