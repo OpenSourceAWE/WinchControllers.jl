@@ -68,6 +68,7 @@ calc_v_set(wc::WinchController, v_act, force, f_low; v_set_pc=nothing)
 get_set_force(wc::WinchController)
 get_state(wc::WinchController)
 get_status(wc::WinchController)
+get_v_err(wc::WinchController)
 on_timer(wc::WinchController)
 ```
 

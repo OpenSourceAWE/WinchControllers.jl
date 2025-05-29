@@ -216,6 +216,18 @@ function get_status(wc::WinchController)
     result
 end
 
+"""
+    get_v_err(wc::WinchController)
+
+Compute and return the velocity error for the given `WinchController` instance `sc`.
+
+# Arguments
+- wc::[WinchController](@ref): The winch controller object for which the velocity error is to be calculated.
+
+# Returns
+- The velocity error `v_err` [m/s]. 
+  If the speed controller is inactive, it returns `NaN`.
+"""
 function get_v_err(wc::WinchController)
     get_v_err(wc.sc)
 end

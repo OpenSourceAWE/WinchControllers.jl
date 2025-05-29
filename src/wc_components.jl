@@ -453,7 +453,6 @@ Compute and return the velocity error for the given `SpeedController` instance `
 # Returns
 - The velocity error `v_err` [m/s]. 
   If the controller is inactive, it returns `NaN`.
-
 """
 function get_v_err(sc::SpeedController)
     if sc.inactive
