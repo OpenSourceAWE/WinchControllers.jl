@@ -78,7 +78,7 @@ function simulate_sc(x::Vector{Cdouble}; return_lg::Bool = false)
 end
 
 function autotune(controller::WinchControllerState)
-    global info, lg
+    global x, info, lg
     if controller == wcsSpeedControl
         println("Autotuning speed controller...")
         # Define the parameters for the autotuning
@@ -114,6 +114,13 @@ function autotune(controller::WinchControllerState)
     else
         println("Autotuning failed: $(PRIMA.reason(info.status))")
     end 
+end
+
+function copy_settings()
+    cp("data/wc_settings.yaml", "data/wc_settings_tuned.yaml")
+end
+function update_settings(x)
+    wc_settings = KiteUtils.readfile("data/wc_settings_tuned.yaml") 
 end
 
 autotune(wcsSpeedControl)
