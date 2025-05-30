@@ -18,7 +18,7 @@ export merge_angles, @limit, saturate
 export SpeedController, set_inactive, set_v_act, set_v_set, set_v_set_in, set_tracking, get_v_set_out
 export LowerForceController, UpperForceController
 export get_startup, get_triangle_wind
-export WCLogger, log, f_err, v_err, gamma, damage
+export WCLogger, log, f_err, v_err, gamma, damage, rms
 
 abstract type AbstractForceController end
 const AFC = AbstractForceController

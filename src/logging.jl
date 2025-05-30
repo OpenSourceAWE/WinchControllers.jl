@@ -157,8 +157,16 @@ function v_err(logger::WCLogger)
     1/v_mean * rms(filter(!isnan, logger.v_err))
 end
 
-function damage(logger::WCLogger)
+function damage(logger::WCLogger; rms= false)
+    if rms
+        return damage2(logger)
+    end
     logger.damage_factor * (maximum(norm.(logger.acc)) / logger.max_acc)^2
+end
+
+function damage2(logger::WCLogger)
+    rms_damage = rms(filter(!isnan, logger.acc))
+    logger.damage_factor * (0.5*rms_damage + 0.5*(maximum(norm.(logger.acc)) / logger.max_acc)^2)
 end
 
 """
