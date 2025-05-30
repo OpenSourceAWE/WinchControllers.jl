@@ -98,6 +98,15 @@ function simulate_lfc(x::Vector{Cdouble}; return_lg::Bool = false)
     simulate(wcs; return_lg)
 end
 
+function simulate_ufc(x::Vector{Cdouble}; return_lg::Bool = false)
+    wcs = WCSettings(dt=0.02)
+    update(wcs)
+    wcs.test = true
+    wcs.pf_high = x[1] # set the higher force controller gain
+    wcs.if_high = x[2] # set the higher force controller integral gain
+    simulate(wcs; return_lg)
+end
+
 function autotune(controller::WinchControllerState)
     global x, info, lg, TUNED
     if TUNED
@@ -105,7 +114,9 @@ function autotune(controller::WinchControllerState)
     else
         load_settings("system.yaml")
     end
- 
+    wcs = WCSettings(dt=0.02)
+    update(wcs)
+    wcs.test = true
     if controller == wcsSpeedControl
         println("Autotuning speed controller...")
         # Define the parameters for the autotuning
@@ -127,8 +138,16 @@ function autotune(controller::WinchControllerState)
             rhobeg = minimum(x0)/4,
             maxfun = 500
         )
-    elseif controller == wcsUpperForceControl
+    elseif controller == wcsUpperForceLimit
         println("Autotuning upper force control...")
+        # Define the parameters for the autotuning
+        x0 = [wcs.pf_high, wcs.if_high] # initial guess for the speed controller gain
+        x, info = bobyqa(simulate_lfc, x0;
+            xl = 0.25 .* x0,
+            xu = 2.0 .* x0,
+            rhobeg = minimum(x0)/4,
+            maxfun = 500
+        )
     else
         error("Unknown controller state: $controller")
         return
@@ -145,7 +164,7 @@ function autotune(controller::WinchControllerState)
             wcs, lg = simulate_sc(x; return_lg=true)
         elseif controller == wcsLowerForceLimit
             wcs, lg = simulate_lfc(x; return_lg=true)
-        elseif controller == wcsUpperForceControl
+        elseif controller == wcsUpperForceLimit
             wcs, lg = simulate_ufc(x; return_lg=true)
         end
 
@@ -173,23 +192,32 @@ function update_settings(wcs::WCSettings)
     lines = change_value(lines, "t_blend:", wcs.t_blend)
     lines = change_value(lines, "pf_low:", wcs.pf_low)
     lines = change_value(lines, "if_low:", wcs.if_low)
+    lines = change_value(lines, "pf_high:", wcs.pf_high)
+    lines = change_value(lines, "if_high:", wcs.if_high)    
     KiteUtils.writefile(lines, "data/wc_settings_tuned.yaml")
 end
 
-println(KiteUtils.wc_settings())
-wcs = autotune(wcsSpeedControl)
-# set = load_settings("system_tuned.yaml")
-if ! isnothing(wcs)
-    copy_settings()
-    update_settings(wcs)
-    println()
-    println(KiteUtils.wc_settings())
-    wcs = autotune(wcsLowerForceLimit)
+function tune_all()
+    wcs = autotune(wcsSpeedControl)
     if ! isnothing(wcs)
+        copy_settings()
         update_settings(wcs)
+        println()
+        wcs = autotune(wcsLowerForceLimit)
+        if ! isnothing(wcs)
+            update_settings(wcs)
+            println()
+            wcs = autotune(wcsUpperForceLimit)    
+            if ! isnothing(wcs)
+                update_settings(wcs)
+            end
+        end
+        @info "Tuned settings saved to data/wc_settings_tuned.yaml"
     end
-    @info "Tuned settings saved to data/wc_settings_tuned.yaml"
 end
+
+tune_all()
+tune_all()
 
 
 # autotune(wcsUpperForceControl)
