@@ -75,7 +75,7 @@ function simulate(wcs::WCSettings; return_lg::Bool = false)
         return wcs, lg
     end
     # calculate the performance metrics
-    -gamma(lg)
+    -gamma(lg; rms=true)
 end
 
 
