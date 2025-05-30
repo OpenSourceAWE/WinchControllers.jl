@@ -170,12 +170,6 @@ function autotune(controller::WinchControllerState)
         println("Autotuning upper force control...")
         # Define the parameters for the autotuning
         x0 = [maximum([2e-5, wcs.pf_high]), wcs.if_high] # initial guess for the speed controller gain
-        # x, info = bobyqa(simulate_lfc, x0;
-        #     xl = 0.25 .* x0,
-        #     xu = 2.0 .* x0,
-        #     rhobeg = maximum([2e-5, minimum(x0)/4]),
-        #     maxfun = 500
-        # )
         pb = NomadProblem(2,         # number of inputs of the blackbox
                           1,         # number of outputs of the blackbox
                           ["OBJ"],   # type of outputs of the blackbox
