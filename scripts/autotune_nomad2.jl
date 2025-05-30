@@ -98,7 +98,7 @@ function eval_fct(x)
   return (success, count_eval, bb_outputs)
 end
 
-function autotune()
+function autotune(max_iter=1000)
     global x, info, lg, TUNED, result
     if TUNED
         load_settings("system_tuned.yaml")
@@ -117,6 +117,7 @@ function autotune()
                       eval_fct;
                       lower_bound = 0.75 .* x0,
                       upper_bound = 1.5 .* x0)
+    pb.options.max_bb_eval = max_iter 
     result = solve(pb, x0)
     x = result.x_best_feas
     
@@ -143,7 +144,7 @@ function copy_settings()
     cp("data/wc_settings.yaml", "data/wc_settings_tuned.yaml"; force=true)
 end
 function change_value(lines, varname, value::Union{Integer, Float64})
-    KiteUtils.change_value(lines, varname, repr(round(value, digits=4)))
+    KiteUtils.change_value(lines, varname, repr(round(value, digits=5)))
 end
 function update_settings(wcs::WCSettings)
     lines = KiteUtils.readfile("data/wc_settings_tuned.yaml") 
@@ -157,8 +158,8 @@ function update_settings(wcs::WCSettings)
     KiteUtils.writefile(lines, "data/wc_settings_tuned.yaml")
 end
 
-function tune_all()
-    wcs = autotune()
+function tune_all(max_iter=1000)
+    wcs = autotune(max_iter)
     if ! isnothing(wcs)
         copy_settings()
         update_settings(wcs)
@@ -167,5 +168,5 @@ function tune_all()
     end
 end
 
-tune_all()
+tune_all(20)
 tune_all()
