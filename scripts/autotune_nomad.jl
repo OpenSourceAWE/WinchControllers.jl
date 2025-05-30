@@ -101,6 +101,12 @@ function eval_fct_lfc(x)
   count_eval = true
   return (success, count_eval, bb_outputs)
 end
+function eval_fct_ufc(x)
+  bb_outputs = [simulate_ufc(x)]
+  success = true
+  count_eval = true
+  return (success, count_eval, bb_outputs)
+end
 
 function simulate_lfc(x::Vector{Cdouble}; return_lg::Bool = false)
     wcs = WCSettings(dt=0.02)
@@ -164,12 +170,25 @@ function autotune(controller::WinchControllerState)
         println("Autotuning upper force control...")
         # Define the parameters for the autotuning
         x0 = [maximum([2e-5, wcs.pf_high]), wcs.if_high] # initial guess for the speed controller gain
-        x, info = bobyqa(simulate_lfc, x0;
-            xl = 0.25 .* x0,
-            xu = 2.0 .* x0,
-            rhobeg = maximum([2e-5, minimum(x0)/4]),
-            maxfun = 500
-        )
+        # x, info = bobyqa(simulate_lfc, x0;
+        #     xl = 0.25 .* x0,
+        #     xu = 2.0 .* x0,
+        #     rhobeg = maximum([2e-5, minimum(x0)/4]),
+        #     maxfun = 500
+        # )
+        pb = NomadProblem(2,         # number of inputs of the blackbox
+                          1,         # number of outputs of the blackbox
+                          ["OBJ"],   # type of outputs of the blackbox
+                          eval_fct_ufc;
+                          lower_bound = 0.25 .* x0,
+                          upper_bound = 2.0 .* x0)
+        try
+            result = solve(pb, x0)
+            x = result.x_best_feas
+        catch e
+            @error "Autotuning ufc failed: $(e)"
+            x = x0
+        end
     else
         error("Unknown controller state: $controller")
         return
