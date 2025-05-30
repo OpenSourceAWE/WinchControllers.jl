@@ -9,6 +9,7 @@ end
 using WinchControllers, KiteUtils, PRIMA, ControlPlots
 
 TUNED::Bool = false
+load_settings("system.yaml")
 
 function calc_force(v_wind, v_ro)
     (v_wind - v_ro)^2 * 4000.0 / 16.0
@@ -26,9 +27,9 @@ end
 
 function simulate(wcs::WCSettings; return_lg::Bool = false)
     if TUNED
-        set = load_settings("system.yaml")
-    else
         set = load_settings("system_tuned.yaml")
+    else
+        set = load_settings("system.yaml")
     end
  
     # define the simulation parameters
@@ -175,11 +176,14 @@ function update_settings(wcs::WCSettings)
     KiteUtils.writefile(lines, "data/wc_settings_tuned.yaml")
 end
 
+println(KiteUtils.wc_settings())
 wcs = autotune(wcsSpeedControl)
+# set = load_settings("system_tuned.yaml")
 if ! isnothing(wcs)
     copy_settings()
     update_settings(wcs)
     println()
+    println(KiteUtils.wc_settings())
     wcs = autotune(wcsLowerForceLimit)
     if ! isnothing(wcs)
         update_settings(wcs)
