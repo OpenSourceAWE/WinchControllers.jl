@@ -95,6 +95,12 @@ function eval_fct(x)
   count_eval = true
   return (success, count_eval, bb_outputs)
 end
+function eval_fct_lfc(x)
+  bb_outputs = [simulate_lfc(x)]
+  success = true
+  count_eval = true
+  return (success, count_eval, bb_outputs)
+end
 
 function simulate_lfc(x::Vector{Cdouble}; return_lg::Bool = false)
     wcs = WCSettings(dt=0.02)
@@ -126,15 +132,6 @@ function autotune(controller::WinchControllerState)
     wcs.test = true
     if controller == wcsSpeedControl
         println("Autotuning speed controller...")
-        # # Define the parameters for the autotuning
-        # x0 = [wcs.p_speed, wcs.i_speed, wcs.t_blend] # initial guess for the speed controller gain
-        # x, info = bobyqa(simulate_sc, x0;
-        #     xl = 0.75 .* x0,
-        #     xu = 1.5 .* x0,
-        #     rhobeg = maximum([1e-4, minimum(x0)/4]),
-        #     npt=10,
-        #     maxfun = 500
-        # )
         x0 = [wcs.p_speed, wcs.i_speed, wcs.t_blend] # initial guess for the speed controller gain
 
         pb = NomadProblem(3,         # number of inputs of the blackbox
@@ -149,13 +146,20 @@ function autotune(controller::WinchControllerState)
         println("Autotuning lower force limit controller...")
         # Define the parameters for the autotuning
         x0 = [maximum([1e-4, wcs.pf_low]), wcs.if_low] # initial guess for the speed controller gain
+        pb = NomadProblem(2,         # number of inputs of the blackbox
+                          1,         # number of outputs of the blackbox
+                          ["OBJ"],   # type of outputs of the blackbox
+                          eval_fct_lfc;
+                          lower_bound = 0.25 .* x0,
+                          upper_bound = 2.0 .* x0)
+        try
+            result = solve(pb, x0)
+            x = result.x_best_feas
+        catch e
+            @error "Autotuning failed: $(e)"
+            x = x0
+        end
 
-        x, info = bobyqa(simulate_lfc, x0;
-            xl = 0.25 .* x0,
-            xu = 2.0 .* x0,
-            rhobeg = maximum([1e-4, minimum(x0)/4]),
-            maxfun = 500
-        )
     elseif controller == wcsUpperForceLimit
         println("Autotuning upper force control...")
         # Define the parameters for the autotuning
