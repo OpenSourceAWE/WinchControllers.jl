@@ -1,4 +1,6 @@
 # this script tunes the controller parameters (well, seven of them)
+# TODO: make sure that calling autotune does not make the performance worse
+# TODO: add the mean square of the acceleration to the damage metric
 using Pkg
 if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
     using TestEnv; TestEnv.activate()
