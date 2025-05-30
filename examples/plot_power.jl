@@ -30,7 +30,7 @@ V_WIND_MIN = 0.0 # min wind speed of test wind
 FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal 
 
 # create the logger
-lg::WCLogger = WCLogger(DURATION, wcs.dt, set.max_force, wcs.max_acc, wcs.damage_factor)
+lg = WCLogger(DURATION, wcs.dt, set.max_force, wcs.max_acc, wcs.damage_factor)
 
 STARTUP = get_startup(wcs, length(lg))    
 V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, length(lg))
@@ -63,18 +63,19 @@ for i in 1:length(lg)
     p_dyn = winch.p_dyn
     
     # log the values
-    log(lg; v_ro=v_act, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], 
-            force=status[3], f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out, v_set_in=get_v_set_in(wc), p_dyn)
+    log(lg; v_ro=v_act, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], jerk=winch.jerk,
+            force=status[3], f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out, 
+            v_set_in=get_v_set_in(wc), p_dyn)
 end
 
 # plot the results  
 p_tot = lg.force .* lg.v_ro /1000 .+ lg.p_dyn/1000
-p1=plotx(lg.time, V_WIND, [lg.v_ro, lg.v_set_in], lg.acc, lg.force*0.001, 
+p1=plotx(lg.time, V_WIND, [lg.v_ro, lg.v_set_in], lg.acc, lg.jerk, lg.force*0.001, 
         [lg.force .* lg.v_ro /1000, lg.p_dyn/1000, p_tot],lg.state,
     title="Winch controller test, all controllers active",
-    ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "acc [m/s²]", "force [kN]", "p_mech [kW]", "state"], 
+    ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "acc [m/s²]", "jerk [m/s³]", "force [kN]", "p_mech [kW]", "state"], 
     ysize=10,
-    labels=["v_wind", ["v_reel_out", "v_set_in"], "acc [m/s²]", "force [kN]", ["p_mech [kW]", "p_dyn [kW]", "p_tot [kW]"]],
+    labels=["v_wind", ["v_reel_out", "v_set_in"], "acc [m/s²]", "jerk [m/s³]", "force [kN]", ["p_mech [kW]", "p_dyn [kW]", "p_tot [kW]"]],
     fig="test_winchcontroller",)
 
 display(p1)

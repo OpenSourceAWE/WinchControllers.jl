@@ -37,6 +37,8 @@ $(TYPEDFIELDS)
     acc::Vector{Float64} = zeros(Float64, Q)
     "set acceleration [m/s^2]"
     acc_set::Vector{Float64} = zeros(Float64, Q)
+    "jerk [m/s^3]"
+    jerk::Vector{Float64} = zeros(Float64, Q)
     "reel-out speed error [m/s]"
     v_err::Vector{Float64} = zeros(Float64, Q)
     "reset flag"
@@ -80,7 +82,7 @@ end
 
 """
     log(logger::WCLogger; v_wind=0.0, v_ro=0.0, v_set=0.0, v_set_in=0.0, v_set_out=0.0, force=0.0, f_err=0.0, 
-        acc=0.0, acc_set=0.0, p_dyn=0.0)
+        acc=0.0, acc_set=0.0, jerk=0.0, p_dyn=0.0)
 
 Logs the current state of the winch controller.
 
@@ -94,6 +96,7 @@ Logs the current state of the winch controller.
 - `force`: (Optional) The measured force. Defaults to `0.0`.
 - `f_err`: (Optional) The force error. Defaults to `0.0`.
 - `acc`: (Optional) The measured acceleration. Defaults to `0.0`.
+- `jerk`: (Optional) The jerk value. Defaults to `0.0`.
 - `acc_set`: (Optional) The setpoint acceleration. Defaults to `0.0`.
 - `p_dyn`: (Optional) The dynamic mechanical power. Defaults to `0.0`.
 
@@ -101,7 +104,7 @@ Logs the current state of the winch controller.
 This function records the provided parameters to the logger for analysis of the winch controller's performance.
 """
 function log(logger::WCLogger; v_wind=0.0, v_ro=0.0, v_set=0.0, v_set_in=0.0, v_set_out=0.0, force=0.0, f_err=0.0, 
-             acc=0.0, acc_set=0.0, v_err=0.0, reset=0, active=0, f_set=0.0, state=0, p_dyn=0.0)
+             acc=0.0, jerk=0.0, acc_set=0.0, v_err=0.0, reset=0, active=0, f_set=0.0, state=0, p_dyn=0.0)
     idx = logger.index
     if idx > length(logger.time)
         error("Logger is full, cannot log more data.")
@@ -114,6 +117,7 @@ function log(logger::WCLogger; v_wind=0.0, v_ro=0.0, v_set=0.0, v_set_in=0.0, v_
     logger.force[idx] = force
     logger.f_err[idx] = f_err
     logger.acc[idx] = acc
+    logger.jerk[idx] = jerk
     logger.acc_set[idx] = acc_set
     logger.v_err[idx] = v_err
     logger.reset[idx] = reset
@@ -157,8 +161,10 @@ function v_err(logger::WCLogger)
     1/v_mean * rms(filter(!isnan, logger.v_err))
 end
 
-function damage(logger::WCLogger; rms= false)
-    if rms
+function damage(logger::WCLogger; rms= false, jerk=false)
+    if jerk
+        return damage3(logger)
+    elseif rms
         return damage2(logger)
     end
     logger.damage_factor * (maximum(norm.(logger.acc)) / logger.max_acc)^2
@@ -167,6 +173,12 @@ end
 function damage2(logger::WCLogger)
     rms_damage = rms(filter(!isnan, logger.acc))
     logger.damage_factor * ((0.83*rms_damage + 0.55*(maximum(norm.(logger.acc)))) / logger.max_acc)^2
+end
+
+function damage3(logger::WCLogger)
+    rms_damage = rms(filter(!isnan, logger.acc))
+    logger.damage_factor * ((0.6*rms_damage + 0.05*rms(logger.jerk) + 
+                             0.275*(maximum(norm.(logger.acc)))) / logger.max_acc)^2
 end
 
 """
@@ -181,6 +193,6 @@ the provided logs, stored in the `logger`. See: [Combined performance](@ref).
 # Returns
 - The gamma value associated with the log of the used test case.
 """
-function gamma(logger::WCLogger; rms=false)
-    1 - 0.5 * (f_err(logger) + v_err(logger)) - damage(logger; rms)
+function gamma(logger::WCLogger; rms=false, jerk=false)
+    1 - 0.5 * (f_err(logger) + v_err(logger)) - damage(logger; rms, jerk)
 end

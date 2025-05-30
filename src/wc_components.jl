@@ -140,6 +140,7 @@ $(TYPEDFIELDS)
     v_set     = 0 # input
     force     = 0 # input
     acc       = 0 # output
+    jerk      = 0 # output; jerk of the winch; derivative of the acceleration
     speed     = 0 # output; reel-out speed; only state of this model
     p_dyn     = 0 # output; mechanical, dynamic power of the winch
 end
@@ -249,6 +250,7 @@ and updates the winch acceleration `w.acc` using a loop.
 - nothing
 """
 function on_timer(w::Winch)
+    last_acc = w.acc
     acc = 0.0
     for i in 1:w.wcs.winch_iter
         w.acc = calc_acceleration(w.wm, w.speed, w.force; set_speed = w.v_set)
@@ -256,6 +258,7 @@ function on_timer(w::Winch)
         w.speed += w.acc * w.wcs.dt/w.wcs.winch_iter
     end
     w.acc = acc/w.wcs.winch_iter
+    w.jerk = (w.acc - last_acc) / w.wcs.dt
     w.p_dyn, w.last_omega = calc_dynamic_power(w.set, w. inertia, w.speed, w.last_omega, w.wcs.dt)
     nothing
 end

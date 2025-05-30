@@ -67,14 +67,15 @@ function simulate(wcs::WCSettings; return_lg::Bool = false)
 
         # get values for logging and log them
         status = get_status(wc)
-        log(lg; v_wind, v_ro=v_act, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], force=status[3], 
-            f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out, v_set_in=get_v_set_in(wc))
+        log(lg; v_wind, v_ro=v_act, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], 
+            force=status[3], f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), 
+            v_set_out, v_set_in=get_v_set_in(wc), jerk=winch.jerk, p_dyn=winch.p_dyn)
     end
     if return_lg
         return wcs, lg
     end
     # calculate the performance metrics
-    -gamma(lg; rms=true)
+    -gamma(lg; jerk=true)
 end
 
 function simulate_all(x::Vector; return_lg::Bool = false)
@@ -133,6 +134,7 @@ function autotune(max_iter=1000)
         println("Performance of speed controller:  $(round(100*(1-v_err(lg)), digits=2)) %")
         println("Damage:                           $(round(100*(damage(lg)), digits=2)) %")
         println("Damage with rms:                  $(round(100*(damage(lg; rms=true)), digits=2)) %")
+        println("Damage with jerk:                 $(round(100*(damage(lg; jerk=true)), digits=2)) %")
         println("Combined performance γ: $(round(-100*result.bbo_best_feas[1], digits=2)) %")  
         return wcs
     else
@@ -143,6 +145,7 @@ end
 
 function copy_settings()
     cp("data/wc_settings.yaml", "data/wc_settings_tuned.yaml"; force=true)
+    load_settings("system_tuned.yaml")
 end
 function change_value(lines, varname, value::Union{Integer, Float64})
     KiteUtils.change_value(lines, varname, repr(round(value, digits=5)))
@@ -163,12 +166,12 @@ end
 function tune_all(max_iter=1000)
     wcs = autotune(max_iter)
     if ! isnothing(wcs)
-        copy_settings()
         update_settings(wcs)
         println()
         @info "Tuned settings saved to data/wc_settings_tuned.yaml"
     end
 end
 
+copy_settings()
 tune_all(20)
 tune_all()
