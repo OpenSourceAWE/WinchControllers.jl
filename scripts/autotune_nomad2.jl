@@ -93,7 +93,7 @@ end
 
 function eval_fct(x)
   bb_outputs = [simulate_all(x)]
-  success = true
+  success = bb_outputs[1] < -0.7
   count_eval = true
   return (success, count_eval, bb_outputs)
 end
