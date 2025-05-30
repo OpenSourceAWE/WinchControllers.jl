@@ -8,6 +8,8 @@ if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
 end
 using WinchControllers, KiteUtils, PRIMA, ControlPlots
 
+TUNED::Bool = false
+
 function calc_force(v_wind, v_ro)
     (v_wind - v_ro)^2 * 4000.0 / 16.0
 end
@@ -23,7 +25,11 @@ function plot(lg::WCLogger)
 end
 
 function simulate(wcs::WCSettings; return_lg::Bool = false)
-    set = deepcopy(load_settings("system.yaml"))
+    if TUNED
+        set = load_settings("system.yaml")
+    else
+        set = load_settings("system_tuned.yaml")
+    end
  
     # define the simulation parameters
     DURATION   = 10.0
@@ -92,7 +98,13 @@ function simulate_lfc(x::Vector{Cdouble}; return_lg::Bool = false)
 end
 
 function autotune(controller::WinchControllerState)
-    global x, info, lg
+    global x, info, lg, TUNED
+    if TUNED
+        load_settings("system_tuned.yaml")
+    else
+        load_settings("system.yaml")
+    end
+ 
     if controller == wcsSpeedControl
         println("Autotuning speed controller...")
         # Define the parameters for the autotuning
@@ -127,6 +139,7 @@ function autotune(controller::WinchControllerState)
 
     if issuccess(info)
         println("Running simulation with tuned parameters...")
+        TUNED = true
         if controller == wcsSpeedControl
             wcs, lg = simulate_sc(x; return_lg=true)
         elseif controller == wcsLowerForceLimit
@@ -166,7 +179,11 @@ wcs = autotune(wcsSpeedControl)
 if ! isnothing(wcs)
     copy_settings()
     update_settings(wcs)
+    println()
     wcs = autotune(wcsLowerForceLimit)
+    if ! isnothing(wcs)
+        update_settings(wcs)
+    end
     @info "Tuned settings saved to data/wc_settings_tuned.yaml"
 end
 
