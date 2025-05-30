@@ -1,6 +1,4 @@
-# this script shall tune the controller parameters
-# TODO: save the results in wc_settings_tuned.yaml
-# TODO: optimize the lower force controller
+# this script tunes the controller parameters (well, seven of them)
 using Pkg
 if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
     using TestEnv; TestEnv.activate()
