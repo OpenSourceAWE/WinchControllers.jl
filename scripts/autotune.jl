@@ -65,7 +65,7 @@ function simulate(wcs::WCSettings; return_lg::Bool = false)
             f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out, v_set_in=get_v_set_in(wc))
     end
     if return_lg
-        return lg
+        return wcs, lg
     end
     # calculate the performance metrics
     -gamma(lg)
@@ -128,29 +128,47 @@ function autotune(controller::WinchControllerState)
     if issuccess(info)
         println("Running simulation with tuned parameters...")
         if controller == wcsSpeedControl
-            lg = simulate_sc(x; return_lg=true)
+            wcs, lg = simulate_sc(x; return_lg=true)
         elseif controller == wcsLowerForceLimit
-            lg = simulate_lfc(x; return_lg=true)
+            wcs, lg = simulate_lfc(x; return_lg=true)
         elseif controller == wcsUpperForceControl
-            lg = simulate_ufc(x; return_lg=true)
+            wcs, lg = simulate_ufc(x; return_lg=true)
         end
 
         println("\nPerformance of force controllers: $(round(100*(1-f_err(lg)), digits=2)) %")
         println("Performance of speed controller:  $(round(100*(1-v_err(lg)), digits=2)) %")
         println("Damage:                           $(round(100*(damage(lg)), digits=2)) %")
         println("Combined performance γ: $(round(-100*info.fx, digits=2)) %")  
+        return wcs
     else
         println("Autotuning failed: $(PRIMA.reason(info.status))")
+        return nothing
     end 
 end
 
 function copy_settings()
-    cp("data/wc_settings.yaml", "data/wc_settings_tuned.yaml")
+    cp("data/wc_settings.yaml", "data/wc_settings_tuned.yaml"; force=true)
 end
-function update_settings(x)
-    wc_settings = KiteUtils.readfile("data/wc_settings_tuned.yaml") 
+function change_value(lines, varname, value::Union{Integer, Float64})
+    KiteUtils.change_value(lines, varname, repr(round(value, digits=4)))
+end
+function update_settings(wcs::WCSettings)
+    lines = KiteUtils.readfile("data/wc_settings_tuned.yaml") 
+    lines = change_value(lines, "i_speed:", wcs.i_speed)
+    lines = change_value(lines, "p_speed:", wcs.p_speed)
+    lines = change_value(lines, "t_blend:", wcs.t_blend)
+    lines = change_value(lines, "pf_low:", wcs.pf_low)
+    lines = change_value(lines, "if_low:", wcs.if_low)
+    KiteUtils.writefile(lines, "data/wc_settings_tuned.yaml")
 end
 
-# autotune(wcsSpeedControl)
-autotune(wcsLowerForceLimit)
+wcs = autotune(wcsSpeedControl)
+if ! isnothing(wcs)
+    copy_settings()
+    update_settings(wcs)
+    wcs = autotune(wcsLowerForceLimit)
+    @info "Tuned settings saved to data/wc_settings_tuned.yaml"
+end
+
+
 # autotune(wcsUpperForceControl)
