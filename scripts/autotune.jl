@@ -111,8 +111,7 @@ function autotune(controller::WinchControllerState)
         x, info = bobyqa(simulate_lfc, x0;
             xl = 0.25 .* x0,
             xu = 2.0 .* x0,
-            rhobeg = 0.1,
-            npt=6,
+            rhobeg = minimum(x0)/4,
             maxfun = 500
         )
     elseif controller == wcsUpperForceControl
