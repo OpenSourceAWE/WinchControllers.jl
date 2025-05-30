@@ -82,6 +82,15 @@ function simulate_sc(x::Vector{Cdouble}; return_lg::Bool = false)
     simulate(wcs; return_lg)
 end
 
+function simulate_lfc(x::Vector{Cdouble}; return_lg::Bool = false)
+    wcs = WCSettings(dt=0.02)
+    update(wcs)
+    wcs.test = true
+    wcs.pf_low = x[1] # set the lower force controller gain
+    wcs.if_low = x[2] # set the lower force controller integral gain
+    simulate(wcs; return_lg)
+end
+
 function autotune(controller::WinchControllerState)
     global x, info, lg
     if controller == wcsSpeedControl
@@ -97,6 +106,15 @@ function autotune(controller::WinchControllerState)
         )
     elseif controller == wcsLowerForceLimit
         println("Autotuning lower force limit controller...")
+        # Define the parameters for the autotuning
+        x0 = [0.00014, 0.01125] # initial guess for the speed controller gain
+        x, info = bobyqa(simulate_lfc, x0;
+            xl = 0.25 .* x0,
+            xu = 2.0 .* x0,
+            rhobeg = 0.1,
+            npt=6,
+            maxfun = 500
+        )
     elseif controller == wcsUpperForceControl
         println("Autotuning upper force control...")
     else
@@ -110,7 +128,13 @@ function autotune(controller::WinchControllerState)
 
     if issuccess(info)
         println("Running simulation with tuned parameters...")
-        lg = simulate_sc(x; return_lg=true)
+        if controller == wcsSpeedControl
+            lg = simulate_sc(x; return_lg=true)
+        elseif controller == wcsLowerForceLimit
+            lg = simulate_lfc(x; return_lg=true)
+        elseif controller == wcsUpperForceControl
+            lg = simulate_ufc(x; return_lg=true)
+        end
 
         println("\nPerformance of force controllers: $(round(100*(1-f_err(lg)), digits=2)) %")
         println("Performance of speed controller:  $(round(100*(1-v_err(lg)), digits=2)) %")
@@ -128,6 +152,6 @@ function update_settings(x)
     wc_settings = KiteUtils.readfile("data/wc_settings_tuned.yaml") 
 end
 
-autotune(wcsSpeedControl)
-# autotune(wcsLowerForceLimit)
+# autotune(wcsSpeedControl)
+autotune(wcsLowerForceLimit)
 # autotune(wcsUpperForceControl)
