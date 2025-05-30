@@ -172,6 +172,7 @@ function autotune(controller::WinchControllerState)
         println("\nPerformance of force controllers: $(round(100*(1-f_err(lg)), digits=2)) %")
         println("Performance of speed controller:  $(round(100*(1-v_err(lg)), digits=2)) %")
         println("Damage:                           $(round(100*(damage(lg)), digits=2)) %")
+        println("Damage with rms:                  $(round(100*(damage(lg; rms=true)), digits=2)) %")
         println("Combined performance γ: $(round(-100*info.fx, digits=2)) %")  
         return wcs
     else

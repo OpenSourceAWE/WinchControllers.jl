@@ -166,7 +166,7 @@ end
 
 function damage2(logger::WCLogger)
     rms_damage = rms(filter(!isnan, logger.acc))
-    logger.damage_factor * (0.5*rms_damage + 0.5*(maximum(norm.(logger.acc)) / logger.max_acc)^2)
+    logger.damage_factor * ((0.83*rms_damage + 0.55*(maximum(norm.(logger.acc)))) / logger.max_acc)^2
 end
 
 """
