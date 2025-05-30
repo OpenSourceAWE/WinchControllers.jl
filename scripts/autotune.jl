@@ -122,8 +122,8 @@ function autotune(controller::WinchControllerState)
         # Define the parameters for the autotuning
         x0 = [wcs.p_speed, wcs.i_speed, wcs.t_blend] # initial guess for the speed controller gain
         x, info = bobyqa(simulate_sc, x0;
-            xl = 0.25 .* x0,
-            xu = 2.0 .* x0,
+            xl = 0.75 .* x0,
+            xu = 1.5 .* x0,
             rhobeg = minimum(x0)/4,
             npt=10,
             maxfun = 500
@@ -131,7 +131,7 @@ function autotune(controller::WinchControllerState)
     elseif controller == wcsLowerForceLimit
         println("Autotuning lower force limit controller...")
         # Define the parameters for the autotuning
-        x0 = [maximum([1e-4, minimum(wcs.pf_low)/4]), wcs.if_low] # initial guess for the speed controller gain
+        x0 = [maximum([1e-4, wcs.pf_low]), wcs.if_low] # initial guess for the speed controller gain
 
         x, info = bobyqa(simulate_lfc, x0;
             xl = 0.25 .* x0,
