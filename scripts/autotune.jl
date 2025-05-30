@@ -22,15 +22,9 @@ function plot(lg::WCLogger)
     display(p1)
 end
 
-function simulate_sc(x::Vector{Cdouble}; return_lg::Bool = false)
+function simulate(wcs::WCSettings; return_lg::Bool = false)
     set = deepcopy(load_settings("system.yaml"))
-    wcs = WCSettings(dt=0.02)
-    update(wcs)
-    wcs.test = true
-    wcs.i_speed = x[1] # set the speed controller gain
-    wcs.p_speed = x[2] # set the speed controller proportional gain
-    wcs.t_blend = x[3] # set the blending time for switching between controllers
-
+ 
     # define the simulation parameters
     DURATION   = 10.0
     V_WIND_MAX = 9.0 # max wind speed of test wind
@@ -75,6 +69,17 @@ function simulate_sc(x::Vector{Cdouble}; return_lg::Bool = false)
     end
     # calculate the performance metrics
     -gamma(lg)
+end
+
+
+function simulate_sc(x::Vector{Cdouble}; return_lg::Bool = false)
+    wcs = WCSettings(dt=0.02)
+    update(wcs)
+    wcs.test = true
+    wcs.i_speed = x[1] # set the speed controller gain
+    wcs.p_speed = x[2] # set the speed controller proportional gain
+    wcs.t_blend = x[3] # set the blending time for switching between controllers
+    simulate(wcs; return_lg)
 end
 
 function autotune(controller::WinchControllerState)
