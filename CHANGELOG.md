@@ -1,8 +1,9 @@
-### Unreleased
+### WinchControllers v0.5.3 2025-05-31
 #### Added
 - the functions `get_v_set()`, `get_f_err()`
 - the script `autotune.jl`, using the **NOMAD** optimizer
 - added a documentation page for the autotuning feature
+- added the function `install_examples()` and updated the docu accordingly
 
 ### WinchControllers v0.5.2
 #### Added
