@@ -87,10 +87,10 @@ For the checkout command, use the tag of the latest version.
 ### WinchController - Usage -
 The WinchController combines the three controllers, mentioned above.
 It can be operated in two modes of operation:
-- position control
+- speed control
 - power production
 
-In position control mode it requires a set speed as input. Upper and lower force limits
+In speed control mode it requires a set speed as input. Upper and lower force limits
 are respected.
 In power production mode it does not require any input but the measured tether force.
 Output is the set speed of the asynchronous motor.
