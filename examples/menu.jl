@@ -2,7 +2,8 @@ using REPL.TerminalMenus, WinchControllers
 
 URL="https://opensourceawe.github.io/WinchControllers.jl/dev/"
 
-options = ["autotune_ = include(\"autotune.jl\")",
+options = ["test_winchcontroller = include(\"test_winchcontroller.jl\")",      
+           "autotune_ = include(\"autotune.jl\")",
            "test_tuned_winchcontroller = include(\"test_tuned_winchcontroller.jl\")",
            "plot_power = include(\"plot_power.jl\")",
            "help = WinchControllers.help()",
