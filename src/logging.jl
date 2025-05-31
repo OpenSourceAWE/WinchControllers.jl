@@ -183,5 +183,5 @@ the provided logs, stored in the `logger`. See: [Combined performance](@ref).
 - The gamma value associated with the log of the used test case.
 """
 function gamma(logger::WCLogger)
-    1 - 0.5 * (f_err(logger) + v_err(logger)) - damage(logger)
+    1 - 1/2.5 * (1.5*f_err(logger) + v_err(logger)) - damage(logger)
 end
