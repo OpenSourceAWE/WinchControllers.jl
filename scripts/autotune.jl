@@ -1,11 +1,12 @@
 # this script tunes the controller parameters (well, eight of them)
 using Pkg
-if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
+if ! ("NOMAD" ∈ keys(Pkg.project().dependencies))
     using TestEnv; TestEnv.activate()
     using Test
 end
-using WinchControllers, KiteUtils, PRIMA, NOMAD, ControlPlots
+using WinchControllers, KiteUtils, NOMAD, ControlPlots
 
+LF = 2.5 # limit factor
 TUNED::Bool = false
 load_settings("system.yaml")
 
@@ -116,8 +117,8 @@ function autotune(max_iter=1000)
                       1,         # number of outputs of the blackbox
                       ["OBJ"],   # type of outputs of the blackbox
                       eval_fct;
-                      lower_bound = 0.5 .* x0,
-                      upper_bound = 2.0 .* x0)
+                      lower_bound = 1/LF .* x0,
+                      upper_bound = LF   .* x0)
     pb.options.max_bb_eval = max_iter 
     result = solve(pb, x0)
     x = result.x_best_feas
@@ -140,7 +141,7 @@ function copy_settings()
     load_settings("system_tuned.yaml")
 end
 function change_value(lines, varname, value::Union{Integer, Float64})
-    KiteUtils.change_value(lines, varname, repr(round(value, digits=5)))
+    KiteUtils.change_value(lines, varname, repr(round(value, digits=6)))
 end
 function update_settings(wcs::WCSettings)
     lines = KiteUtils.readfile("data/wc_settings_tuned.yaml") 

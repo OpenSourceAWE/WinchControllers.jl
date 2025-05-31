@@ -166,8 +166,8 @@ end
 
 function damage(logger::WCLogger)
     jerk_factor= logger.jerk_factor
-    logger.damage_factor*((jerk_factor*(rms(logger.jerk) / logger.max_acc^2)^2 + 
-                             (1-jerk_factor)*(maximum(norm.(logger.acc)))) / logger.max_acc)^2
+    logger.damage_factor*(jerk_factor*(rms(logger.jerk) / logger.max_acc^2)^4 + 
+                         (1-jerk_factor)*((maximum(norm.(logger.acc)))) / logger.max_acc)^2
 end
 
 """
@@ -183,5 +183,5 @@ the provided logs, stored in the `logger`. See: [Combined performance](@ref).
 - The gamma value associated with the log of the used test case.
 """
 function gamma(logger::WCLogger)
-    1 - 0.5 * (f_err(logger) + v_err(logger)) - damage(logger)
+    1 - 1/2.5 * (1.5*f_err(logger) + v_err(logger)) - damage(logger)
 end

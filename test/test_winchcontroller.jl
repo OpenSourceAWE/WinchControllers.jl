@@ -86,7 +86,7 @@ if @isdefined __TEST__
     @test V_WIND[Int64(2/0.02)+1] ≈ 9.0 rtol=1e-4
     @test V_WIND[Int64(4/0.02)+1] ≈ 0.0 atol=1e-4
     @test V_WIND[Int64(6/0.02)+1] ≈ 9.0 rtol=1e-4
-    @test mean(FORCE) ≈ 1783.2979123136008 rtol=1e-4
+    @test mean(FORCE) ≈ 1782.9912136687296 rtol=1e-4
     @test maximum(FORCE) < 4295
     @test minimum(FORCE[10:end]) > 10.0
     @test STATE[Int64(0.5/dt)] == 0

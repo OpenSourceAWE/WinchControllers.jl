@@ -22,6 +22,7 @@ makedocs(;
         "Winchcontroller" => "winchcontroller.md",
         "Winchcontroller Settings" => "settings.md",
         "Performance Indicators" => "performance_indicators.md",
+        "Autotuning" => "autotuning.md",
         "Tests" => "tests.md",
     ],
 )
