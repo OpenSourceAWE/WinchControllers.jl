@@ -1,10 +1,10 @@
 # this script tunes the controller parameters (well, eight of them)
 using Pkg
-if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
+if ! ("NOMAD" ∈ keys(Pkg.project().dependencies))
     using TestEnv; TestEnv.activate()
     using Test
 end
-using WinchControllers, KiteUtils, PRIMA, NOMAD, ControlPlots
+using WinchControllers, KiteUtils, NOMAD, ControlPlots
 
 LF = 2.5 # limit factor
 TUNED::Bool = false
