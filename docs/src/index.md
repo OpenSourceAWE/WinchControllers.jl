@@ -45,6 +45,24 @@ at the Julia prompt. You can run the unit tests with the command (careful, can t
 ```julia
 pkg"test WinchControllers"
 ```
+To add the examples and install the packages needed by the examples, run:
+```julia
+using WinchControllers
+WinchControllers.install_examples()
+exit()
+```
+
+## Running the examples
+To run the examples, launch Julia with:
+```bash
+julia --project
+```
+and then, in the Julia REPL, type:
+```julia
+include("examples/menu.jl")
+```
+You should now see a terminal menu with some examples. Select one using the
+`<CURSOR UP>` and `<CURSOR DOWN>` keys, and press `<ENTER>` to run the selected example.
 
 ## Provides
 - a set of generic control components, see [Generic Components](@ref)
