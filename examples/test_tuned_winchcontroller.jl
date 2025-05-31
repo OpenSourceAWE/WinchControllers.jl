@@ -18,7 +18,7 @@ function calc_force(v_wind, v_ro)
     (v_wind - v_ro)^2 * 4000.0 / 16.0
 end
 
-set = deepcopy(load_settings("system.yaml"))
+set = deepcopy(load_settings("system_tuned.yaml"))
 wcs = WCSettings(dt=0.02)
 update(wcs)
 wcs.test = true
@@ -68,11 +68,11 @@ end
 
 # plot the results  
 p1=plotx(lg.time, V_WIND, [lg.v_ro, lg.v_set_in], lg.f_err*0.001, lg.v_err, lg.acc, lg.force*0.001, lg.state,
-    title="Winch controller test, all controllers active",
+    title="Winch controller test, automatically tuned",
     ylabels=["v_wind [m/s]", "v_reel_out [m/s]", "f_err [kN]", "v_error [m/s]", "acc [m/s²]", "force [kN]", "state"], 
     ysize=10,
     labels=["v_wind", ["v_reel_out", "v_set_in"]],
-    fig="test_winchcontroller",)
+    fig="test_tuned_winchcontroller",)
 
 display(p1)
 toc()

@@ -8,6 +8,7 @@ options = ["test_mixer2 = include(\"../test/test_mixer2.jl\")",
            "test_forcespeedcontroller1 = include(\"../test/test_forcespeedcontroller1.jl\")",
            "test_forcespeedcontroller2 = include(\"../test/test_forcespeedcontroller2.jl\")",
            "test_winchcontroller = include(\"test_winchcontroller.jl\")",
+           "test_tuned_winchcontroller = include(\"test_tuned_winchcontroller.jl\")",
            "plot_power = include(\"plot_power.jl\")",
            "quit"]
 
