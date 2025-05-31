@@ -19,13 +19,12 @@ The goal of this package is to provide controllers for winches that consist of a
 - reel-out speed control proportional to the square root of the force (other relationships can easily be added)
 - control of asynchronous motors/ generators
 - speed control
+- auto-tuning of the controller
 
 **Planned features**
 - support of torque controlled winches
 - length control (position control)
 - integration of a quasi-steady tether model
-- auto-tuning of the controller
-
 
 ## Installation
 <details>
