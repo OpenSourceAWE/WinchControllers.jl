@@ -117,8 +117,8 @@ function autotune(max_iter=1000)
                       1,         # number of outputs of the blackbox
                       ["OBJ"],   # type of outputs of the blackbox
                       eval_fct;
-                      lower_bound = 0.75 .* x0,
-                      upper_bound = 1.5 .* x0)
+                      lower_bound = 0.5 .* x0,
+                      upper_bound = 2.0 .* x0)
     pb.options.max_bb_eval = max_iter 
     result = solve(pb, x0)
     x = result.x_best_feas
