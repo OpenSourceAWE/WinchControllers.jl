@@ -97,7 +97,7 @@ Output is the set speed of the asynchronous motor.
 
 For a usage example look at the script [test_winchcontroller.jl](./test/test_winchcontroller.jl) .
 
-## Licence
+## License
 This project is licensed under the MIT License. Please see the below WAIVER in association with the license.
 
 ## WAIVER
