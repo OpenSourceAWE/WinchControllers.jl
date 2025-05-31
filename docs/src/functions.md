@@ -10,4 +10,5 @@ merge_angles
 get_startup
 get_triangle_wind
 rms
+copy_examples
 ```
