@@ -25,7 +25,7 @@ The reason to use the mean square error for the velocity is that in this mode of
 While the performance shall be maximized, the damage shall be minimized. Here, a very simple
 damage model is presented,
 
-$\epsilon = \frac{\Delta}{a_\mathrm{max}}~{(\max |a|)^2}$,
+$\epsilon = \Delta~\left(\frac{1}{a_\mathrm{max}}~{(\max |a|)^2}\right)$,
 
 where $a$ is the actual acceleration, $a_{max}$ the specified, maximal acceleration and $\Delta$ the damage that occurs at $a=a_\mathrm{max}$. The default value used is $\Delta=0.2$, but in the end this value needs to be determined based on the specification of the Winch. Control-codesign can be used to determine this parameter.
 
