@@ -27,7 +27,7 @@ The results can be influence with the new parameters:
 damage_factor: 0.05 # damage at max acceleration for jerk_factor=0
 jerk_factor:   0.90 # factor for the jerk (derivative of the acceleration), 0..1 
 ```
-Increase the damage factor to make the controller less aggressive. Decrease the jerk_factor to reduce the 
+Increase the damage factor $\Delta$ to make the controller less aggressive. Decrease the jerk_factor $\zeta$ to reduce the 
 maximal accelerations. On the other hand, the controller will be stable
 for any combination of these two values in the range of 0..1. Increasing $\Delta$ will increase the force error and decrease the accelerations. A very small value of $\zeta$
 will decrease the force error, but will result in oscillations on the acceleration signal which is not good for the lifetime of the winch.
