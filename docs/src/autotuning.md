@@ -62,9 +62,13 @@ plot(lg)
 **Example result:**
 ![test_forcespeedcontroller1](assets/test_tuned_winchcontroller.png)
 
+Untuned, original example: [ForceSpeedController2](@ref)
+
 | Name                 | Before  | After |
 | -------------------- | ------- | ----- |
 | Max force error      |  388 N  | 286 N |
 | Lower force error    | -336 N  | -120 N |
 | Max speed error      | 0.5 m/s | 0.24 m/s |
+| Performance of force controllers | 90.3 % | 92.9 % |
+| Performance of speed controller  | 84.4 % | 93.8 % |
 | Combined performance | 78.5%   | 92.1% |
