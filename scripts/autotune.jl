@@ -140,7 +140,7 @@ function copy_settings()
     load_settings("system_tuned.yaml")
 end
 function change_value(lines, varname, value::Union{Integer, Float64})
-    KiteUtils.change_value(lines, varname, repr(round(value, digits=5)))
+    KiteUtils.change_value(lines, varname, repr(round(value, digits=6)))
 end
 function update_settings(wcs::WCSettings)
     lines = KiteUtils.readfile("data/wc_settings_tuned.yaml") 
