@@ -21,6 +21,7 @@ export WCLogger, log, f_err, v_err, gamma, damage
 export FFWinchController, calc_τ_set, set_τ_set
 
 abstract type AbstractForceController end
+abstract type AbstractWinchController end
 const AFC = AbstractForceController
 
 # Write your package code here.

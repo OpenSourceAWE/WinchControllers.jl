@@ -17,9 +17,10 @@ Where:
 ## Fields
 $(TYPEDFIELDS)
 """
-@with_kw struct FeedforwardForceController
+@with_kw mutable struct FeedforwardForceController <: AbstractWinchController
     """General settings containing physical parameters of the winch."""
     set::Settings
+    τ_last::Float64 = 0.0
 end
 
 function calc_coulomb_friction(set::Settings)
@@ -49,7 +50,7 @@ function calc_τ_I(set::Settings, α̂)
 end
 
 """
-    calc_ff_τ(fc::FeedforwardForceController, desired_force::Float64, ω̂::Float64, α̂::Float64)
+    calc_τ_ff(fc::FeedforwardForceController, desired_force::Float64, ω̂::Float64, α̂::Float64)
 
 Calculates the feedforward torque required to achieve a `desired_force`.
 
@@ -62,11 +63,12 @@ Calculates the feedforward torque required to achieve a `desired_force`.
 ## Returns
 - `Float64`: The calculated feedforward torque [N·m].
 """
-function calc_ff_τ(fc::FeedforwardForceController, F_set, ω̂, α̂)
+function calc_τ_ff(fc::FeedforwardForceController, F_set, ω̂, α̂)
     set = fc.set
-    
-    τ_force = calc_τ_force(set, F_set)
-    τ = τ_force + calc_τ_friction(set, ω̂) + calc_τ_I(set, α̂)
+    τ = -calc_τ_force(set, F_set) + calc_τ_friction(set, ω̂) + calc_τ_I(set, α̂)
+    damp = 0.98
+    τ -= damp * (τ - fc.τ_last)
+    fc.τ_last = τ
     return τ
 end
 
@@ -91,7 +93,7 @@ If the tether force is not measured, it can be estimated using:
 ## Fields
 $(TYPEDFIELDS)
 """
-@with_kw mutable struct FeedforwardSpeedController
+@with_kw mutable struct FeedforwardSpeedController <: AbstractWinchController
     """General settings containing physical parameters of the winch."""
     set::Settings
     τ_last::Float64 = 0.0
@@ -112,24 +114,30 @@ Formula: \$F_{est} = (\\tau_{actual\\_motor} - b \\cdot \\ω̂ - I_{eff} \\cdot 
 ## Returns
 - `Float64`: The estimated tether force [N].
 """
-function calc_F_est(sc::FeedforwardSpeedController, ω̂::Float64, α̂::Float64, τ̂::Float64)
-    set = sc.set
+function calc_F_est(wc::AbstractWinchController, ω̂, α̂, τ̂)
+    set = wc.set
     r = set.drum_radius
-    estimated_force = (-τ̂ + calc_τ_friction(set, ω̂) + calc_τ_I(set, α̂)) * set.gear_ratio / r
-    return estimated_force
+    F_est = (-τ̂ + calc_τ_friction(set, ω̂) + calc_τ_I(set, α̂)) * set.gear_ratio / r
+    return F_est
 end
 
 
 """
+    torque balance:
     α_m * I = τ_set + drum_radius / gear_ratio * F  - τ_friction(ω)
 
+    force calculation:
     F = (α_m * I - τ_set + τ_friction(ω)) * gear_ratio / drum_radius
 
-    τ_set = α_m * I - drum_radius / gear_ratio * F + τ_friction(ω)
+    speed control:
+    τ_set = α_m * I - drum_radius / gear_ratio * F + τ_friction(ω_set)
+
+    force control:
+    τ_set = α_m * I - drum_radius / gear_ratio * F_set + τ_friction(ω)
 """
 
 """
-    calc_ff_τ(sc::FeedforwardSpeedController, v_set::Float64, ω̂::Float64, α̂::Float64; F̂::Union{Float64, Nothing}=nothing)
+    calc_τ_ff(sc::FeedforwardSpeedController, v_set::Float64, ω̂::Float64, α̂::Float64; F̂::Union{Float64, Nothing}=nothing)
 
 Calculates the feedforward torque required to achieve a `v_set`.
 
@@ -143,21 +151,12 @@ Calculates the feedforward torque required to achieve a `v_set`.
 ## Returns
 - `Float64`: The calculated feedforward torque [N·m].
 """
-function calc_ff_τ(sc::FeedforwardSpeedController, v_set, ω̂, α̂, F̂=nothing)
+function calc_τ_ff(sc::FeedforwardSpeedController, v_set, ω̂, α̂, F̂)
     set = sc.set
     r = set.drum_radius
-    I = calc_inertia(set)
-    
-    F_eff = 0.0
-    if !isnothing(F̂)
-        F_eff = F̂
-    else
-        F_eff = calc_F_est(sc, ω̂, α̂, sc.τ_last)
-    end
-
     # Desired angular velocity at the drum
     ω_set = v_set / r
-    τ = -calc_τ_force(set, F_eff) + calc_τ_friction(set, ω_set) + calc_τ_I(set, α̂)
+    τ = -calc_τ_force(set, F̂) + calc_τ_friction(set, ω_set) + calc_τ_I(set, α̂) # TODO: triangulate F_eff
 
     sc.τ_last = τ
     return τ
@@ -171,43 +170,28 @@ Feedforward winch controller that combines feedforward force and speed control.
 # Fields
 $(TYPEDFIELDS)
 """
-@with_kw mutable struct FFWinchController @deftype Float64
+@with_kw mutable struct FFWinchController <: AbstractWinchController @deftype Float64
     wcs::WCSettings
     set::Settings
     fc::FeedforwardForceController = FeedforwardForceController(; set) # Initialize with default settings
     sc::FeedforwardSpeedController = FeedforwardSpeedController(; set) # Initialize with default settings
-    limiter::TrajectoryLimiters.TrajectoryLimiter = TrajectoryLimiters.TrajectoryLimiter(wcs.dt, set.max_acc, Inf)
-    state::TrajectoryLimiters.State = TrajectoryLimiters.State(0.0, 0.0, 0.0, 0.0)
+    traj_lim::TrajectoryLimiters.TrajectoryLimiter = TrajectoryLimiters.TrajectoryLimiter(wcs.dt, 0.01, 0.01)
+    traj_state::TrajectoryLimiters.State = TrajectoryLimiters.State(0.0, 0.0, 0.0, 0.0)
+    rate_lim::RateLimiter = RateLimiter(wcs.dt, 1000.0, 0.0) # Rate limiter
+    state::WinchControllerState = wcsSpeedControl
     t = 0.0
     v_set = 0.0
-    F̂::Union{Float64, Nothing} = nothing
+    F̂::Float64 = 0.0
     ω̂ = 0.0
     α̂ = 0.0
     τ_ff = 0.0
     τ_set = 0.0
+    τ_last = 0.0
     ∫e = 0.0
 end
 
 function FFWinchController(wcs::WCSettings, set::Settings)
     return FFWinchController(; wcs, set)
-end
-
-"""
-    limit_acceleration(wc::FFWinchController, ω_set::Float64, dt::Float64)
-
-Calculates the limited angular acceleration based on the desired angular velocity and the rate limiter.
-
-## Parameters
-- `wc::FFWinchController`: The feedforward winch controller instance.
-- `ω_set::Float64`: The target angular velocity [rad/s].
-- `dt::Float64`: The time step [s].
-
-## Returns
-- `Float64`: The limited angular acceleration [rad/s²].
-"""
-function limit_acceleration(wc::FFWinchController, ω_set::Float64)
-    α_lim = wc.limiter(wc.state, ω_set)
-    return α_lim
 end
 
 """
@@ -227,21 +211,43 @@ actual motor torque, current angular velocity, and current angular acceleration.
 - `Float64`: The calculated feedforward torque [N·m].
 """
 function calc_τ_set(wc::FFWinchController, v_set, ω̂, α̂, F̂=nothing)
+    Ki = 1.0
+    if isnothing(F̂)
+        F̂ = calc_F_est(wc, ω̂, α̂, wc.τ_last) + wc.∫e * Ki
+    end
+    wcs = wc.wcs
     wc.v_set = v_set
     wc.F̂ = F̂
     wc.ω̂ = ω̂
     wc.α̂ = α̂
-
     ω_set = v_set / wc.set.drum_radius
-    α_set = limit_acceleration(wc, ω_set)
-    wc.τ_ff = calc_ff_τ(
-        wc.sc,
-        v_set,
-        ω̂,
-        α̂,
-        F̂
-    )
-    return wc.τ_ff
+    # α_set = limit_acceleration(wc, ω_set)
+
+    if wc.state == wcsSpeedControl && wc.F̂ ≤ wcs.f_low
+        wc.state = wcsLowerForceLimit
+    elseif wc.state == wcsSpeedControl && wc.F̂ ≥ wcs.f_high # || wc.state == wcsUpperForceLimit
+        wc.state = wcsUpperForceLimit
+    elseif wc.state == wcsLowerForceLimit && ω_set < ω̂
+        wc.state = wcsSpeedControl
+    elseif wc.state == wcsUpperForceLimit && ω_set > ω̂
+        wc.state = wcsSpeedControl
+    end
+    
+    if wc.state == wcsLowerForceLimit
+        wc.τ_ff = calc_τ_ff(wc.fc, wcs.f_low, ω̂, α̂)
+        # ∫e += 
+    elseif wc.state == wcsUpperForceLimit
+        wc.state = wcsUpperForceLimit
+        wc.τ_ff = calc_τ_ff(wc.fc, wcs.f_high, ω̂, α̂)
+    elseif wc.state == wcsSpeedControl
+        wc.τ_ff = calc_τ_ff(wc.sc, v_set, ω̂, α̂, F̂)
+    end
+    # _, d_τ_ff = wc.limiter(wc.state, wc.τ_ff)
+    # wc.τ_set = calc_output(wc.rate_lim, wc.τ_ff)
+    wc.τ_set = wc.τ_ff
+    wc.τ_last = wc.τ_set
+    on_timer(wc.rate_lim)
+    return wc.τ_set
 end
 
 """
@@ -288,7 +294,7 @@ function get_status(wc::FFWinchController)
 end
 
 function get_state(wc::FFWinchController)
-    return 1
+    return Int(wc.state)
 end
 
 function get_v_err(wc::FFWinchController)

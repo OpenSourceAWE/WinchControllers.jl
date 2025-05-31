@@ -15,16 +15,20 @@ using WinchControllers, ControlPlots, KiteUtils, WinchModels
 # direction of the tether at the height of the kite. Most simplified model, massless, constant L/D,
 # constant elevation angle.
 function calc_force(v_wind, v_ro)
-    (v_wind - v_ro)^2 * 4000.0 / 16.0
+    if v_wind > v_ro
+        (v_wind - v_ro)^2 * 4000.0 / 16.0
+    else
+        0.0
+    end
 end
 
 set = deepcopy(load_settings("system.yaml"))
-wcs = WCSettings(; dt=0.001)
-# update(wcs)
+wcs = WCSettings(; dt=0.0001)
 wcs.test = true
+wcs.f_low = -Inf
 
 # define the simulation parameters
-DURATION   = 1.0
+DURATION   = 10.0
 V_WIND_MAX = 9.0 # max wind speed of test wind
 V_WIND_MIN = 0.0 # min wind speed of test wind
 FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal 
@@ -51,7 +55,7 @@ for i in 1:length(lg)
     set_force(winch, force)
     
     # controller
-    v_set = 0.01*i
+    v_set = -0.0
     τ_set_out = calc_τ_set(wc, v_set, ω̂, α̂)
     
     # update model
@@ -64,9 +68,10 @@ for i in 1:length(lg)
     status = get_status(wc)
     
     # log the values
-    log(lg; v_ro=v̂, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], force=status[3], 
+    log(lg; v_ro=v̂, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], force=force, 
         f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out=τ_set_out, v_set_in=v_set)
 end
+toc()
 
 # plot the results  
 p1=plotx(lg.time, V_WIND, [lg.v_ro, lg.v_set_in], lg.f_err*0.001, lg.v_err, lg.acc, lg.force*0.001, lg.state,
