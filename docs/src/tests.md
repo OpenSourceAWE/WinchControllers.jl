@@ -63,4 +63,3 @@ This controller tests all controllers. The lower force limit was set to $350~N$,
 - linearize the winch+tether models
 - create bode plots
 - analyze the stability
-- add auto-tuning script

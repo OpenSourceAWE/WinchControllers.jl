@@ -51,3 +51,12 @@ You can plot the result with the command:
 ```julia
 plot(lg)
 ```
+**Example result:**
+![test_forcespeedcontroller1](assets/test_tuned_winchcontroller.png)
+
+| Name                 | Before  | After |
+| -------------------- | ------- | ----- |
+| Max force error      |  388 N  | 286 N |
+| Lower force error    | -336 N  | -120 N |
+| Max speed error      | 0.5 m/s | 0.24 m/s |
+| Combined performance | 78.5%   | 92.1% |
