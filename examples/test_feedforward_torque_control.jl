@@ -19,12 +19,12 @@ function calc_force(v_wind, v_ro)
 end
 
 set = deepcopy(load_settings("system.yaml"))
-wcs = WCSettings(dt=0.02)
-update(wcs)
+wcs = WCSettings(; dt=0.001)
+# update(wcs)
 wcs.test = true
 
 # define the simulation parameters
-DURATION   = 10.0
+DURATION   = 1.0
 V_WIND_MAX = 9.0 # max wind speed of test wind
 V_WIND_MIN = 0.0 # min wind speed of test wind
 FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal 
@@ -52,8 +52,7 @@ for i in 1:length(lg)
     
     # controller
     v_set = 0.01*i
-    τ_set_out = calc_τ_set(wc, v_set, ω̂, α̂, force)
-    @show v_set
+    τ_set_out = calc_τ_set(wc, v_set, ω̂, α̂)
     
     # update model
     set_τ_set(winch, τ_set_out)

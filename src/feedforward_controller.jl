@@ -64,7 +64,6 @@ Calculates the feedforward torque required to achieve a `desired_force`.
 """
 function calc_ff_τ(fc::FeedforwardForceController, F_set, ω̂, α̂)
     set = fc.set
-    I = calc_inertia(set)
     
     τ_force = calc_τ_force(set, F_set)
     τ = τ_force + calc_τ_friction(set, ω̂) + calc_τ_I(set, α̂)
@@ -116,10 +115,7 @@ Formula: \$F_{est} = (\\tau_{actual\\_motor} - b \\cdot \\ω̂ - I_{eff} \\cdot 
 function calc_F_est(sc::FeedforwardSpeedController, ω̂::Float64, α̂::Float64, τ̂::Float64)
     set = sc.set
     r = set.drum_radius
-    I = calc_inertia(set)
-    τ_friction = calc_τ_friction(set, ω̂)
-
-    estimated_force = (-τ̂ + τ_friction + I * α̂) * set.gear_ratio / r
+    estimated_force = (-τ̂ + calc_τ_friction(set, ω̂) + calc_τ_I(set, α̂)) * set.gear_ratio / r
     return estimated_force
 end
 
