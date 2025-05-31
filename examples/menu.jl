@@ -11,6 +11,7 @@ options = ["test_mixer2 = include(\"../test/test_mixer2.jl\")",
            "autotune_ = include(\"../scripts/autotune.jl\")",
            "test_tuned_winchcontroller = include(\"test_tuned_winchcontroller.jl\")",
            "plot_power = include(\"plot_power.jl\")",
+           "docu = include(\"../scripts/build_docu.jl\")",
            "quit"]
 
 function example_menu()
