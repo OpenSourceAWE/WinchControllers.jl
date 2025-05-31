@@ -69,6 +69,7 @@ function install_examples(add_packages=true)
         Pkg.add("LaTeXStrings")
         Pkg.add("StatsBase")
         Pkg.add("Timers")
+        Pkg.add("NOMAD")
     end
 end
 
