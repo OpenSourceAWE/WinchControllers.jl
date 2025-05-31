@@ -19,7 +19,35 @@ When the [Performance Indicators](@ref) are defined, an optimizer can be used to
     wcs.if_high  # the upper force controller integral gain
     wcs.df_high  # the differential gain of the upper force controller
 ```
-The global, blackbox optimizer package NOMAD is used for the optimization process, together with a test case that mimics extreme wind conditions.
+The global, blackbox optimizer package [NOMAD.jl](https://github.com/bbopt/NOMAD.jl) is used for the optimization process, together with a test case that mimics extreme wind conditions.
+With a very simple system model it allows to find an optimal solution within less than one minute.
 
 ## Example
+To run the auto-tuning script, launch Julia and execute:
+```julia
+include("scripts/autotune.jl")
+```
+It will use the initial conditions provided in the file "data/wc_settings.yaml" and save the result in "data/wc_settings_tuned.yaml".
 
+All values are limited to $\hat x \le 2.5x~\land~\hat x \le x/2.5$, where $x$ is the original value and $\hat x$ the optimized value. Therefore make sure that none of the original values is zero.
+
+Example output:
+```julia
+Blackbox evaluations:         897
+Total model evaluations:      116337
+Cache hits:                   107
+Total number of evaluations:  1004
+Autotuning results: [14.999895, 0.125, 0.1090168, 2.24464e-5, 0.04164095, 3.83195e-5, 0.0271663, 4.0008673e-6]
+Running simulation with tuned parameters...
+
+Performance of force controllers: 92.86 %
+Performance of speed controller:  93.82 %
+Damage with jerk:                 1.19 %
+Combined performance γ: 92.06 %
+
+[ Info: Tuned settings saved to data/wc_settings_tuned.yaml
+```
+You can plot the result with the command:
+```julia
+plot(lg)
+```
