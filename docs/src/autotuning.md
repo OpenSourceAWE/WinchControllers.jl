@@ -37,9 +37,10 @@ To run the auto-tuning script, launch Julia and execute:
 ```julia
 include("scripts/autotune.jl")
 ```
-It will use the initial conditions provided in the file "data/wc_settings.yaml" and save the result in "data/wc_settings_tuned.yaml".
+It will use the initial conditions provided in the file `data/wc_settings.yaml` and save the result in `data/wc_settings_tuned.yaml`.
 
-All values are limited to $\hat x \le 2.5x~\land~\hat x \le x/2.5$, where $x$ is the original value and $\hat x$ the optimized value. Therefore make sure that none of the original values is zero.
+All values are limited to $\hat x \le 2.5x~\land~\hat x \le x/2.5$, where $x$ is the original value and $\hat x$ the optimized value. 
+Therefore make sure that none of the original values is zero.
 
 Example output:
 ```julia
