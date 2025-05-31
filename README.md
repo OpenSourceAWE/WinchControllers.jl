@@ -78,6 +78,18 @@ git checkout v0.5.0
 For the checkout command, use the tag of the latest version.
 </details>
 
+### Running the examples
+To run the examples, launch Julia with:
+```
+julia --project
+```
+and then, in the Julia REPL, type:
+```
+include("examples/menu.jl")
+```
+You should now see a terminal menu with some examples. Select one using the
+`<cursor up\>` and `<cursor down\>` keys, and press `ENTER` to run the selected example.
+
 ### Provides
 - a set of generic control components, see [Generic Components](https://opensourceawe.github.io/WinchControllers.jl/dev/components/#Generic-Components)
 - a winch controller [WinchController](https://opensourceawe.github.io/WinchControllers.jl/dev/winchcontroller/), that limits the upper and lower force and controls the speed as function of the force
