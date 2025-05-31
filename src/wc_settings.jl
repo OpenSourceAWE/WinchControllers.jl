@@ -74,6 +74,8 @@ $(TYPEDFIELDS)
     max_acc = 8.0
     "damage at max acceleration"
     damage_factor = 0.2 
+    "jerk factor for damage calculation"
+    jerk_factor = 0.9
     "proportional factor of the square root law, see function calc_vro"
     kv = 0.06
 end

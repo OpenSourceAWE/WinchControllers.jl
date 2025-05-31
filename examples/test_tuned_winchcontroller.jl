@@ -30,7 +30,7 @@ V_WIND_MIN = 0.0 # min wind speed of test wind
 FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal 
 
 # create the logger
-lg = WCLogger(DURATION, wcs.dt, set.max_force, wcs.max_acc, wcs.damage_factor)
+lg = WCLogger(DURATION, wcs.dt, set.max_force, wcs.max_acc, wcs.damage_factor, wcs.jerk_factor)
 
 STARTUP = get_startup(wcs, length(lg))    
 V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, length(lg))
@@ -63,7 +63,7 @@ for i in 1:length(lg)
     
     # log the values
     log(lg; v_ro=v_act, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], force=status[3], 
-        f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out, v_set_in=get_v_set_in(wc))
+        jerk=winch.jerk, f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out, v_set_in=get_v_set_in(wc))
 end
 
 # plot the results  
@@ -80,5 +80,5 @@ toc()
 println("Max iterations needed: $(wcs.iter)")
 println("Performance of force controllers: $(round(100*(1-f_err(lg)), digits=2)) %")
 println("Performance of speed controller:  $(round(100*(1-v_err(lg)), digits=2)) %")
-println("Damage:                           $(round(100*(damage(lg; jerk=true)), digits=2)) %")
-println("Combined performance γ: $(round(100*gamma(lg; jerk=true), digits=2)) %")    
+println("Damage:                           $(round(100*(damage(lg)), digits=2)) %")
+println("Combined performance γ: $(round(100*gamma(lg), digits=2)) %")    

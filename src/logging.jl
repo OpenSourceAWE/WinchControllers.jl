@@ -21,6 +21,8 @@ $(TYPEDFIELDS)
     max_acc::Float64 = 0.0
     "damage at maximum acceleration"
     damage_factor::Float64 = 0.0
+    "jerk factor for damage calculation"
+    jerk_factor::Float64 = 0.0
     "set value of the reel-out speed, input of the speed controller [m/s]"    
     v_set_in::Vector{Float64} = zeros(Float64, Q)
     "reel-out speed [m/s]"
@@ -66,13 +68,14 @@ Create and initialize a logger for the winch controller system.
 # Returns
 A logger object configured to record data at the specified interval for the given duration.
 """
-function WCLogger(duration, dt, max_force=0.0, max_acc=0.0, damage_factor=0.0)
+function WCLogger(duration, dt, max_force=0.0, max_acc=0.0, damage_factor=0.0, jerk_factor=0.0)
     samples = Int(duration / dt + 1)
     lg = WCLogger(samples)
     lg.time = range(0.0, duration, samples)
     lg.max_force = max_force
     lg.max_acc = max_acc
     lg.damage_factor = damage_factor
+    lg.jerk_factor = jerk_factor
     lg
 end
 
@@ -161,23 +164,9 @@ function v_err(logger::WCLogger)
     1/v_mean * rms(filter(!isnan, logger.v_err))
 end
 
-function damage(logger::WCLogger; rms= false, jerk=false)
-    if jerk
-        return damage3(logger)
-    elseif rms
-        return damage2(logger)
-    end
-    logger.damage_factor * (maximum(norm.(logger.acc)) / logger.max_acc)^2
-end
-
-function damage2(logger::WCLogger)
-    rms_damage = rms(filter(!isnan, logger.acc))
-    logger.damage_factor * ((0.83*rms_damage + 0.55*(maximum(norm.(logger.acc)))) / logger.max_acc)^2
-end
-
-function damage3(logger::WCLogger)
-    jerk_factor=0.9
-    logger.damage_factor*4* ((jerk_factor*(rms(logger.jerk) / logger.max_acc^2)^2 + 
+function damage(logger::WCLogger)
+    jerk_factor= logger.jerk_factor
+    logger.damage_factor*((jerk_factor*(rms(logger.jerk) / logger.max_acc^2)^2 + 
                              (1-jerk_factor)*(maximum(norm.(logger.acc)))) / logger.max_acc)^2
 end
 
@@ -193,6 +182,6 @@ the provided logs, stored in the `logger`. See: [Combined performance](@ref).
 # Returns
 - The gamma value associated with the log of the used test case.
 """
-function gamma(logger::WCLogger; rms=false, jerk=false)
-    1 - 0.5 * (f_err(logger) + v_err(logger)) - damage(logger; rms, jerk)
+function gamma(logger::WCLogger)
+    1 - 0.5 * (f_err(logger) + v_err(logger)) - damage(logger)
 end

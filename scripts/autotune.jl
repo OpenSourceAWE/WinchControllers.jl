@@ -37,7 +37,7 @@ function simulate(wcs::WCSettings; return_lg::Bool = false)
     FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal 
 
     # create the logger
-    lg::WCLogger = WCLogger(DURATION, wcs.dt, set.max_force, wcs.max_acc, wcs.damage_factor)
+    lg::WCLogger = WCLogger(DURATION, wcs.dt, set.max_force, wcs.max_acc, wcs.damage_factor, wcs.jerk_factor)
 
     STARTUP = get_startup(wcs, length(lg))    
     V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, length(lg))
@@ -74,7 +74,7 @@ function simulate(wcs::WCSettings; return_lg::Bool = false)
         return wcs, lg
     end
     # calculate the performance metrics
-    -gamma(lg; jerk=true)
+    -gamma(lg)
 end
 
 function simulate_all(x::Vector; return_lg::Bool = false)
@@ -130,7 +130,7 @@ function autotune(max_iter=1000)
 
     println("\nPerformance of force controllers: $(round(100*(1-f_err(lg)), digits=2)) %")
     println("Performance of speed controller:  $(round(100*(1-v_err(lg)), digits=2)) %")
-    println("Damage with jerk:                 $(round(100*(damage(lg; jerk=true)), digits=2)) %")
+    println("Damage with jerk:                 $(round(100*(damage(lg)), digits=2)) %")
     println("Combined performance γ: $(round(-100*result.bbo_best_feas[1], digits=2)) %")  
     wcs
 end
