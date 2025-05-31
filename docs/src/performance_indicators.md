@@ -22,14 +22,14 @@ $\bar{v} = \frac{1}{n} \sum_{i=1}^{n} \lvert v_\mathrm{set} \rvert$
 The reason to use the mean square error for the velocity is that in this mode of operation the error only reduces the power output. Short peak errors are usually not a problem.
 
 ## Damage
-While the performance shall be maximized, the damage shall be minimized. Here, a very simple
+While the performance shall be maximized, the damage shall be minimized. Here, a simple
 damage model is presented,
 
 $\epsilon = \Delta~\left((1-\zeta)\left(\frac{\max |a|}{a_\mathrm{max}}\right)^2~+~\zeta \left(\frac{\mathrm{rms}(j)}{a_\mathrm{max}^2}\right)^4\right)$,
 
-where $a$ is the actual acceleration, $a_{max}$ the specified, maximal acceleration, $\mathrm{rms}(j)$ the root-mean-square of the jerk, the derivative of the acceleration, $\Delta$ the damage that occurs at $a=a_\mathrm{max}$ and $\zeta$ the jerk factor. The default value used are $\Delta=0.05$ and $\zeta = 0.9$, but in the end this value needs to be determined based on the specification of the Winch. Control-codesign can be used to determine this parameter.
+where $a$ is the actual acceleration, $a_{max}$ the specified, maximal acceleration, $\mathrm{rms}(j)$ the root-mean-square of the jerk, the derivative of the acceleration, $\Delta$ the damage that occurs at $a=a_\mathrm{max}$ and $\zeta$ the jerk factor. The default values used are $\Delta=0.05$ and $\zeta = 0.9$, but in the end this value needs to be determined based on the specification of the Winch. Control-codesign can be used to determine this parameter.
 
-Using the forth potence of the jerk has proven to be effective in suppressing any oscillations of the controller while keeping it fast and stable.
+Using the forth potence of the jerk has proven to be effective in suppressing any oscillations and reducing overshoot of the controller while keeping it fast and stable.
 
 ## Combined performance
 The combined performance indicator $\gamma$ in the range of 0..1 is defined as
