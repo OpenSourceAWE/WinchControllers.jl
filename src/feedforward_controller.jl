@@ -26,16 +26,26 @@ function calc_coulomb_friction(set::Settings)
     return set.f_coulomb * set.drum_radius / set.gear_ratio
 end
 
-function calc_viscous_friction(set::Settings, ω̂)
-    set.c_vf * ω̂ * set.drum_radius^2 / set.gear_ratio^2     
+function calc_viscous_friction(set::Settings, ω̂_m)
+    set.c_vf * ω̂_m * set.drum_radius^2 / set.gear_ratio^2     
 end
 
 function calc_inertia(set::Settings)
-    set.inertia_total * set.gear_ratio^2
+    set.inertia_total
 end
 
 function calc_τ_friction(set::Settings, ω̂)
-    return calc_coulomb_friction(set) * WinchModels.smooth_sign(ω̂) + calc_viscous_friction(set, ω̂)
+    ω̂_m = set.gear_ratio * ω̂
+    return calc_coulomb_friction(set) * WinchModels.smooth_sign(ω̂_m) + calc_viscous_friction(set, ω̂_m)
+end
+
+function calc_τ_force(set::Settings, F)
+    return (F / set.gear_ratio) * set.drum_radius
+end
+
+function calc_τ_I(set::Settings, α̂)
+    α̂_m = set.gear_ratio * α̂
+    return I * α̂_m
 end
 
 """
@@ -54,12 +64,10 @@ Calculates the feedforward torque required to achieve a `desired_force`.
 """
 function calc_ff_τ(fc::FeedforwardForceController, F_set, ω̂, α̂)
     set = fc.set
-    r = set.drum_radius
     I = calc_inertia(set)
     
-    τ_force = F_set * r
-    τ_I = I * α̂
-    τ = τ_force + calc_τ_friction(set, ω̂) + τ_I
+    τ_force = calc_τ_force(set, F_set)
+    τ = τ_force + calc_τ_friction(set, ω̂) + calc_τ_I(set, α̂)
     return τ
 end
 
@@ -111,9 +119,18 @@ function calc_F_est(sc::FeedforwardSpeedController, ω̂::Float64, α̂::Float64
     I = calc_inertia(set)
     τ_friction = calc_τ_friction(set, ω̂)
 
-    estimated_force = (τ̂ - τ_friction - I * α̂) / r
+    estimated_force = (-τ̂ + τ_friction + I * α̂) * set.gear_ratio / r
     return estimated_force
 end
+
+
+"""
+    α_m * I = τ_set + drum_radius / gear_ratio * F  - τ_friction(ω)
+
+    F = (α_m * I - τ_set + τ_friction(ω)) * gear_ratio / drum_radius
+
+    τ_set = α_m * I - drum_radius / gear_ratio * F + τ_friction(ω)
+"""
 
 """
     calc_ff_τ(sc::FeedforwardSpeedController, v_set::Float64, ω̂::Float64, α̂::Float64; F̂::Union{Float64, Nothing}=nothing)
@@ -135,20 +152,21 @@ function calc_ff_τ(sc::FeedforwardSpeedController, v_set, ω̂, α̂, F̂=nothi
     r = set.drum_radius
     I = calc_inertia(set)
     
-    F_eff::Float64 = 0.0
+    F_eff = 0.0
     if !isnothing(F̂)
         F_eff = F̂
     else
         F_eff = calc_F_est(sc, ω̂, α̂, sc.τ_last)
     end
 
+    @show F_eff calc_F_est(sc, ω̂, α̂, sc.τ_last)
+
     # Desired angular velocity at the drum
     ω_set = v_set / r
-    τ_force = F_eff * r
-    τ_friction = calc_τ_friction(set, ω_set)
-    τ_I = I * α̂
+    τ_force = calc_τ_force(set, F_eff)
+    τ_friction = calc_τ_friction(set, ω̂)
 
-    τ = τ_force + τ_friction + τ_I
+    τ = -τ_force + τ_friction + calc_τ_I(set, α̂)
     sc.τ_last = τ
     return τ
 end

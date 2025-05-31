@@ -228,6 +228,7 @@ Read the tether speed of the winch.
 - the reel-out speed of the winch in m/s
 """
 function get_speed(w::Winch) w.speed end
+function get_ω(w::Winch) w.speed / w.set.drum_radius end
 
 """
     function get_acc(w::Winch)
@@ -241,6 +242,7 @@ Determine the current acceleration of the winch.
 - acceleration of the winch in m/s²
 """
 function get_acc(w::Winch) w.acc end
+function get_α(w::Winch) w.acc / w.set.drum_radius end
 
 function calc_acceleration(w::Winch, wm::AsyncMachine) 
     WinchModels.calc_acceleration(wm, w.speed, w.force; set_speed = w.v_set) 

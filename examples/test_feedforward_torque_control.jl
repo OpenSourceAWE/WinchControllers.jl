@@ -24,7 +24,7 @@ update(wcs)
 wcs.test = true
 
 # define the simulation parameters
-DURATION   = 10.0
+DURATION   = 1.0
 V_WIND_MAX = 9.0 # max wind speed of test wind
 V_WIND_MIN = 0.0 # min wind speed of test wind
 FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal 
@@ -32,8 +32,7 @@ FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal
 # create the logger
 lg::WCLogger = WCLogger(DURATION, wcs.dt, set.max_force, wcs.max_acc, wcs.damage_factor)
 
-STARTUP = get_startup(wcs, length(lg))    
-V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, length(lg))
+V_WIND = get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, length(lg))
 
 # create and initialize winch controller 
 wc = FFWinchController(wcs, set)
@@ -45,12 +44,15 @@ for i in 1:length(lg)
     # model
     v_wind = V_WIND[i]
 
-    v_act = get_speed(winch)
-    force = calc_force(v_wind, v_act)
-
+    ω̂ = get_ω(winch)
+    α̂ = get_α(winch)
+    v̂ = get_speed(winch)
+    force = calc_force(v_wind, v̂)
+    set_force(winch, force)
+    
     # controller
-    τ_set_out = calc_τ_set(wc, v_act, force, f_low)
-    @show τ_set_out
+    τ_set_out = calc_τ_set(wc, 0.0, ω̂, α̂, force)
+    # function calc_τ_set(wc::FFWinchController, v_set, ω̂, α̂, F̂=nothing)
     
     # update model
     set_τ_set(winch, τ_set_out)
@@ -62,7 +64,7 @@ for i in 1:length(lg)
     status = get_status(wc)
     
     # log the values
-    log(lg; v_ro=v_act, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], force=status[3], 
+    log(lg; v_ro=v̂, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], force=status[3], 
         f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out=τ_set_out, v_set_in=get_v_set_in(wc))
 end
 
@@ -77,8 +79,8 @@ p1=plotx(lg.time, V_WIND, [lg.v_ro, lg.v_set_in], lg.f_err*0.001, lg.v_err, lg.a
 display(p1)
 toc()
 
-println("Max iterations needed: $(wcs.iter)")
-println("Performance of force controllers: $(round(100*(1-f_err(lg)), digits=2)) %")
-println("Performance of speed controller:  $(round(100*(1-v_err(lg)), digits=2)) %")
-println("Damage:                           $(round(100*(damage(lg)), digits=2)) %")
-println("Combined performance γ: $(round(100*gamma(lg), digits=2)) %")    
+# println("Max iterations needed: $(wcs.iter)")
+# println("Performance of force controllers: $(round(100*(1-f_err(lg)), digits=2)) %")
+# println("Performance of speed controller:  $(round(100*(1-v_err(lg)), digits=2)) %")
+# println("Damage:                           $(round(100*(damage(lg)), digits=2)) %")
+# println("Combined performance γ: $(round(100*gamma(lg), digits=2)) %")    
