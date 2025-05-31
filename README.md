@@ -48,7 +48,7 @@ julia --project=.
 (don't forget typing the dot at the end), and then, on the Julia prompt enter:
 ```julia
 using Pkg
-pkg"add WinchControllers#main"
+pkg"add WinchControllers"
 ```
 You can run the tests with:
 ```julia
@@ -73,7 +73,7 @@ to check out this project from git. You can do this with:
 ```bash
 git clone https://github.com/opensourceawe/WinchControllers.jl.git
 cd WinchControllers.jl
-git checkout v0.5.0
+git checkout v0.5.3
 ```
 For the checkout command, use the tag of the latest version.
 </details>
