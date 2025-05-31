@@ -51,7 +51,9 @@ for i in 1:length(lg)
     set_force(winch, force)
     
     # controller
-    τ_set_out = calc_τ_set(wc, 0.1, ω̂, α̂, force)
+    v_set = 0.01*i
+    τ_set_out = calc_τ_set(wc, v_set, ω̂, α̂, force)
+    @show v_set
     
     # update model
     set_τ_set(winch, τ_set_out)
@@ -64,7 +66,7 @@ for i in 1:length(lg)
     
     # log the values
     log(lg; v_ro=v̂, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], force=status[3], 
-        f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out=τ_set_out, v_set_in=get_v_set_in(wc))
+        f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out=τ_set_out, v_set_in=v_set)
 end
 
 # plot the results  
