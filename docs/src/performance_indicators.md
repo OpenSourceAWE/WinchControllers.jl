@@ -25,16 +25,18 @@ The reason to use the mean square error for the velocity is that in this mode of
 While the performance shall be maximized, the damage shall be minimized. Here, a very simple
 damage model is presented,
 
-$\epsilon = \Delta~\left(\frac{1}{a_\mathrm{max}}~{(\max |a|)^2}\right)$,
+$\epsilon = \Delta~\left((1-\zeta)\left(\frac{\max |a|}{a_\mathrm{max}}\right)^2~+~\zeta \left(\frac{\mathrm{rms}(j)}{a_\mathrm{max}^2}\right)^4\right)$,
 
-where $a$ is the actual acceleration, $a_{max}$ the specified, maximal acceleration and $\Delta$ the damage that occurs at $a=a_\mathrm{max}$. The default value used is $\Delta=0.2$, but in the end this value needs to be determined based on the specification of the Winch. Control-codesign can be used to determine this parameter.
+where $a$ is the actual acceleration, $a_{max}$ the specified, maximal acceleration, $\mathrm{rms}(j)$ the root-mean-square of the jerk, the derivative of the acceleration, $\Delta$ the damage that occurs at $a=a_\mathrm{max}$ and $\zeta$ the jerk factor. The default value used are $\Delta=0.05$ and $\zeta = 0.9$, but in the end this value needs to be determined based on the specification of the Winch. Control-codesign can be used to determine this parameter.
+
+Using the forth potence of the jerk has proven to be effective in suppressing any oscillations of the controller while keeping it fast and stable.
 
 ## Combined performance
 The combined performance indicator $\gamma$ in the range of 0..1 is defined as
 
-$\gamma = 1 - \frac{1}{2}(F_\mathrm{err} + v_\mathrm{err})~-~\epsilon~$,
+$\gamma = 1 - \frac{1}{2.5}(1.5F_\mathrm{err} + v_\mathrm{err})~-~\epsilon~$,
 
-the average of the error of the speed and the force controllers minus the damage caused by the acceleration of the winch.
+the average of the error of the speed and the force controllers minus the damage caused by the acceleration of the winch. The force error has a slightly higher weight, because it is more critical for the controller performance.
 
 ## TODO
 - Quantify the robustness. This could be done by linearizing the system and checking gain and phase margin (for example), or by varying the model parameters (e.g. inertia of the drum) and checking if the combined performance stays above a required minimum. Possible robustness requirements:  
