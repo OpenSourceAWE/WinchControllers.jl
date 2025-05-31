@@ -1,18 +1,114 @@
 
 """
+    mutable struct FFWinchController
+
+Feedforward winch controller that combines feedforward force and speed control.
+
+# Fields
+$(TYPEDFIELDS)
+"""
+@with_kw mutable struct FFWinchController @deftype Float64
+    wcs::WCSettings
+    set::Settings
+    fc::FeedforwardForceController = FeedforwardForceController(set) # Initialize with default settings
+    sc::FeedforwardSpeedController = FeedforwardSpeedController(set) # Initialize with default settings
+    t::Float64 = 0.0
+    v_set::Float64 = 0.0
+    F̂::Union{Float64, Nothing} = nothing
+    τ̂::Float64 = 0.0
+    ω̂::Float64 = 0.0
+    α̂::Float64 = 0.0
+    τ_ff::Float64 = 0.0
+    τ_set::Float64 = 0.0
+    ∫e = 0.0
+end
+
+"""
+    calculate_torque(wc::FFWinchController, v_set::Float64, F̂::Union{Float64, Nothing}, τ̂::Float64, ω̂::Float64, α̂::Float64)
+
+Calculates the feedforward torque for the winch based on desired speed, measured force (optional),
+actual motor torque, current angular velocity, and current angular acceleration.
+
+## Parameters
+- `wc::FFWinchController`: The feedforward winch controller instance.
+- `v_set::Float64`: The target tether speed [m/s].
+- `F̂::Union{Float64, Nothing}`: Measured tether force [N]. If `nothing`, force will be estimated.
+- `τ̂::Float64`: The actual torque being applied by the motor [N·m], used for force estimation.
+- `ω̂::Float64`: The current angular velocity of the winch drum [rad/s].
+- `α̂::Float64`: The current angular acceleration of the winch drum [rad/s²].
+
+## Returns
+- `Float64`: The calculated feedforward torque [N·m].
+"""
+function calc_τ_set(wc::FFWinchController, v_set::Float64, F̂::Union{Float64, Nothing}, τ̂::Float64, ω̂::Float64, α̂::Float64)
+    wc.v_set = v_set
+    wc.F̂ = F̂
+    wc.τ̂ = τ̂
+    wc.ω̂ = ω̂
+    wc.α̂ = α̂
+
+    wc.τ_ff = calc_ff_τ(
+        wc.sc,
+        v_set,
+        ω̂,
+        α̂,
+        F̂
+    )
+    return wc.τ_ff
+end
+
+"""
+    on_timer(wc::FFWinchController)
+
+Callback function that is triggered periodically by a timer event. This function is responsible for handling time-based 
+updates or actions for the given `FFWinchController` instance `wc`.
+
+## Arguments
+- `wc::FFWinchController`: The winch controller instance to be updated.
+
+## Returns
+- Nothing. This function is called for its side effects.
+"""
+function on_timer(wc::FFWinchController)
+    wc.time += wc.wcs.dt
+end
+
+"""
+    get_status(wc::FFWinchController)
+
+Retrieve the current status of the given `FFWinchController` instance for logging and debugging purposes.
+
+## Arguments
+- `wc::FFWinchController`: The winch controller object whose status is to be retrieved.
+
+## Returns
+- The current status of the winch controller, an array containing:
+    - `v_set`: The desired speed [m/s].
+    - `F̂`: The measured force [N] or nothing.
+    - `τ̂`: The actual motor torque [Nm].
+    - `ω̂̂`: The current ω̂ [rad/s].
+    - `α̂`: The current alpha [rad/s^2].
+    - `feedforward_torque`: The calculated feedforward torque [Nm].
+"""
+function get_status(wc::FFWinchController)
+    result = [wc.v_set, wc.F̂, wc.τ̂, wc.ω̂, wc.α̂, wc.feedforward_torque]
+    return result
+end
+
+"""
     struct FeedforwardForceController
 
 Component to calculate the feedforward input torque for a desired tether force.
 Assumes a torque-controlled winch. The torque is calculated based on the formula:
-\$\\tau = F_{desired} \\cdot r + b \\cdot \\omega_{current} + I_{eff} \\cdot \alpha_{current}\$
+\$\\tau = F_{desired} \\cdot r + b \\cdot \\ω̂ + I_{eff} \\cdot \alpha\$
 
 Where:
 - \$F_{desired}\$ is the desired tether force.
 - \$r\$ is the drum radius.
 - \$b\$ is the viscous friction coefficient at the drum.
-- \$\\omega_{current}\$ is the current angular velocity of the drum.
+- \$\\ω̂\$ is the current angular velocity of the drum.
 - \$I_{eff}\$ is the effective moment of inertia at the drum (\$I_{motor\\_{side}} \\cdot gear\\_{ratio}^2\$).
-- \$\alpha_{current}\$ is the current angular acceleration of the drum.
+- \$\alpha\$ is the current angular acceleration of the drum.
 
 ## Fields
 $(TYPEDFIELDS)
@@ -22,37 +118,45 @@ $(TYPEDFIELDS)
     set::Settings
 end
 
+function calc_coulomb_friction(set::Settings)
+    return set.f_coulomb * set.drum_radius / set.gear_ratio
+end
+
+function calc_viscous_friction(set::Settings, ω̂)
+    set.c_vf * ω̂ * set.drum_radius^2 / set.gear_ratio^2     
+end
+
+function calc_inertia(set::Settings)
+    set.inertia_total * set.gear_ratio^2
+end
+
+function calc_τ_friction(set::Settings, ω̂)
+    return calc_coulomb_friction(set) * WinchModels.smooth_sign(ω̂) + calc_viscous_friction(set, ω̂)
+end
+
 """
-    calculate_feedforward_torque(fffc::FeedforwardForceController, desired_force::Float64, current_omega::Float64, current_alpha::Float64)
+    calc_ff_τ(fc::FeedforwardForceController, desired_force::Float64, ω̂::Float64, α̂::Float64)
 
 Calculates the feedforward torque required to achieve a `desired_force`.
 
 ## Parameters
-- `fffc::FeedforwardForceController`: The feedforward force controller instance.
+- `fc::FeedforwardForceController`: The feedforward force controller instance.
 - `desired_force::Float64`: The target tether force [N].
-- `current_omega::Float64`: The current angular velocity of the winch drum [rad/s].
-- `current_alpha::Float64`: The current angular acceleration of the winch drum [rad/s²].
+- `ω̂::Float64`: The current angular velocity of the winch drum [rad/s].
+- `α̂::Float64`: The current angular acceleration of the winch drum [rad/s²].
 
 ## Returns
 - `Float64`: The calculated feedforward torque [N·m].
 """
-function calculate_feedforward_torque(fffc::FeedforwardForceController, desired_force::Float64, current_omega::Float64, current_alpha::Float64)
-    r = fffc.set.drum_radius
-    # Effective inertia at the drum side
-    # Assuming set.inertia_total is the inertia on the motor side before the gearbox
-    eff_inertia = fffc.set.inertia_total * (fffc.set.gear_ratio^2)
-    b = fffc.set.b_friction # Viscous friction coefficient at the drum
-
-    # Torque due to desired force
-    torque_force = desired_force * r
-    # Torque due to viscous friction
-    torque_friction = b * current_omega
-    # Torque due to inertia
-    torque_inertia = eff_inertia * current_alpha
-
-    # Total feedforward torque
-    total_torque = torque_force + torque_friction + torque_inertia
-    return total_torque
+function calc_ff_τ(fc::FeedforwardForceController, F_set, ω̂, α̂)
+    set = fc.set
+    r = set.drum_radius
+    I = calc_inertia(set)
+    
+    τ_force = F_set * r
+    τ_I = I * α̂
+    τ = τ_force + calc_τ_friction(set, ω̂) + τ_I
+    return τ
 end
 
 """
@@ -60,7 +164,7 @@ end
 
 Component to calculate the feedforward input torque for a desired tether speed.
 Assumes a torque-controlled winch. The torque is calculated based on the formula:
-\$\\tau = F_{eff} \\cdot r + b \\cdot (v_{desired}/r) + I_{eff} \\cdot \\alpha_{current}\$
+\$\\tau = F_{eff} \\cdot r + b \\cdot (v_{desired}/r) + I_{eff} \\cdot α\$
 
 Where:
 - \$F_{eff}\$ is the effective tether force (either measured or estimated).
@@ -68,99 +172,79 @@ Where:
 - \$b\$ is the viscous friction coefficient at the drum.
 - \$v_{desired}\$ is the desired tether speed.
 - \$I_{eff}\$ is the effective moment of inertia at the drum.
-- \$\alpha_{current}\$ is the current angular acceleration of the drum.
+- \$\alpha\$ is the current angular acceleration of the drum.
 
 If the tether force is not measured, it can be estimated using:
-\$F_{est} = (\\tau_{actual\\_motor} - b \\cdot \\omega_{current} - I_{eff} \\cdot \\alpha_{current}) / r\$
+\$F_{est} = (\\tau_{actual\\_motor} - b \\cdot \\ω̂ - I_{eff} \\cdot α) / r\$
 
 ## Fields
 $(TYPEDFIELDS)
 """
-@with_kw struct FeedforwardSpeedController
+@with_kw mutable struct FeedforwardSpeedController
     """General settings containing physical parameters of the winch."""
     set::Settings
+    τ_last::Float64 = 0.0
 end
 
 """
-    estimate_tether_force(ffsc::FeedforwardSpeedController, current_omega::Float64, current_alpha::Float64, actual_motor_torque::Float64)
+    calc_F_est(sc::FeedforwardSpeedController, ω̂::Float64, α̂::Float64, τ̂::Float64)
 
 Estimates the tether force based on the actual motor torque, angular velocity, and angular acceleration.
-Formula: \$F_{est} = (\\tau_{actual\\_motor} - b \\cdot \\omega_{current} - I_{eff} \\cdot \\alpha_{current}) / r\$
+Formula: \$F_{est} = (\\tau_{actual\\_motor} - b \\cdot \\ω̂ - I_{eff} \\cdot α) / r\$
 
 ## Parameters
-- `ffsc::FeedforwardSpeedController`: The feedforward speed controller instance.
-- `current_omega::Float64`: Current angular velocity of the winch drum [rad/s].
-- `current_alpha::Float64`: Current angular acceleration of the winch drum [rad/s²].
-- `actual_motor_torque::Float64`: The actual torque being applied by the motor [N·m].
+- `sc::FeedforwardSpeedController`: The feedforward speed controller instance.
+- `ω̂::Float64`: Current angular velocity of the winch drum [rad/s].
+- `α̂::Float64`: Current angular acceleration of the winch drum [rad/s²].
+- `τ̂::Float64`: The actual torque being applied by the motor [N·m].
 
 ## Returns
 - `Float64`: The estimated tether force [N].
 """
-function estimate_tether_force(ffsc::FeedforwardSpeedController, current_omega::Float64, current_alpha::Float64, actual_motor_torque::Float64)
-    r = ffsc.set.drum_radius
-    eff_inertia = ffsc.set.inertia_total * (ffsc.set.gear_ratio^2)
-    b = ffsc.set.b_friction
+function calc_F_est(sc::FeedforwardSpeedController, ω̂::Float64, α̂::Float64, τ̂::Float64)
+    r = sc.set.drum_radius
+    I = calc_inertia(sc.set)
+    τ_friction = calc_τ_friction(set, ω̂)
 
-    # Ensure drum radius is not zero to avoid division by zero
-    if r == 0.0
-        # Or handle error appropriately, e.g., throw ArgumentError
-        return 0.0 
-    end
-
-    estimated_force = (actual_motor_torque - b * current_omega - eff_inertia * current_alpha) / r
+    estimated_force = (τ̂ - τ_friction - I * α̂) / r
     return estimated_force
 end
 
 """
-    calculate_feedforward_torque(ffsc::FeedforwardSpeedController, desired_speed::Float64, current_omega::Float64, current_alpha::Float64; measured_force::Union{Float64, Nothing}=nothing, actual_motor_torque::Float64=0.0)
+    calc_ff_τ(sc::FeedforwardSpeedController, v_set::Float64, ω̂::Float64, α̂::Float64; F̂::Union{Float64, Nothing}=nothing, τ̂::Float64=0.0)
 
-Calculates the feedforward torque required to achieve a `desired_speed`.
+Calculates the feedforward torque required to achieve a `v_set`.
 
 ## Parameters
-- `ffsc::FeedforwardSpeedController`: The feedforward speed controller instance.
-- `desired_speed::Float64`: The target tether speed [m/s].
-- `current_omega::Float64`: The current angular velocity of the winch drum [rad/s].
-- `current_alpha::Float64`: The current angular acceleration of the winch drum [rad/s²].
-- `measured_force::Union{Float64, Nothing}` (optional): Measured tether force [N]. If `nothing`, force will be estimated.
-- `actual_motor_torque::Float64` (optional, required if `measured_force` is `nothing`): 
+- `sc::FeedforwardSpeedController`: The feedforward speed controller instance.
+- `v_set::Float64`: The target tether speed [m/s].
+- `α̂::Float64`: The current angular acceleration of the winch drum [rad/s²].
+- `F̂::Union{Float64, Nothing}` (optional): Measured tether force [N]. If `nothing`, force will be estimated.
+- `τ̂::Float64` (optional, required if `F̂` is `nothing`): 
   The actual torque being applied by the motor [N·m], used for force estimation.
 
 ## Returns
 - `Float64`: The calculated feedforward torque [N·m].
 """
-function calculate_feedforward_torque(ffsc::FeedforwardSpeedController, desired_speed::Float64, current_omega::Float64, current_alpha::Float64; measured_force::Union{Float64, Nothing}=nothing, actual_motor_torque::Float64=0.0)
-    r = ffsc.set.drum_radius
-    eff_inertia = ffsc.set.inertia_total * (ffsc.set.gear_ratio^2)
-    b = ffsc.set.b_friction
-
-    # Ensure drum radius is not zero for calculations involving 1/r
-    if r == 0.0
-        # Or handle error appropriately
-        return 0.0 
-    end
-
+function calc_ff_τ(sc::FeedforwardSpeedController, v_set, ω̂, α̂, F̂=nothing)
+    r = sc.set.drum_radius
+    I = calc_inertia(set)
+    
     F_eff::Float64 = 0.0
-    if !isnothing(measured_force)
-        F_eff = measured_force
+    if !isnothing(F̂)
+        F_eff = F̂
     else
-        if actual_motor_torque == 0.0 && desired_speed != 0.0 # Warn if trying to estimate force with no motor torque info for active control
-            @warn "actual_motor_torque is 0.0 for force estimation in FeedforwardSpeedController. Estimated force might be inaccurate."
-        end
-        F_eff = estimate_tether_force(ffsc, current_omega, current_alpha, actual_motor_torque)
+        F_eff = calc_F_est(sc, ω̂, α̂, sc.τ_last)
     end
 
     # Desired angular velocity at the drum
-    omega_desired = desired_speed / r
+    ω_set = v_set / r
+    τ_force = F_eff * r
+    τ_friction = calc_τ_friction(set, ω_set)
+    τ_I = I * α̂
 
-    # Torque due to effective force
-    torque_force = F_eff * r
-    # Torque due to viscous friction at desired speed
-    torque_friction = b * omega_desired 
-    # Torque due to current inertia
-    torque_inertia = eff_inertia * current_alpha
-
-    # Total feedforward torque
-    total_torque = torque_force + torque_friction + torque_inertia
-    return total_torque
+    τ = τ_force + τ_friction + τ_I
+    sc.τ_last = τ
+    return τ
 end
 
