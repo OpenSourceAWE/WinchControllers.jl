@@ -23,7 +23,7 @@ export WCLogger, log, f_err, v_err, gamma, damage, rms
 abstract type AbstractForceController end
 const AFC = AbstractForceController
 
-function help(url) 
+function help(url="https://opensourceawe.github.io/WinchControllers.jl/dev/") 
     if Sys.islinux()
         io = IOBuffer()
         run(pipeline(`xdg-open $url`, stderr = io))

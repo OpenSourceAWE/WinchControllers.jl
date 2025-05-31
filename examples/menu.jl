@@ -2,19 +2,10 @@ using REPL.TerminalMenus, WinchControllers
 
 URL="https://opensourceawe.github.io/WinchControllers.jl/dev/"
 
-options = ["test_mixer2 = include(\"../test/test_mixer2.jl\")",
-           "test_mixer3 = include(\"../test/test_mixer3.jl\")",
-           "test_solver = include(\"../test/test_solver.jl\")",
-           "test_speedcontroller1 = include(\"../test/test_speedcontroller1.jl\")",
-           "test_speedcontroller2 = include(\"../test/test_speedcontroller2.jl\")",
-           "test_forcespeedcontroller1 = include(\"../test/test_forcespeedcontroller1.jl\")",
-           "test_forcespeedcontroller2 = include(\"../test/test_forcespeedcontroller2.jl\")",
-           "test_winchcontroller = include(\"test_winchcontroller.jl\")",
-           "autotune_ = include(\"autotune.jl\")",
+options = ["autotune_ = include(\"autotune.jl\")",
            "test_tuned_winchcontroller = include(\"test_tuned_winchcontroller.jl\")",
            "plot_power = include(\"plot_power.jl\")",
-           "help = WinchControllers.help(\"$URL\")",
-           "build_docu = include(\"../scripts/build_docu.jl\")",
+           "help = WinchControllers.help()",
            "quit"]
 
 function example_menu()
