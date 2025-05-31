@@ -37,7 +37,7 @@ V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, le
 
 # create and initialize winch controller 
 wc = FFWinchController(wcs, set)
-winch = Winch(wcs, set, wm=TorqueControlledMachine(set))
+winch = Winch(; wcs, set, wm=TorqueControlledMachine(set))
 f_low = wcs.f_low
 
 for i in 1:length(lg)
@@ -50,9 +50,10 @@ for i in 1:length(lg)
 
     # controller
     τ_set_out = calc_τ_set(wc, v_act, force, f_low)
+    @show τ_set_out
     
     # update model
-    set_v_set(winch, v_set_out)
+    set_τ_set(winch, τ_set_out)
     
     on_timer(winch)
     on_timer(wc)
@@ -62,7 +63,7 @@ for i in 1:length(lg)
     
     # log the values
     log(lg; v_ro=v_act, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], force=status[3], 
-        f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out, v_set_in=get_v_set_in(wc))
+        f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out=τ_set_out, v_set_in=get_v_set_in(wc))
 end
 
 # plot the results  

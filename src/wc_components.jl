@@ -134,10 +134,11 @@ $(TYPEDFIELDS)
 @with_kw mutable struct Winch @deftype Float64
     wcs::WCSettings
     set::Settings
-    wm::AsyncMachine = AsyncMachine(set)
+    wm::Union{AsyncMachine, TorqueControlledMachine} = AsyncMachine(set)
     inertia = set.inertia_total * set.gear_ratio^2
     last_omega = 0.0 # last angular velocity of the asynchronous motor
     v_set     = 0 # input
+    τ_set     = 0 # input
     force     = 0 # input
     acc       = 0 # output
     speed     = 0 # output; reel-out speed; only state of this model
@@ -193,6 +194,11 @@ function set_v_set(w::Winch, v_set)
     nothing
 end
 
+function set_τ_set(w::Winch, τ_set)
+    w.τ_set = τ_set
+    nothing
+end
+
 """
     function set_force(w::Winch, force)
 
@@ -236,6 +242,14 @@ Determine the current acceleration of the winch.
 """
 function get_acc(w::Winch) w.acc end
 
+function calc_acceleration(w::Winch, wm::AsyncMachine) 
+    WinchModels.calc_acceleration(wm, w.speed, w.force; set_speed = w.v_set) 
+end
+
+function calc_acceleration(w::Winch, wm::TorqueControlledMachine)
+    WinchModels.calc_acceleration(wm, w.speed, w.force; set_torque = w.τ_set)
+end
+
 """
     on_timer(w::Winch)
 
@@ -251,7 +265,7 @@ and updates the winch acceleration `w.acc` using a loop.
 function on_timer(w::Winch)
     acc = 0.0
     for i in 1:w.wcs.winch_iter
-        w.acc = calc_acceleration(w.wm, w.speed, w.force; set_speed = w.v_set)
+        w.acc = calc_acceleration(w, w.wm)
         acc += w.acc
         w.speed += w.acc * w.wcs.dt/w.wcs.winch_iter
     end

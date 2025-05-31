@@ -18,7 +18,7 @@ export SpeedController, set_inactive, set_v_act, set_v_set, set_v_set_in, set_tr
 export LowerForceController, UpperForceController
 export get_startup, get_triangle_wind
 export WCLogger, log, f_err, v_err, gamma, damage
-export FFWinchController
+export FFWinchController, calc_τ_set, set_τ_set
 
 abstract type AbstractForceController end
 const AFC = AbstractForceController
