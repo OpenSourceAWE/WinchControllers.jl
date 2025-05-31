@@ -22,6 +22,14 @@ When the [Performance Indicators](@ref) are defined, an optimizer can be used to
 The global, blackbox optimizer package [NOMAD.jl](https://github.com/bbopt/NOMAD.jl) is used for the optimization process, together with a test case that mimics extreme wind conditions.
 With a very simple system model it allows to find an optimal solution within less than one minute.
 
+The results can be influence with the new parameters:
+```yaml
+damage_factor: 0.05 # damage at max acceleration for jerk_factor=0
+jerk_factor:   0.90 # factor for the jerk (derivative of the acceleration), 0..1 
+```
+Increase the damage factor to make the controller less aggressive. Decrease the jerk_factor to reduce the 
+maximal accelerations.
+
 ## Example
 To run the auto-tuning script, launch Julia and execute:
 ```julia
