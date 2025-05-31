@@ -23,7 +23,7 @@ function calc_force(v_wind, v_ro)
 end
 
 set = deepcopy(load_settings("system.yaml"))
-wcs = WCSettings(; dt=0.0001)
+wcs = WCSettings(; dt=0.001)
 wcs.test = true
 wcs.f_low = -Inf
 
@@ -56,7 +56,7 @@ for i in 1:length(lg)
     
     # controller
     v_set = -0.0
-    τ_set_out = calc_τ_set(wc, v_set, ω̂, α̂)
+    τ_set_out = calc_τ_set(wc, v_set, ω̂, α̂, force)
     
     # update model
     set_τ_set(winch, τ_set_out)

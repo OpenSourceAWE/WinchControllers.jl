@@ -40,6 +40,11 @@ function calc_τ_friction(set::Settings, ω̂)
     return calc_coulomb_friction(set) * WinchModels.smooth_sign(ω̂_m) + calc_viscous_friction(set, ω̂_m)
 end
 
+function calc_ω_from_τ_friction(set::Settings, τ)
+    ω = (τ - calc_coulomb_friction(set) * WinchModels.smooth_sign(τ)) * set.gear_ratio / set.drum_radius^2 / set.c_vf
+    return ω
+end
+
 function calc_τ_force(set::Settings, F)
     return (F / set.gear_ratio) * set.drum_radius
 end
@@ -66,10 +71,17 @@ Calculates the feedforward torque required to achieve a `desired_force`.
 function calc_τ_ff(fc::FeedforwardForceController, F_set, ω̂, α̂)
     set = fc.set
     τ = -calc_τ_force(set, F_set) + calc_τ_friction(set, ω̂) + calc_τ_I(set, α̂)
-    damp = 0.98
+    damp = 0.0
     τ -= damp * (τ - fc.τ_last)
     fc.τ_last = τ
     return τ
+end
+
+function calc_v_set(fc::FeedforwardForceController, τ_set, F_set, α̂)
+    set = fc.set
+    τ_friction = τ_set + calc_τ_force(set, F_set) - calc_τ_I(set, α̂)
+    ω = calc_ω_from_τ_friction(set, τ_friction)
+    return ω
 end
 
 """
@@ -157,7 +169,8 @@ function calc_τ_ff(sc::FeedforwardSpeedController, v_set, ω̂, α̂, F̂)
     # Desired angular velocity at the drum
     ω_set = v_set / r
     τ = -calc_τ_force(set, F̂) + calc_τ_friction(set, ω_set) + calc_τ_I(set, α̂) # TODO: triangulate F_eff
-
+    damp = 0.0
+    τ -= damp * (τ - sc.τ_last)
     sc.τ_last = τ
     return τ
 end
@@ -211,9 +224,8 @@ actual motor torque, current angular velocity, and current angular acceleration.
 - `Float64`: The calculated feedforward torque [N·m].
 """
 function calc_τ_set(wc::FFWinchController, v_set, ω̂, α̂, F̂=nothing)
-    Ki = 1.0
     if isnothing(F̂)
-        F̂ = calc_F_est(wc, ω̂, α̂, wc.τ_last) + wc.∫e * Ki
+        F̂ = calc_F_est(wc, ω̂, α̂, wc.τ_last)
     end
     wcs = wc.wcs
     wc.v_set = v_set
@@ -235,9 +247,7 @@ function calc_τ_set(wc::FFWinchController, v_set, ω̂, α̂, F̂=nothing)
     
     if wc.state == wcsLowerForceLimit
         wc.τ_ff = calc_τ_ff(wc.fc, wcs.f_low, ω̂, α̂)
-        # ∫e += 
     elseif wc.state == wcsUpperForceLimit
-        wc.state = wcsUpperForceLimit
         wc.τ_ff = calc_τ_ff(wc.fc, wcs.f_high, ω̂, α̂)
     elseif wc.state == wcsSpeedControl
         wc.τ_ff = calc_τ_ff(wc.sc, v_set, ω̂, α̂, F̂)
