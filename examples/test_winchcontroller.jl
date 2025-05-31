@@ -8,7 +8,7 @@ using Timers, Statistics; tic()
 
 # Test the speed controller in combination with the controller for the lower and upper force.
 # Input: A varying wind speed. Implements the simulink block diagram, shown in
-# docs/force_speed_controller_test2.png
+# docs/src/assets/force_speed_controller_test2.png
 using WinchControllers, ControlPlots, KiteUtils
 
 # Calculate the pulling force of the kite as function of the reel-out speed and the wind speed in the
@@ -18,7 +18,7 @@ function calc_force(v_wind, v_ro)
     (v_wind - v_ro)^2 * 4000.0 / 16.0
 end
 
-set = deepcopy(load_settings("system.yaml"))
+set = load_settings("system.yaml")
 wcs = WCSettings(dt=0.02)
 update(wcs)
 wcs.test = true
