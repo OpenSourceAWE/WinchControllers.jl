@@ -45,7 +45,7 @@ function v_err1(v_err_, v_set)
     1/v_mean * rms(filter(!isnan, v_err_))
 end
 
-function gamma(set, f_err_, v_err_, v_set)
+function gamma1(set, f_err_, v_err_, v_set)
     1 - 0.5(f_err1(set, f_err_) + v_err1(v_err_, v_set))
 end
 
@@ -101,4 +101,4 @@ toc()
 println("Max iterations needed: $(wcs.iter)")
 println("Performance of force controllers: $(round(100*(1-f_err1(set, F_ERR)), digits=2)) %")
 println("Performance of speed controller: $(round(100*(1-v_err1(V_ERR, V_SET)), digits=2)) %")
-println("Combined performance γ: $(round(100*gamma(set, F_ERR, V_ERR, V_SET), digits=2)) %")    
+println("Combined performance γ: $(round(100*gamma1(set, F_ERR, V_ERR, V_SET), digits=2)) %")    
