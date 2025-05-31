@@ -95,7 +95,7 @@ are respected.
 In power production mode it does not require any input but the measured tether force.
 Output is the set speed of the asynchronous motor.
 
-For a usage example look at the script [test_winchcontroller.jl](./test/test_winchcontroller.jl) .
+For a usage example look at the script [test_winchcontroller.jl](./examples/test_winchcontroller.jl) .
 
 ## License
 This project is licensed under the MIT License. Please see the below WAIVER in association with the license.
