@@ -23,6 +23,18 @@ export WCLogger, log, f_err, v_err, gamma, damage, rms
 abstract type AbstractForceController end
 const AFC = AbstractForceController
 
+function help(url) 
+    if Sys.islinux()
+        io = IOBuffer()
+        run(pipeline(`xdg-open $url`, stderr = io))
+        # ignore any error messages
+        out_data = String(take!(io)) 
+    else
+        DefaultApplication.open(url)
+    end
+    nothing
+end
+
 # Write your package code here.
 include("wc_settings.jl")
 include("utils.jl")
