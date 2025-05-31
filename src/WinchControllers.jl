@@ -35,6 +35,55 @@ function help(url)
     nothing
 end
 
+"""
+    copy_examples()
+
+Copy all example scripts to the folder "examples"
+(it will be created if it doesn't exist).
+"""
+function copy_examples()
+    PATH = "examples"
+    if ! isdir(PATH) 
+        mkdir(PATH)
+    end
+    src_path = joinpath(dirname(pathof(@__MODULE__)), "..", PATH)
+    copy_files("examples", readdir(src_path))
+end
+
+function copy_model_settings()
+    files = ["settings.yaml", "system.yaml", "system_tuned.yaml", "wc_settings.yaml"]
+    dst_path = abspath(joinpath(pwd(), "data"))
+    copy_files("data", files)
+    set_data_path(joinpath(pwd(), "data"))
+    println("Copied $(length(files)) files to $(dst_path) !")
+end
+
+function install_examples(add_packages=true)
+    copy_examples()
+    copy_settings()
+    copy_model_settings()
+    if add_packages
+        Pkg.add("KiteUtils")
+        Pkg.add("WinchModels")
+        Pkg.add("ControlPlots")
+        Pkg.add("LaTeXStrings")
+        Pkg.add("StatsBase")
+        Pkg.add("Timers")
+    end
+end
+
+function copy_files(relpath, files)
+    if ! isdir(relpath) 
+        mkdir(relpath)
+    end
+    src_path = joinpath(dirname(pathof(@__MODULE__)), "..", relpath)
+    for file in files
+        cp(joinpath(src_path, file), joinpath(relpath, file), force=true)
+        chmod(joinpath(relpath, file), 0o774)
+    end
+    files
+end
+
 # Write your package code here.
 include("wc_settings.jl")
 include("utils.jl")
