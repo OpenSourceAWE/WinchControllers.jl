@@ -29,6 +29,7 @@ include("utils.jl")
 include("components.jl")
 include("wc_components.jl")
 include("winchcontroller.jl")
+include("feedforward_controller.jl")
 include("logging.jl")
 
 end
