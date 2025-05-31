@@ -176,8 +176,9 @@ function damage2(logger::WCLogger)
 end
 
 function damage3(logger::WCLogger)
-    logger.damage_factor * ((0.06*rms(logger.jerk) + 
-                             0.5*(maximum(norm.(logger.acc)))) / logger.max_acc)^2
+    jerk_factor=0.88
+    logger.damage_factor*3.84* ((jerk_factor*(rms(logger.jerk) / logger.max_acc^2)^2 + 
+                             (1-jerk_factor)*(maximum(norm.(logger.acc)))) / logger.max_acc)^2
 end
 
 """
