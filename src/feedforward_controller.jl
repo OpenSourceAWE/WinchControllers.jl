@@ -45,7 +45,7 @@ end
 
 function calc_τ_I(set::Settings, α̂)
     α̂_m = set.gear_ratio * α̂
-    return I * α̂_m
+    return set.inertia_total * α̂_m
 end
 
 """
@@ -159,14 +159,10 @@ function calc_ff_τ(sc::FeedforwardSpeedController, v_set, ω̂, α̂, F̂=nothi
         F_eff = calc_F_est(sc, ω̂, α̂, sc.τ_last)
     end
 
-    @show F_eff calc_F_est(sc, ω̂, α̂, sc.τ_last)
-
     # Desired angular velocity at the drum
     ω_set = v_set / r
-    τ_force = calc_τ_force(set, F_eff)
-    τ_friction = calc_τ_friction(set, ω̂)
+    τ = -calc_τ_force(set, F_eff) + calc_τ_friction(set, ω_set) + calc_τ_I(set, α̂)
 
-    τ = -τ_force + τ_friction + calc_τ_I(set, α̂)
     sc.τ_last = τ
     return τ
 end
@@ -184,6 +180,8 @@ $(TYPEDFIELDS)
     set::Settings
     fc::FeedforwardForceController = FeedforwardForceController(; set) # Initialize with default settings
     sc::FeedforwardSpeedController = FeedforwardSpeedController(; set) # Initialize with default settings
+    limiter::TrajectoryLimiters.TrajectoryLimiter = TrajectoryLimiters.TrajectoryLimiter(wcs.dt, set.max_acc, Inf)
+    state::TrajectoryLimiters.State = TrajectoryLimiters.State(0.0, 0.0, 0.0, 0.0)
     t = 0.0
     v_set = 0.0
     F̂::Union{Float64, Nothing} = nothing
@@ -196,6 +194,24 @@ end
 
 function FFWinchController(wcs::WCSettings, set::Settings)
     return FFWinchController(; wcs, set)
+end
+
+"""
+    limit_acceleration(wc::FFWinchController, ω_set::Float64, dt::Float64)
+
+Calculates the limited angular acceleration based on the desired angular velocity and the rate limiter.
+
+## Parameters
+- `wc::FFWinchController`: The feedforward winch controller instance.
+- `ω_set::Float64`: The target angular velocity [rad/s].
+- `dt::Float64`: The time step [s].
+
+## Returns
+- `Float64`: The limited angular acceleration [rad/s²].
+"""
+function limit_acceleration(wc::FFWinchController, ω_set::Float64)
+    α_lim = wc.limiter(wc.state, ω_set)
+    return α_lim
 end
 
 """
@@ -220,6 +236,8 @@ function calc_τ_set(wc::FFWinchController, v_set, ω̂, α̂, F̂=nothing)
     wc.ω̂ = ω̂
     wc.α̂ = α̂
 
+    ω_set = v_set / wc.set.drum_radius
+    α_set = limit_acceleration(wc, ω_set)
     wc.τ_ff = calc_ff_τ(
         wc.sc,
         v_set,

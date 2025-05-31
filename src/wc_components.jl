@@ -249,7 +249,7 @@ function calc_acceleration(w::Winch, wm::AsyncMachine)
 end
 
 function calc_acceleration(w::Winch, wm::TorqueControlledMachine)
-    WinchModels.calc_acceleration(wm, w.speed, w.force; set_torque = w.τ_set)
+    return WinchModels.calc_acceleration(wm, w.speed, w.force; set_torque = w.τ_set)
 end
 
 """
@@ -271,7 +271,9 @@ function on_timer(w::Winch)
         acc += w.acc
         w.speed += w.acc * w.wcs.dt/w.wcs.winch_iter
     end
+    @show w.acc
     w.acc = acc/w.wcs.winch_iter
+    @show w.speed
     w.p_dyn, w.last_omega = calc_dynamic_power(w.set, w. inertia, w.speed, w.last_omega, w.wcs.dt)
     nothing
 end

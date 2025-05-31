@@ -24,7 +24,7 @@ update(wcs)
 wcs.test = true
 
 # define the simulation parameters
-DURATION   = 1.0
+DURATION   = 10.0
 V_WIND_MAX = 9.0 # max wind speed of test wind
 V_WIND_MIN = 0.0 # min wind speed of test wind
 FREQ_WIND  = 0.25 # frequency of the triangle wind speed signal 
@@ -51,8 +51,7 @@ for i in 1:length(lg)
     set_force(winch, force)
     
     # controller
-    τ_set_out = calc_τ_set(wc, 0.0, ω̂, α̂, force)
-    # function calc_τ_set(wc::FFWinchController, v_set, ω̂, α̂, F̂=nothing)
+    τ_set_out = calc_τ_set(wc, 0.1, ω̂, α̂, force)
     
     # update model
     set_τ_set(winch, τ_set_out)
