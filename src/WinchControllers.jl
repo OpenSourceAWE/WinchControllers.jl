@@ -1,7 +1,7 @@
 module WinchControllers
 
 using Parameters, StructTypes, KiteUtils, WinchModels, StaticArrays, NLsolve, DocStringExtensions, YAML
-using LinearAlgebra, Statistics, Pkg
+using LinearAlgebra, Statistics, Pkg, ModelPredictiveControl
 
 import Base.reset
 import Base.log
