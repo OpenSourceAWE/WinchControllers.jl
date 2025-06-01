@@ -1,4 +1,4 @@
-# Linearize the winch
+# Determine the steady-state speed of a winch
 # input: set_speed
 # output: speed
 
@@ -16,21 +16,17 @@ wcs.test = true
 winch = Winch(wcs, set)
 
 # find equilibrium speed
-function find_equilibrium_speed(winch, force)
-    set_speed = 0.0
-    for _ in 1:1000
-        v_act = get_speed(winch)
+function find_equilibrium_speed(winch, set_speed, force, n=100)
+    V_SET = zeros(Float64, n)
+    # slow start
+    for speed in range(0.0, set_speed, n)
         set_force(winch, force)
-        set_v_set(winch, set_speed)
-        
+        set_v_set(winch, speed)
+        v_act = get_speed(winch)
+        push!(V_SET, v_set)        
         on_timer(winch)
-        
-        # check if the speed is close enough to the desired equilibrium
-        if abs(get_speed(winch) - set_speed) < 0.01
-            break
-        end
     end
     set_v_set(winch, set_speed)
     on_timer(winch)
-    return get_speed(winch)
+    return V_SET
 end
