@@ -22,22 +22,13 @@ winch = Winch(wcs, set)
 
 # find equilibrium speed
 function find_equilibrium_speed(winch, set_speed, force, n=2000)
-    TIME = Float64[]
-    V_SET = Float64[]
-    V_ACT = Float64[]
-    time = 0.0
     last_v_act = 0.0
-    # slow start
     for v_set in range(0.0, 2*set_speed, n)
         lim_speed = minimum([v_set, set_speed])
         set_force(winch, force)
         set_v_set(winch, lim_speed)
         v_act = get_speed(winch)
-        push!(V_SET, lim_speed)  
-        push!(V_ACT, v_act)      
         on_timer(winch)
-        push!(TIME, time)
-        time += wcs.dt
         if v_set > 0 && abs(v_act - last_v_act) < 1e-6
             return v_act
         end
@@ -57,7 +48,7 @@ function motor_dynamics(x, u)
 end
 
 v_set = 8.0
-force = 2000.0
+force = 4000.0
 v_act = find_equilibrium_speed(winch, v_set, force)
 
 x0 = [v_act]         # State at operating point
@@ -82,10 +73,11 @@ D = [0.0 0.0]
 
 sys = ss(A, B, C, D)
 
-# 1. Extract B matrices
-B1 = B[:, 1]   # First input column (active)
+B2 = B[:, 2]   # Second input column (constant)
 
-# 2. Create new system with only the first input
-sys_new = ss(A, B1, C, D[:, 1])
+# 2. Compute steady-state offset from constant input
+x_ss = -A \ (B2 * force)  # Equivalent to -inv(A) * B2 * force
+sys_new = ss(A, B[:, 1], C, D[:, 1])
+# 3. Plot the bode plot of the new system
 
-bode_plot(sys_new; title="Bode Plot of Linearized Winch System")
+bode_plot(sys_new; to=2, title="Linearized Winch, F=$force N")
