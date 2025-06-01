@@ -77,5 +77,12 @@ end
 
 A = finite_jacobian(x -> motor_dynamics(x, u0), x0)
 B = finite_jacobian(u -> motor_dynamics(x0, u), u0)
+C = [1.0]
+D = [0.0 0.0]
+
+using ControlSystemsBase
+
+sys = ss(A, B, C, D)
+
 
 
