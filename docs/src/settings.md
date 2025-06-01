@@ -67,5 +67,7 @@ wc_settings:
     ktf_high: 10.0   # tracking constant of the upper force controller
     winch_iter: 10   # iterations of the winch model
     max_acc: 8.0     # maximal acceleration of the winch (derivative of the set value of the reel-out speed)
+    damage_factor: 0.05 # damage at max acceleration for jerk_factor=0
+    jerk_factor: 0.90   # factor for the jerk (derivative of the acceleration), 0..1 
     kv: 0.06         # proportional factor of the square root law, see function calc_vro
 ```
