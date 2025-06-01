@@ -86,12 +86,8 @@ sys = ss(A, B, C, D)
 
 # 1. Extract B matrices
 B1 = B[:, 1]   # First input column (active)
-B2 = B[:, 2]   # Second input column (constant)
 
-# 2. Compute steady-state offset from constant input
-x_ss = -A \ (B2 * force)  # Equivalent to -inv(A) * B2 * force
-
-# 3. Create new system with only the first input
+# 2. Create new system with only the first input
 sys_new = ss(A, B1, C, D[:, 1])
 
 bode_plot(sys_new; title="Bode Plot of Linearized Winch System")
