@@ -7,7 +7,7 @@ if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
     using TestEnv; TestEnv.activate()
     using Test
 end
-using WinchControllers, WinchModels, KiteUtils, ControlPlots
+using WinchControllers, WinchModels, KiteUtils, ControlPlots, ControlSystemsBase
 
 if isfile("data/system_tuned.yaml")
     set = load_settings("system_tuned.yaml")
@@ -79,8 +79,6 @@ A = finite_jacobian(x -> motor_dynamics(x, u0), x0)
 B = finite_jacobian(u -> motor_dynamics(x0, u), u0)
 C = [1.0]
 D = [0.0 0.0]
-
-using ControlSystemsBase
 
 sys = ss(A, B, C, D)
 
