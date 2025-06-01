@@ -55,7 +55,9 @@ This controller tests all controllers. The lower force limit was set to $350~N$,
 
 **State**
 
-`0.` lower force controller active; `1.` speed controller active;  `2.` upper force controller active  
+`0.` lower force controller active; `1.` speed controller active;  `2.` upper force controller active
+
+The results after autotuning can be found here: [Example result](@ref) 
 
 ## Ideas
 - add torque controlled winch (which will require a modified controller)

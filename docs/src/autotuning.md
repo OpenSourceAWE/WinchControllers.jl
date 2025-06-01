@@ -62,7 +62,7 @@ You can plot the result with the command:
 ```julia
 plot(lg)
 ```
-**Example result:**
+### Example result
 ![test_forcespeedcontroller1](assets/test_tuned_winchcontroller.png)
 
 Untuned, original example: [ForceSpeedController2](@ref)
