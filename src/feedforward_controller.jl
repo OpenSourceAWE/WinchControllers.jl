@@ -21,6 +21,7 @@ $(TYPEDFIELDS)
     """General settings containing physical parameters of the winch."""
     set::Settings
     τ_last::Float64 = 0.0
+    τ_osc::Float64 = 0.0
 end
 
 function calc_coulomb_friction(set::Settings)
@@ -70,7 +71,8 @@ Calculates the feedforward torque required to achieve a `desired_force`.
 """
 function calc_τ_ff(fc::FeedforwardForceController, F_set, ω̂, α̂)
     set = fc.set
-    τ = -calc_τ_force(set, F_set) + calc_τ_friction(set, ω̂) + calc_τ_I(set, α̂)
+    τ = -calc_τ_force(set, F_set) + calc_τ_friction(set, ω̂) + calc_τ_I(set, clamp(1 - fc.τ_osc, 0.85, 1.0) * α̂)
+    fc.τ_osc = 0.9fc.τ_osc + 0.1abs(τ - fc.τ_last)
     damp = 0.0
     τ -= damp * (τ - fc.τ_last)
     fc.τ_last = τ
@@ -81,7 +83,7 @@ function calc_v_set(fc::FeedforwardForceController, τ_set, F_set, α̂)
     set = fc.set
     τ_friction = τ_set + calc_τ_force(set, F_set) - calc_τ_I(set, α̂)
     ω = calc_ω_from_τ_friction(set, τ_friction)
-    return ω
+    return ω * set.drum_radius
 end
 
 """
@@ -201,6 +203,7 @@ $(TYPEDFIELDS)
     τ_set = 0.0
     τ_last = 0.0
     ∫e = 0.0
+    last_switch = -Inf
 end
 
 function FFWinchController(wcs::WCSettings, set::Settings)
@@ -232,23 +235,37 @@ function calc_τ_set(wc::FFWinchController, v_set, ω̂, α̂, F̂=nothing)
     wc.F̂ = F̂
     wc.ω̂ = ω̂
     wc.α̂ = α̂
+
+    v_set = calc_vro(wcs, abs(F̂))
     ω_set = v_set / wc.set.drum_radius
+    
     # α_set = limit_acceleration(wc, ω_set)
 
-    if wc.state == wcsSpeedControl && wc.F̂ ≤ wcs.f_low
-        wc.state = wcsLowerForceLimit
-    elseif wc.state == wcsSpeedControl && wc.F̂ ≥ wcs.f_high # || wc.state == wcsUpperForceLimit
-        wc.state = wcsUpperForceLimit
-    elseif wc.state == wcsLowerForceLimit && ω_set < ω̂
-        wc.state = wcsSpeedControl
-    elseif wc.state == wcsUpperForceLimit && ω_set > ω̂
-        wc.state = wcsSpeedControl
+    if wc.t - wc.last_switch > 0.1
+        if wc.state == wcsSpeedControl && wc.F̂ ≤ wcs.f_low
+            wc.state = wcsLowerForceLimit
+            wc.last_switch = wc.t
+        elseif wc.state == wcsSpeedControl && wc.F̂ ≥ wcs.f_high # || wc.state == wcsUpperForceLimit
+            wc.state = wcsUpperForceLimit
+            wc.last_switch = wc.t
+        elseif wc.state == wcsLowerForceLimit && ω_set < ω̂
+            wc.state = wcsSpeedControl
+            wc.last_switch = wc.t
+        elseif wc.state == wcsUpperForceLimit && ω_set > ω̂
+            wc.state = wcsSpeedControl
+            wc.last_switch = wc.t
+        end
     end
+    # wc.state = wcsSpeedControl
     
     if wc.state == wcsLowerForceLimit
         wc.τ_ff = calc_τ_ff(wc.fc, wcs.f_low, ω̂, α̂)
+        # v_set = calc_v_set(wc.fc, wc.τ_last, wcs.f_high, α̂)
+        v_set = NaN
     elseif wc.state == wcsUpperForceLimit
         wc.τ_ff = calc_τ_ff(wc.fc, wcs.f_high, ω̂, α̂)
+        # v_set = calc_v_set(wc.fc, wc.τ_last, wcs.f_high, α̂)
+        v_set = NaN
     elseif wc.state == wcsSpeedControl
         wc.τ_ff = calc_τ_ff(wc.sc, v_set, ω̂, α̂, F̂)
     end
@@ -256,8 +273,7 @@ function calc_τ_set(wc::FFWinchController, v_set, ω̂, α̂, F̂=nothing)
     # wc.τ_set = calc_output(wc.rate_lim, wc.τ_ff)
     wc.τ_set = wc.τ_ff
     wc.τ_last = wc.τ_set
-    on_timer(wc.rate_lim)
-    return wc.τ_set
+    return wc.τ_set, v_set
 end
 
 """
@@ -274,6 +290,8 @@ updates or actions for the given `FFWinchController` instance `wc`.
 """
 function on_timer(wc::FFWinchController)
     wc.t += wc.wcs.dt
+    on_timer(wc.rate_lim)
+    nothing
 end
 
 """

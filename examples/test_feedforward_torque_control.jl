@@ -25,7 +25,7 @@ end
 set = deepcopy(load_settings("system.yaml"))
 wcs = WCSettings(; dt=0.001)
 wcs.test = true
-wcs.f_low = -Inf
+wcs.f_low = 500
 
 # define the simulation parameters
 DURATION   = 10.0
@@ -39,13 +39,14 @@ lg::WCLogger = WCLogger(DURATION, wcs.dt, set.max_force, wcs.max_acc, wcs.damage
 V_WIND = get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, length(lg))
 
 # create and initialize winch controller 
-wc = FFWinchController(wcs, set)
+wc = FFWinchController(wcs, deepcopy(set))
+wc.set.drum_radius *= 1.0
+wc.set.inertia_total *= 1.0
 winch = Winch(; wcs, set, wm=TorqueControlledMachine(set))
 f_low = wcs.f_low
 
 for i in 1:length(lg)
     local force, v_set
-    # model
     v_wind = V_WIND[i]
 
     ω̂ = get_ω(winch)
@@ -55,8 +56,8 @@ for i in 1:length(lg)
     set_force(winch, force)
     
     # controller
-    v_set = -0.0
-    τ_set_out = calc_τ_set(wc, v_set, ω̂, α̂, force)
+    v_set = -1.0
+    τ_set_out, v_set = calc_τ_set(wc, v_set, ω̂, α̂)
     
     # update model
     set_τ_set(winch, τ_set_out)
