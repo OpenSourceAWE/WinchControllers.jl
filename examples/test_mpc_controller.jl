@@ -1,7 +1,7 @@
 using WinchControllers, ModelPredictiveControl, WinchModels, KiteUtils, Plots
 
 set = load_settings("system.yaml")
-wcs = WCSettings(dt=0.1)
+wcs = WCSettings(dt=0.02)
 winch = TorqueControlledMachine(set)
 
 # Calculate the pulling force of the kite as function of the reel-out speed and the wind speed in the
@@ -22,41 +22,70 @@ lg = WCLogger(DURATION, wcs.dt, set.max_force, wcs.max_acc, wcs.damage_factor, w
 
 STARTUP = get_startup(wcs, length(lg))    
 V_WIND = STARTUP .* get_triangle_wind(wcs, V_WIND_MIN, V_WIND_MAX, FREQ_WIND, length(lg))
+N = length(lg)
 
-function f(x, u, _ , p)
+# 1. Include Wind Speed in the Model
+function f!(dx, x, u, d, _)
     τ = u[1]
     v = x[1]
-    v_wind = p[1]
+    # v_wind = x[2] # if you want to estimate wind speed
+    v_wind = d[1] # disturbance
     F = calc_force(v_wind, v)
     α = calc_acceleration(winch, v, F; set_torque=τ)
-    return [α]
+    dx[1] = α
+    # dx[2] = 0.0 # if you want to estimate wind speed
+    nothing
 end
-function h(x, _ , p) 
-    v_wind = p[1]
+function h!(y, x, d, _)
+    # v_wind = x[2] # if you want to estimate wind speed
+    v_wind = d[1] # disturbance
     v = x[1]
-    return [v, calc_force(v_wind, v)] # [°]
+    y[1] = v
+    y[2] = calc_force(v_wind, v)
+    nothing
 end
 
-p_model = [3.0]
-nu, nx, ny, Ts = 1, 1, 2, wcs.dt
+# nu, nx, ny, Ts = 1, 1, 2, wcs.dt # original
+nu, nx, ny, nd, Ts = 1, 1, 2, 1, wcs.dt # disturbance
 vu, vx, vy = ["\$τ\$ (Nm)"], ["v (m/s)"], ["v (m/s)", "F (N)"]
-model = setname!(NonLinModel(f, h, Ts, nu, nx, ny; p=p_model); u=vu, x=vx, y=vy)
+vd = ["v_wind (m/s)"]
+model = setname!(NonLinModel(f!, h!, Ts, nu, nx, ny, nd); u=vu, x=vx, y=vy, d=vd)
+plant = setname!(NonLinModel(f!, h!, Ts, nu, nx, ny, nd); u=vu, x=vx, y=vy, d=vd)
 
-α=0.01; σQ=[0.05]; σR=[0.5, 0.5]; nint_u=[1]; σQint_u=[0.1]
-estim = UnscentedKalmanFilter(model; α, σQ, σR, nint_u, nint_ym=[1,1], σQint_u)
-
-N = 100
-p_plant = copy(p_model)
-p_plant[1] = p_model[1]
-plant = setname!(NonLinModel(f, h, Ts, nu, nx, ny; p=p_plant); u=vu, x=vx, y=vy)
-# res = sim!(estim, N, [-10], plant=plant, y_noise=[0.1])
-# plot(res, plotu=false, plotxwithx̂=true)
+linmodel = linearize(model, x=[0], u=[0], d=[0])
+α=0.01; σQ=[0.05]; σR=[0.5, 0.5]; nint_u=[1]; σQint_u=[0.1]; nint_ym=[0,0]
+kf = KalmanFilter(linmodel; σQ, σR, nint_u, σQint_u, nint_ym)
 
 Hp, Hc, Mwt, Nwt = 20, 2, [0.5, 0.0], [0.1]
-nmpc = NonLinMPC(estim; Hp, Hc, Mwt, Nwt, Cwt=Inf)
 umin, umax = [-100.0], [+100.0]
 ymin, ymax = [-Inf, wcs.f_low], [Inf, wcs.f_high]
-nmpc = setconstraint!(nmpc; umin, umax, ymin, ymax)
+mpc = LinMPC(kf; Hp, Hc, Mwt, Nwt, Cwt=1e6)
+mpc = setconstraint!(mpc; umin, umax, ymin, ymax)
 
-@time res_ry = sim!(nmpc, N, [1.0, 0.0], plant=plant, x_0=[0], x̂_0=[0, 0, 0, 0])
-plot(res_ry)
+function sim_adapt!(mpc, nonlinmodel, N, ry, plant, x_0, x̂_0, y_step=[0, 0])
+    U_data, Y_data, Ry_data = zeros(plant.nu, N), zeros(plant.ny, N), zeros(plant.ny, N)
+    setstate!(plant, x_0)
+    initstate!(mpc, [0], plant([0]), [0])
+    setstate!(mpc, x̂_0)
+    for i = 1:N
+        d = [V_WIND[i]]
+        y = plant(d) + y_step # disturbance
+        ry[1] = sqrt(y[2]) * wcs.kv
+        # model.p[1] = V_WIND[i] # remove
+        x̂ = preparestate!(mpc, y, d)
+        u = moveinput!(mpc, ry, d)
+        linmodel = linearize(nonlinmodel; u, x=x̂[1], d) # disturbance
+        setmodel!(mpc, linmodel)
+        U_data[:,i], Y_data[:,i], Ry_data[:,i] = u, y, ry
+        updatestate!(mpc, u, y, d) # update mpc state estimate
+        updatestate!(plant, u, d)  # update plant simulator
+    end
+    res = SimResult(mpc, U_data, Y_data; Ry_data)
+    return res
+end
+
+ry = [1.0, 0.0]
+x_0 = [0.0]
+x̂_0 = zeros(2)
+@time res_slin = sim_adapt!(mpc, model, N, ry, plant, x_0, x̂_0)
+plot(res_slin)
