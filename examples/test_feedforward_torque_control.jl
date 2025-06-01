@@ -23,9 +23,9 @@ function calc_force(v_wind, v_ro)
 end
 
 set = deepcopy(load_settings("system.yaml"))
-wcs = WCSettings(; dt=0.001)
+wcs = WCSettings(; dt=1/1e3)
 wcs.test = true
-wcs.f_low = 500
+wcs.f_low = 350
 
 # define the simulation parameters
 DURATION   = 10.0
@@ -56,8 +56,7 @@ for i in 1:length(lg)
     set_force(winch, force)
     
     # controller
-    v_set = -1.0
-    τ_set_out, v_set = calc_τ_set(wc, v_set, ω̂, α̂)
+    τ_set_out, v_set = calc_τ_set(wc, ω̂, 0.99α̂)
     
     # update model
     set_τ_set(winch, τ_set_out)
@@ -72,6 +71,7 @@ for i in 1:length(lg)
     log(lg; v_ro=v̂, acc=get_acc(winch), state=get_state(wc), reset=status[1], active=status[2], force=force, 
         f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc), v_set=get_v_set(wc), v_set_out=τ_set_out, v_set_in=v_set)
 end
+
 toc()
 
 # plot the results  
