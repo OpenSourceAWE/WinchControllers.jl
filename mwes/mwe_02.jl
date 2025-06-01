@@ -59,3 +59,8 @@ end
 v_set = 8.0
 force = 1000.0
 v_act = find_equilibrium_speed(winch, v_set, force)
+
+x0 = [v_act]         # State at operating point
+u0 = [v_set, force]  # Input at operating point
+
+
