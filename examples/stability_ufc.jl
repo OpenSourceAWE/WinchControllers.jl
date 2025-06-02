@@ -93,7 +93,6 @@ function open_loop_system(winch, v_set, v_wind)
     # Create the open loop system with the upper force controller
     C = upper_force_controller(winch.wcs)
     sys = linearize(winch, v_set, v_wind)
-    # sys_open = feedback(C * sys, 1.0; sign=-1)
     return C * sys
 end
 
