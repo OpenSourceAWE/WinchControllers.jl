@@ -1,4 +1,5 @@
-# Linearize the closed loop system consisting of the winch, kite and upper force controller.
+# Linearize the open loop system consisting of the winch, kite and upper force controller.
+# Use the function "diskmargin" to check the stability of the system.
 
 using Pkg
 if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
