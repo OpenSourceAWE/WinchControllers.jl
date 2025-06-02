@@ -49,7 +49,7 @@ function motor_dynamics(x, u)
     return [acc]
 end
 
-v_set = 8.0
+v_set = 4.0
 force = 4000.0
 v_act = find_equilibrium_speed(winch, v_set, force)
 
@@ -68,4 +68,4 @@ D = [0.0 0.0]
 sys = ss(A, B, C, D)
 sys_new = ss(A, B[:, 1], C, D[:, 1])
 
-bode_plot(sys_new; to=2, title="Linearized Winch, F=$force N")
+bode_plot(sys_new; from=0.76, to=2.85, title="Linearized Winch, F=$force N")

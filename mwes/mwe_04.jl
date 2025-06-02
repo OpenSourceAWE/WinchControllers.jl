@@ -62,12 +62,13 @@ function linearize(winch, v_set, force)
 end
 
 v_set = 4.0
-for force in range(300.0, 3800.0, length=10)
-    @info "Linearizing for force: $force N"
-    sys_new = linearize(winch, v_set, force)
-    # @info "System: $sys_new"
-    # @info "Eigenvalues: $(eigvals(sys_new))"
-    bode_plot(sys_new; from=0.76, to=2.85, title="Linearized Winch, F=300..3800 N")
-end
+# for force in range(300.0, 3800.0, length=10)
+#     @info "Linearizing for force: $force N"
+#     sys_new = linearize(winch, v_set, force)
+#     # @info "System: $sys_new"
+#     # @info "Eigenvalues: $(eigvals(sys_new))"
+#     bode_plot(sys_new; from=0.76, to=2.85, title="Linearized Winch, F=300..3800 N")
+# end
 
-# bode_plot(sys_new; to=2, title="Linearized Winch, F=$force N")
+sys_new = linearize(winch, v_set, 1000.0)
+bode_plot(sys_new; from=0.76, to=2.85, title="Linearized Winch, F=1000 N")

@@ -47,7 +47,7 @@ function motor_dynamics(x, u)
     return [acc]
 end
 
-v_set = 8.0
+v_set = 4.0
 force = 4000.0
 v_act = find_equilibrium_speed(winch, v_set, force)
 
