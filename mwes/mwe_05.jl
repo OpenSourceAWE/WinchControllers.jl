@@ -66,7 +66,7 @@ end
 function linearize(winch, v_set, v_wind)
     force = calc_force(v_wind, v_set)
     v_act = find_equilibrium_speed(winch, v_set, force)
-    x0 = [v_act]         # State at operating point
+    x0 = [v_act]          # State at operating point
     u0 = [v_set, v_wind]  # Input at operating point
     A = finite_difference_jacobian(x -> system_dynamics(x, u0), x0)
     B = finite_difference_jacobian(u -> system_dynamics(x0, u), u0)
