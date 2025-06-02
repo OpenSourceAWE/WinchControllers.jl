@@ -25,7 +25,7 @@ winch = Winch(wcs, set)
 # find equilibrium speed
 function find_equilibrium_speed(winch, set_speed, force, n=10000)
     last_v_act = 0.0
-    for v_set in range(-2.0, 2*set_speed, n)
+    for v_set in range(-5, 2*set_speed+5, n)
         lim_speed = minimum([v_set, set_speed])
         set_force(winch, force)
         set_v_set(winch, lim_speed)
@@ -96,7 +96,7 @@ end
 function margins()
     global sys
     margins = Float64[]
-    for v_wind in range(-1, 1, length=3)
+    for v_wind in range(0.2, 1, length=5)
         local v_set, dm
         v_set = 0.57*v_wind
         sys = open_loop_system(winch, v_set, v_wind)
@@ -119,11 +119,11 @@ function margins()
 end
 margins()
 
-for v_wind in range(-1, 1, length=3)
+for v_wind in range(0.2, 1, length=5)
     global sys
     local v_set
     v_set = 0.57*v_wind
     sys = open_loop_system(winch, v_set, v_wind)
-    bode_plot(sys; from=0.76, to=2.85, title="System with LFC, v_wind=-1..1 m/s")
+    bode_plot(sys; from=-0.3, to=2.85, title="System with LFC, v_wind=0.2..1 m/s")
 end
 nothing
