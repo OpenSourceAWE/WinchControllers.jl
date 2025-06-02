@@ -77,11 +77,7 @@ end
 
 for v_wind in range(1, 9, length=9)
     v_set = 0.57*v_wind
-    @info "Linearizing for v_wind: $v_wind m/s"
+    @info "Linearizing for v_wind: $v_wind m/s, v_ro: $(round(v_set, digits=2)) m/s"
     sys_new = linearize(winch, v_set, v_wind)
-    # @info "System: $sys_new"
-    # @info "Eigenvalues: $(eigvals(sys_new))"
     bode_plot(sys_new; from=0.76, to=2.85, title="Linearized System, v_wind=1..9 m/s")
 end
-
-# bode_plot(sys_new; to=2, title="Linearized Winch, F=$force N")
