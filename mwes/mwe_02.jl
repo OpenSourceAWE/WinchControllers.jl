@@ -72,12 +72,6 @@ C = [1.0]
 D = [0.0 0.0]
 
 sys = ss(A, B, C, D)
-
-B2 = B[:, 2]   # Second input column (constant)
-
-# 2. Compute steady-state offset from constant input
-x_ss = -A \ (B2 * force)  # Equivalent to -inv(A) * B2 * force
 sys_new = ss(A, B[:, 1], C, D[:, 1])
-# 3. Plot the bode plot of the new system
 
 bode_plot(sys_new; to=2, title="Linearized Winch, F=$force N")
