@@ -6,6 +6,7 @@ options = ["test_winchcontroller = include(\"test_winchcontroller.jl\")",
            "autotune_ = include(\"autotune.jl\")",
            "test_tuned_winchcontroller = include(\"test_tuned_winchcontroller.jl\")",
            "plot_power = include(\"plot_power.jl\")",
+           "stability_ufc = include(\"stability_ufc.jl\")",
            "help = WinchControllers.help()",
            "quit"]
 

@@ -1,7 +1,6 @@
-# Linearize the winch
+# Linearize the system consisting of the winch and kite
 # input: set_speed
 # output: speed
-# Same as mwe_02.jl, but using FiniteDiff.jl for Jacobian calculation
 
 using Pkg
 if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
@@ -50,25 +49,37 @@ function motor_dynamics(x, u)
     return [acc]
 end
 
-function linearize(winch, v_set, force)
-    v_act = find_equilibrium_speed(winch, v_set, force)
-    x0 = [v_act]         # State at operating point
-    u0 = [v_set, force]  # Input at operating point
-    A = finite_difference_jacobian(x -> motor_dynamics(x, u0), x0)
-    B = finite_difference_jacobian(u -> motor_dynamics(x0, u), u0)
-    C = [1.0]
-    D = [0.0 0.0]
-    siso_sys = ss(A, B[:, 1], C, D[:, 1])
+function calc_force(v_wind, v_ro)
+    (v_wind - v_ro)^2 * 4000.0 / 16.0
 end
 
-v_set = 4.0
-# for force in range(300.0, 3800.0, length=10)
-#     @info "Linearizing for force: $force N"
-#     sys_new = linearize(winch, v_set, force)
-#     # @info "System: $sys_new"
-#     # @info "Eigenvalues: $(eigvals(sys_new))"
-#     bode_plot(sys_new; from=0.76, to=2.85, title="Linearized Winch, F=300..3800 N")
-# end
+function system_dynamics(x, u)
+    # x: state vector, e.g., [v_act]
+    # u: input vector, e.g., [v_set, v_wind]
+    v_act = x[1]
+    v_set, v_wind = u[1], u[2]
+    force = calc_force(v_wind, v_act)
+    acc = calc_acceleration(winch.wm, v_act, force; set_speed = v_set)
+    return [acc]
+end
 
-sys_new = linearize(winch, v_set, 1000.0)
-bode_plot(sys_new; from=0.76, to=2.85, title="Linearized Winch, F=1000 N")
+function linearize(winch, v_set, v_wind)
+    force = calc_force(v_wind, v_set)
+    v_act = find_equilibrium_speed(winch, v_set, force)
+    x0 = [v_act]          # State at operating point
+    u0 = [v_set, v_wind]  # Input at operating point
+    A = finite_difference_jacobian(x -> system_dynamics(x, u0), x0)
+    B = finite_difference_jacobian(u -> system_dynamics(x0, u), u0)
+    C = [1.0]
+    D = [0.0 0.0]
+    force = calc_force(v_wind, v_act)
+    siso_sys = ss(A, B[:, 1], C, D[:, 1]) * force/v_act
+end
+
+for v_wind in range(1, 9, length=9)
+    local v_set, sys_new
+    v_set = 0.57*v_wind
+    @info "Linearizing for v_wind: $v_wind m/s, v_ro: $(round(v_set, digits=2)) m/s"
+    sys = linearize(winch, v_set, v_wind)
+    bode_plot(sys; from=0.76, to=2.85, title="Linearized System, v_wind=1..9 m/s")
+end
