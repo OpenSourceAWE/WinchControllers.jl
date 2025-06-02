@@ -1,3 +1,8 @@
+### Unreleased
+#### Added
+- the package `RobustAndOptimalControl`
+- the example `stability_ufc.jl` which tests the stability of the upper force controller
+
 ### WinchControllers v0.5.3 2025-05-31
 #### Added
 - the functions `get_v_set()`, `get_f_err()`
