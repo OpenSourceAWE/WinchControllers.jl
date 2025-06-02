@@ -20,7 +20,7 @@ wcs.test = true
 
 winch = Winch(wcs, set)
 
-@info "Testing stability of the lower force controller (UFC) with the winch and kite system."
+@info "Testing stability of the lower force controller (LFC) with the winch and kite system."
 
 # find equilibrium speed
 function find_equilibrium_speed(winch, set_speed, force, n=10000)
