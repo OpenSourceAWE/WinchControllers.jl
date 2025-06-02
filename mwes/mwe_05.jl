@@ -76,6 +76,7 @@ function linearize(winch, v_set, v_wind)
 end
 
 for v_wind in range(1, 9, length=9)
+    local v_set, sys_new
     v_set = 0.57*v_wind
     @info "Linearizing for v_wind: $v_wind m/s, v_ro: $(round(v_set, digits=2)) m/s"
     sys_new = linearize(winch, v_set, v_wind)
