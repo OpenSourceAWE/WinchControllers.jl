@@ -82,7 +82,8 @@ function linearize(winch, v_set, v_wind)
     B = finite_difference_jacobian(u -> system_dynamics(x0, u), u0)
     C = [1.0]
     D = [0.0 0.0]
-    siso_sys = ss(A, B[:, 1], C, D[:, 1])
+    force = calc_force(v_wind, v_act)
+    siso_sys = ss(A, B[:, 1], C, D[:, 1]) * force/v_act
 end
 
 function open_loop_system(winch, v_set, v_wind)
@@ -93,10 +94,14 @@ function open_loop_system(winch, v_set, v_wind)
     return C * sys
 end
 
-for v_wind in range(1, 9, length=9)
-    local v_set, sys
+for v_wind in range(7.5, 9, length=2)
+    global sys
+    local v_set
     v_set = 0.57*v_wind
-    @info "Linearizing for v_wind: $v_wind m/s, v_ro: $(round(v_set, digits=2)) m/s"
+    # @info "Linearizing for v_wind: $v_wind m/s, v_ro: $(round(v_set, digits=2)) m/s"
     sys = open_loop_system(winch, v_set, v_wind)
-    bode_plot(sys; from=0.76, to=2.85, title="Linearized System, v_wind=1..9 m/s")
+    gm, pm, wgm, wpm = margin(sys; adjust_phase_start=false)
+    @info "Gain margin: $gm, Phase margin: $pm, Gain crossover frequency: $wgm, Phase crossover frequency: $wpm"
+    bode_plot(sys; from=0.76, to=2.85, title="Linearized System, v_wind=8..9 m/s")
 end
+sys
