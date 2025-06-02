@@ -74,9 +74,9 @@ function linearize(winch, v_set, v_wind)
 end
 
 for v_wind in range(1, 9, length=9)
-    local v_set, sys_new
+    local v_set, sys
     v_set = 0.57*v_wind
     @info "Linearizing for v_wind: $v_wind m/s, v_ro: $(round(v_set, digits=2)) m/s"
-    sys_new = linearize(winch, v_set, v_wind)
-    bode_plot(sys_new; from=0.76, to=2.85, title="Linearized System, v_wind=1..9 m/s")
+    sys = linearize(winch, v_set, v_wind)
+    bode_plot(sys; from=0.76, to=2.85, title="Linearized System, v_wind=1..9 m/s")
 end
