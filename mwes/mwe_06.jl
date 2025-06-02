@@ -5,7 +5,7 @@ if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
     using TestEnv; TestEnv.activate()
     using Test
 end
-using WinchControllers, WinchModels, KiteUtils, ControlPlots, ControlSystemsBase, FiniteDiff
+using WinchControllers, WinchModels, KiteUtils, ControlPlots, ControlSystemsBase, FiniteDiff, RobustAndOptimalControl
 import FiniteDiff: finite_difference_jacobian
 
 if isfile("data/system_tuned.yaml")
@@ -94,14 +94,33 @@ function open_loop_system(winch, v_set, v_wind)
     return C * sys
 end
 
-for v_wind in range(7.5, 9, length=2)
+function margins(sys)
+    margins = []
+    for v_wind in range(1, 9, length=9)
+        global sys
+        local v_set, dm
+        v_set = 0.57*v_wind
+        sys = open_loop_system(winch, v_set, v_wind)
+        dm = diskmargin(sys)
+        push!(margins, dm.margin)
+    end
+    min_margin = minimum(margins)
+    if min_margin < 0.3
+        @error "System is unstable with a minimum margin of: $min_margin"
+    elseif min_margin < 0.5
+        @warn "System is marginally stable with a minimum margin of: $min_margin"
+    else
+        @info "System is stable with a minimum margin of: $min_margin"
+    end
+    return margins
+end
+margins(sys)
+
+for v_wind in range(7.5, 9, length=3)
     global sys
     local v_set
     v_set = 0.57*v_wind
-    # @info "Linearizing for v_wind: $v_wind m/s, v_ro: $(round(v_set, digits=2)) m/s"
     sys = open_loop_system(winch, v_set, v_wind)
-    gm, pm, wgm, wpm = margin(sys; adjust_phase_start=false)
-    @info "Gain margin: $gm, Phase margin: $pm, Gain crossover frequency: $wgm, Phase crossover frequency: $wpm"
-    bode_plot(sys; from=0.76, to=2.85, title="Linearized System, v_wind=8..9 m/s")
+    bode_plot(sys; from=0.76, to=2.85, title="System with UFC, v_wind=7.5..9 m/s")
 end
-sys
+nothing

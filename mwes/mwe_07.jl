@@ -5,7 +5,7 @@ if ! ("RobustAndOptimalControl" ∈ keys(Pkg.project().dependencies))
     using TestEnv; TestEnv.activate()
     using Test
 end
-using WinchControllers, WinchModels, KiteUtils, Plots, ControlSystemsBase, FiniteDiff, RobustAndOptimalControl
+using WinchControllers, WinchModels, KiteUtils, ControlSystemsBase, FiniteDiff, RobustAndOptimalControl
 import FiniteDiff: finite_difference_jacobian
 
 if isfile("data/system_tuned.yaml")
