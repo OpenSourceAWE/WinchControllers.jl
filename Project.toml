@@ -51,4 +51,4 @@ NOMAD = "02130f1c-4665-5b79-af82-ff1385104aa0"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "ControlPlots", "Documenter", "Aqua", "NOMAD"]
+test = ["Test", "ControlPlots", "Documenter", "Aqua", "NOMAD", "RobustAndOptimalControl"]
