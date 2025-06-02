@@ -1,6 +1,7 @@
 # Linearize the winch
 # input: set_speed
 # output: speed
+# Same as mwe_02.jl, but using FiniteDiff.jl for Jacobian calculation
 
 using Pkg
 if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
