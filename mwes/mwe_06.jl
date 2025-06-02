@@ -51,6 +51,18 @@ function calc_force(v_wind, v_ro)
     (v_wind - v_ro)^2 * 4000.0 / 16.0
 end
 
+# create the upper force controller
+# Tf​ can typically be chosen as Ti/NT for a PI controller and Td/N for a PID controller, and N is commonly in the range 2 to 20. 
+# Td = wcs.df_high / wcs.pf_high Kd/Kp
+function upper_force_controller(wcs)
+    # wcs: WCSettings object
+    Td = wcs.df_high / wcs.pf_high
+    N = wcs.nf_high
+    Tf = Td / N
+    C = pid(wcs.pf_high, wcs.if_high, wcs.df_high; form=:parallel, filter_order=1, state_space=true, Tf)
+    return C
+end
+
 function system_dynamics(x, u)
     # x: state vector, e.g., [v_act]
     # u: input vector, e.g., [v_set, v_wind]
@@ -73,10 +85,18 @@ function linearize(winch, v_set, v_wind)
     siso_sys = ss(A, B[:, 1], C, D[:, 1])
 end
 
+function open_loop_system(winch, v_set, v_wind)
+    # Create the open loop system with the upper force controller
+    C = upper_force_controller(winch.wcs)
+    sys = linearize(winch, v_set, v_wind)
+    # sys_open = feedback(C * sys, 1.0; sign=-1)
+    return C * sys
+end
+
 for v_wind in range(1, 9, length=9)
     local v_set, sys
     v_set = 0.57*v_wind
     @info "Linearizing for v_wind: $v_wind m/s, v_ro: $(round(v_set, digits=2)) m/s"
-    sys = linearize(winch, v_set, v_wind)
+    sys = open_loop_system(winch, v_set, v_wind)
     bode_plot(sys; from=0.76, to=2.85, title="Linearized System, v_wind=1..9 m/s")
 end
