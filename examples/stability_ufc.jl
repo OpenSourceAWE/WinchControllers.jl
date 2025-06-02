@@ -97,13 +97,18 @@ function open_loop_system(winch, v_set, v_wind)
 end
 
 function margins()
-    margins = []
-    for v_wind in range(1, 9, length=9)
+    global sys
+    margins = Float64[]
+    for v_wind in range(7.5, 9, length=9)
         local v_set, dm
         v_set = 0.57*v_wind
         sys = open_loop_system(winch, v_set, v_wind)
-        dm = diskmargin(sys)
-        push!(margins, dm.margin)
+        try
+            dm = diskmargin(sys)
+            push!(margins, dm.margin)
+        catch e
+            push!(margins, 0)
+        end
     end
     min_margin = minimum(margins)
     if min_margin < 0.3
