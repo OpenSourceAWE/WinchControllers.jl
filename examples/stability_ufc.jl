@@ -111,7 +111,7 @@ function margins()
     elseif min_margin < 0.5
         @warn "System is marginally stable with a minimum margin of: $min_margin"
     else
-        @info "System is stable with a minimum margin of: $(round(min_margin, digits=2))"
+        @info "System is stable with a minimum margin of: $(round(min_margin, digits=2)). A value ≥ 0.5 is considered robust."
     end
     return margins
 end
