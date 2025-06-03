@@ -51,11 +51,11 @@ model = setname!(NonLinModel(f!, h!, Ts, nu, nx, ny, nd); u=vu, x=vx, y=vy, d=vd
 plant = setname!(NonLinModel(f!, h!, Ts, nu, nx, ny, nd); u=vu, x=vx, y=vy, d=vd)
 
 linmodel = linearize(model, x=[0], u=[0], d=[0])
-α=0.01; σQ=[0.05]; σR=[0.5]; nint_u=[0]; σQint_u=[0.1]; nint_ym=[0]
+α=0.01; σQ=[0.05]; σR=[0.5]; nint_u=[1]; σQint_u=[0.1]; nint_ym=[1]
 i_ym = [1]
 estim = KalmanFilter(linmodel; i_ym, σQ, σR, nint_u, nint_ym)
 
-Hp, Hc, Mwt, Nwt = 20, 2, [0.0, 0.0, 1e5], [0.1]
+Hp, Hc, Mwt, Nwt = 20, 2, [0.0, 0.0, 1e5], [0.01]
 umin, umax = [-wcs.f_high*set.drum_radius/set.gear_ratio], [+wcs.f_high*set.drum_radius/set.gear_ratio]
 ymin, ymax = [-Inf, wcs.f_low, -Inf], [Inf, wcs.f_high, Inf]
 mpc = LinMPC(estim; Hp, Hc, Mwt, Nwt, Cwt=1e6)
