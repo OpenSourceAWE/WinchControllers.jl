@@ -14,6 +14,7 @@ The three values that tell us which sub-controller is active.
 
 Basic winch controller. Works in one of the three modes `wcsLowerForceLimit`, `wcsSpeedControl` and
 `wcsUpperForceLimit`.
+Implements the following block diagram: ![speed_controller](assets/winch_controller.png)
 
 # Fields
 
