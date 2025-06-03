@@ -25,7 +25,7 @@ The goal of this package is to provide controllers for winches that consist of a
 **Planned features**
 - support of torque controlled winches
 - length control (position control)
-- improved, simplified system model using a quasi-steady tether model and an improved aerodynamic model including the cross-wind factor
+- improved, simplified system model using a quasi-steady tether model and an aerodynamic model including the cross-wind factor
 
 ## Installation
 <details>
