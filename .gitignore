@@ -3,3 +3,4 @@
 docs/Manifest.toml
 docs/build
 data/wc_settings_tuned.yaml
+simulink/WinchController.slx.r2021a
