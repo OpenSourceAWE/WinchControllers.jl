@@ -20,6 +20,7 @@ The goal of this package is to provide controllers for winches that consist of a
 - control of asynchronous motors/ generators
 - speed control
 - auto-tuning of the controller
+- disk based stability analysis of linearized system including the force controllers
 
 **Planned features**
 - support of torque controlled winches
