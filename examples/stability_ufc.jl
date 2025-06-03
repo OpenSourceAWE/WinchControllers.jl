@@ -129,4 +129,5 @@ for v_wind in range(7.5, 9, length=3)
     sys = open_loop_system(winch, v_set, v_wind)
     bode_plot(sys; from=0.76, to=2.85, title="System with UFC, v_wind=7.5..9 m/s")
 end
+@info "Type 'diskmargin(sys)' for more details on the system stability."
 nothing

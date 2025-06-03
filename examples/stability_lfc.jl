@@ -126,4 +126,5 @@ for v_wind in range(0.2, 1, length=5)
     sys = open_loop_system(winch, v_set, v_wind)
     bode_plot(sys; from=-0.3, to=2.85, title="System with LFC, v_wind=0.2..1 m/s")
 end
+@info "Type 'diskmargin(sys)' for more details on the system stability."
 nothing
