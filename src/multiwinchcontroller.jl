@@ -1,21 +1,7 @@
 using DiscretePIDs
-
-struct Positive{T<:Real}
-    value::T
-    function Positive(x::T) where T<:Real
-        if x < 0
-            throw(ArgumentError("Value must be positive"))
-        end
-        new{T}(x)
-    end
-end
-
-# Allow getting the wrapped value easily
-Base.getindex(p::Positive) = p.value
-Base.show(io::IO, p::Positive) = print(io, p.value)
-
 using TrajectoryLimiters
 using Parameters
+using Test
 
 
 @with_kw struct LineLengthControllerSettings
@@ -24,27 +10,22 @@ using Parameters
     sampling_time::Real
 end
 
-# Define settings of controller
 settings = LineLengthControllerSettings(
     max_setpoint_firstderivative=10.0,
     max_setpoint_secondderivative=50.0,
     sampling_time=0.02
 )
+
 limiter = TrajectoryLimiter(settings.sampling_time, settings.max_setpoint_firstderivative, settings.max_setpoint_secondderivative)
 
-# Ensure continuity
-linelength_feedback = 0.
-linelength_feedback_firstderivative = 0.
+linelength_feedback = 0.0
+linelength_feedback_firstderivative = 0.0
+linelength_order = 1.0
 
-linelength_order = 1.
-state = TrajectoryLimiters.State(linelength_feedback, linelength_feedback_firstderivative, linelength_order, 0.)
-
-state, x = limiter(state, linelength_order)
+state = TrajectoryLimiters.State(linelength_feedback, linelength_feedback_firstderivative, linelength_order, 0.0)
+state, _ = limiter(state, linelength_order)
 
 linelength_setpoint = state.x
-
-
-# TODO plug the real feedback (for now assume winch controller allows to track setpoint perfectly)
 linelength_feedback = linelength_setpoint
 
 
@@ -70,33 +51,28 @@ else
     sampling_time::Real
 end
 
-# Define settings of controller
-settings = DifferentialLineLengthControllerSettings(
+differential_settings = DifferentialLineLengthControllerSettings(
     max_differential_steering_length=1.0,
     max_depower_length=1.0,
     sampling_time=0.02
 )
 
+# Dummy orders (replace with actual signals)
+steering_order = 0.2
+depower_order = 0.1
 
-# compute_differential_from_reference_linelength
-# We assume left/right to be back lines (attached on the trailing edge, at the back compared to power line with is in front of center of effort)
-length_left_setpoint = reference_linelength + steering_order * settings.max_differential_steering_length / 2 + depower_order * settings.max_depower_length
-length_right_setpoint = reference_linelength + steering_order * settings.max_differential_steering_length / 2 + depower_order * settings.max_depower_length
+# Compute setpoints
+length_left_setpoint = reference_linelength + steering_order * differential_settings.max_differential_steering_length / 2 + depower_order * differential_settings.max_depower_length
+length_right_setpoint = reference_linelength - steering_order * differential_settings.max_differential_steering_length / 2 + depower_order * differential_settings.max_depower_length
 
-# Compute feedback from measurements
-steering_fdbk = (length_left_feedback - length_right_feedback) / settings.max_differential_steering_length
-depower_fdbk = ((length_left_feedback + length_right_feedback) / 2 - length_power_feedback) / settings.max_depower_length
+# Dummy feedbacks (replace with real sensor inputs)
+length_left_feedback = 0
+length_right_feedback = 0
+length_power_feedback = 0
 
-# Solution 1: use decoupled pid for steering and depower
-steering_pid = my_pid()
-depower_pid = my_pid()
-set_torque_left = steering_pid(steering_fdbk - steering_order) + depower_pid(depower_fdbk - depower_order)
-set_torque_right = steering_pid(steering_fdbk - steering_order) + depower_pid(depower_fdbk - depower_order)
-
-# Solution 2: use two identifcal line length pid controller
-controllerlinelength_pid = my_pid()
-set_torque_left = controllinelength_pid(length_left_setpoint, length_left_feedback)
-set_torque_right = controllinelength_pid(length_right_setpoint, length_right_feedback)
+# Feedback errors
+steering_fdbk = (length_left_feedback - length_right_feedback) / differential_settings.max_differential_steering_length
+depower_fdbk = ((length_left_feedback + length_right_feedback) / 2 - length_power_feedback) / differential_settings.max_depower_length
 
 function my_pid()
   ## Parameters of PID controller
@@ -104,6 +80,7 @@ function my_pid()
   proportional_gain = 1
   integral_time = 10
   derivative_time = 1
+  sampling_time = 0.02
 
   antiwindup_reset_time = 1
 
@@ -115,42 +92,33 @@ function my_pid()
   fraction_of_set_point = 1
 
   # Normalized output
-  umin = -1
-  umax = 1
+  min_output = -1
+  max_output = 1
   initial_integral_state = 0
 
   # Parameters to initialize derivative filter
   initial_derivative_state = 0
-  previous_feedback = feedback
+  previous_feedback = 0
 
 
-  parallel2standard(Kp, Ki, Kd)
+  # parallel2standard(Kp, Ki, Kd)
 
   pid = DiscretePID(; K=proportional_gain, Ti=integral_time,
     Td=derivative_time, Tt=antiwindup_reset_time,
     N=maximum_derivative_gain, b=1fraction_of_set_point,
-    umin=-min_output, umax=max_output, Ts=sampling_time, I=initial_integral_state, D=initial_derivative_stat, yold=previous_feedback)
+    umin=min_output, umax=max_output, Ts=sampling_time, I=initial_integral_state, D=initial_derivative_state, yold=previous_feedback)
   return pid
 end
-# u = pid(reference, feedback, uff)
 
-# reset_state!(pid)
+# Solution 1: decoupled PIDs
+steering_pid = my_pid()
+depower_pid = my_pid()
 
-# ctrl = function (x, t)
-#   y = (P.C*x)[]
-#   r = 1
-#   u = pid(r, y)
-# end
+set_torque_left = steering_pid(steering_order, steering_fdbk) + depower_pid(depower_order, depower_fdbk)
+set_torque_right = -steering_pid(steering_order, steering_fdbk) + depower_pid(depower_order, depower_fdbk)
 
-# P = c2d(ss(tf(1, [1, 1])), sampling_time)
-
-# ## PI control
-# Ti = 1
-# C = c2d(ControlSystemsBase.pid(K, Ti), Ts)
-# res = step(feedback(P * C), 3)
-# res2 = lsim(P, ctrl, 3)
-
-@testitem "First tests" begin
-    x = 1
-    @test x =1
+# Solution 2: individual line controllers (optional alternative)
+controller_linelength_pid = my_pid()
+set_torque_left_2 = controller_linelength_pid(length_left_setpoint, length_left_feedback)
+set_torque_right_2 = controller_linelength_pid(length_right_setpoint, length_right_feedback)
 end
