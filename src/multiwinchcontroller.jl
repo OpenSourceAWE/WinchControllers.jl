@@ -1,33 +1,143 @@
-using DiscretePIDs
 using TrajectoryLimiters
 using Parameters
+using DiscretePIDs
 using Test
 
-
+# ----------------------------------------
+# Reference Line Length Control Settings
+# ----------------------------------------
 @with_kw struct ReferenceLineLengthControllerSettings
-  max_setpoint_speed::Real # Maximum reel in or reel out speed allowed. Must be lower than winch limits [m/s]
-  max_setpoint_acceleration::Real # Maximum variation of reel in/reel out speed allowed. Must be lower than winch limits [m/s²]
-  sampling_time::Real # Sampling time used by the discrete controller. Must be small compared to the ratio speed/acceleration [s]
+    max_setpoint_speed::Real          # Maximum reel in/out speed allowed [m/s]
+    max_setpoint_acceleration::Real   # Max variation of reel speed [m/s²]
+    sampling_time::Real               # Sampling time for discrete controller [s]
 end
 
-settings = ReferenceLineLengthControllerSettings(
-  max_setpoint_speed=10.0,
-  max_setpoint_acceleration=50.0,
-  sampling_time=0.02)
+function create_trajectory_limiter(settings::ReferenceLineLengthControllerSettings)
+    return TrajectoryLimiter(settings.sampling_time, settings.max_setpoint_speed, settings.max_setpoint_acceleration)
+end
 
+function update_line_length_feedback(
+    limiter::TrajectoryLimiter, 
+    feedback::Real, feedback_speed::Real, 
+    order::Real
+)
+    state = TrajectoryLimiters.State(feedback, feedback_speed, order, 0.0)
+    state, _ = limiter(state, order)
+    return state.x  # New line length setpoint
+end
 
-limiter = TrajectoryLimiter(settings.sampling_time, settings.max_setpoint_speed, settings.max_setpoint_acceleration)
+# ----------------------------------------
+# Differential Line Length Control Settings
+# ----------------------------------------
+@with_kw struct DifferentialLineLengthControllerSettings
+    max_differential_steering_length::Real  # [m]
+    max_depower_length::Real                # [m]
+    sampling_time::Real
+end
 
+# ----------------------------------------
+# PID Factory Function
+# ----------------------------------------
+function make_pid(; 
+    # Proportional gain from standard form (multiplying both P, I and D terms)
+    Kp=1.0,
+
+    # Integral time constant: how fast the integral action builds up
+    Ti=10.0,
+
+    # Derivative time constant: how strongly it reacts to rate of change
+    Td=1.0,
+
+    # Sampling time of the discrete controller [s]
+    Ts=0.02,
+
+    # Antiwindup reset time (Tt): determines how fast integral antiwindup reacts
+    Tt=1.0,
+
+    # Parameter that limits the gain of the derivative term at high frequencies (2–20 typical)
+    N=5.0,
+
+    # Proportion of the reference signal in the proportional term (usually 1.0; <1 if feedforward used)
+    b=1.0,
+
+    # Output limits (normalized)
+    umin=-1.0, 
+    umax=1.0,
+
+    # Initial state of integral term
+    I=0.0,
+
+    # Initial state of derivative filter
+    D=0.0,
+
+    # Previous feedback value, needed for derivative filter init
+    yold=0.0
+)
+    return DiscretePID(
+        K=Kp, Ti=Ti, Td=Td, Ts=Ts, Tt=Tt,
+        N=N, b=b, umin=umin, umax=umax,
+        I=I, D=D, yold=yold
+    )
+end
+
+# ----------------------------------------
+# Control Logic
+# ----------------------------------------
+function compute_control(
+    ref_linelength_setpoint::Real, 
+    steering_order::Real, depower_order::Real,
+    length_left_feedback::Real, length_right_feedback::Real, length_power_feedback::Real,
+    settings::DifferentialLineLengthControllerSettings
+)
+    # Compute setpoints for left/right line lengths
+    left_sp = ref_linelength_setpoint + steering_order * settings.max_differential_steering_length / 2 + depower_order * settings.max_depower_length
+    right_sp = ref_linelength_setpoint - steering_order * settings.max_differential_steering_length / 2 + depower_order * settings.max_depower_length
+
+    # Compute normalized feedback errors
+    steering_fdbk = (length_left_feedback - length_right_feedback) / settings.max_differential_steering_length
+    depower_fdbk = ((length_left_feedback + length_right_feedback)/2 - length_power_feedback) / settings.max_depower_length
+
+    # Create PIDs
+    steering_pid = make_pid(Ts=settings.sampling_time)
+    depower_pid = make_pid(Ts=settings.sampling_time)
+
+    # Control torques (Solution 1: decoupled)
+    torque_left = steering_pid(steering_order, steering_fdbk) + depower_pid(depower_order, depower_fdbk)
+    torque_right = -steering_pid(steering_order, steering_fdbk) + depower_pid(depower_order, depower_fdbk)
+
+    # Control torques (Solution 2: individual line PIDs)
+    controller_pid = make_pid(Ts=settings.sampling_time)
+    torque_left_2 = controller_pid(left_sp, length_left_feedback)
+    torque_right_2 = controller_pid(right_sp, length_right_feedback)
+
+    return torque_left, torque_right, torque_left_2, torque_right_2
+end
+
+# ----------------------------------------
+# Example Usage
+# ----------------------------------------
+
+# Settings
+ref_settings = ReferenceLineLengthControllerSettings(
+    max_setpoint_speed = 10.0,
+    max_setpoint_acceleration = 50.0,
+    sampling_time = 0.02
+)
+
+differential_settings = DifferentialLineLengthControllerSettings(
+    max_differential_steering_length = 1.0,
+    max_depower_length = 1.0,
+    sampling_time = 0.02
+)
+
+# Initial feedback and order values
 linelength_feedback = 0.0
 linelength_feedback_speed = 0.0
 linelength_order = 1.0
 
-state = TrajectoryLimiters.State(linelength_feedback, linelength_feedback_speed, linelength_order, 0.0)
-state, _ = limiter(state, linelength_order)
-
-linelength_setpoint = state.x
-linelength_feedback = linelength_setpoint
-
+# Trajectory limiting
+limiter = create_trajectory_limiter(ref_settings)
+linelength_setpoint = update_line_length_feedback(limiter, linelength_feedback, linelength_feedback_speed, linelength_order)
 
 # Taking directly the setpoint might help to be more reactive
 # However due to the delay from the feedback from control lines,
@@ -38,10 +148,7 @@ linelength_feedback = linelength_setpoint
 # in the phase where the reeling speed is changing.
 # By chance this should not impact the differential steering control
 use_linelength_direct_feedthrough = false
-if use_linelength_direct_feedthrough
-  reference_linelength = linelength_setpoint
-else
-  reference_linelength = linelength_feedback
+reference_linelength = use_linelength_direct_feedthrough ? linelength_setpoint : linelength_feedback
 
 
   # ud_prime: depower setting in the range of 0 to 1, 0 means fully powered, 1 means fully depowered
@@ -53,107 +160,23 @@ else
   # This corresponds to the convention already used @TU Delft
   # Note this is not the usual convention for kitesurfers which defines that lines are equal when kitebar is in full power position
   # No trim is considered for now
+  
+# Dummy control orders and feedbacks
+steering_order = 0.2
+depower_order = 0.1
+length_left_feedback = 0.0
+length_right_feedback = 0.0
+length_power_feedback = 0.0
 
-  @with_kw struct DifferentialLineLengthControllerSettings
-    max_differential_steering_length::Real # Absolute value of expected length differential between left and right line when steering is 1 or -1 [m]
-    max_depower_length::Real # When steering is zero, absolute value of expected length differential between front and back line [m]
-    sampling_time::Real
-  end
+# Compute control torques
+torque_L1, torque_R1, torque_L2, torque_R2 = compute_control(
+    reference_linelength,
+    steering_order, depower_order,
+    length_left_feedback, length_right_feedback, length_power_feedback,
+    differential_settings
+)
 
-  differential_settings = DifferentialLineLengthControllerSettings(
-    max_differential_steering_length=1.0,
-    max_depower_length=1.0,
-    sampling_time=0.02
-  )
-
-  # Dummy orders (replace with actual signals)
-  steering_order = 0.2
-  depower_order = 0.1
-
-  # Compute setpoints
-  length_left_setpoint = reference_linelength + steering_order * differential_settings.max_differential_steering_length / 2 + depower_order * differential_settings.max_depower_length
-  length_right_setpoint = reference_linelength - steering_order * differential_settings.max_differential_steering_length / 2 + depower_order * differential_settings.max_depower_length
-
-  # Dummy feedbacks (replace with real sensor inputs)
-  length_left_feedback = 0
-  length_right_feedback = 0
-  length_power_feedback = 0
-
-  # Feedback errors
-  steering_fdbk = (length_left_feedback - length_right_feedback) / differential_settings.max_differential_steering_length
-  depower_fdbk = ((length_left_feedback + length_right_feedback) / 2 - length_power_feedback) / differential_settings.max_depower_length
-
-  function my_pid()
-    ## Parameters of PID controller
-    # Proportional gain from standard form (multiplying both proportional, integral and derivative terms)
-    proportional_gain = 1
-    integral_time = 10
-    derivative_time = 1
-    sampling_time = 0.02
-
-    antiwindup_reset_time = 1
-
-    #parameter that limits the gain of the derivative term at high frequencies, typically ranges from 2 to 20,
-    maximum_derivative_gain = 5
-
-    # parameter that gives the proportion of the reference signal that appears in the proportional term. Default to 1
-    # Might be reduced depending on feedforward or direct feedthrough used
-    fraction_of_set_point = 1
-
-    # Normalized output
-    min_output = -1
-    max_output = 1
-    initial_integral_state = 0
-
-    # Parameters to initialize derivative filter
-    initial_derivative_state = 0
-    previous_feedback = 0
-
-
-    # parallel2standard(Kp, Ki, Kd)
-
-    pid = DiscretePID(; K=proportional_gain, Ti=integral_time,
-      Td=derivative_time, Tt=antiwindup_reset_time,
-      N=maximum_derivative_gain, b=1fraction_of_set_point,
-      umin=min_output, umax=max_output, Ts=sampling_time, I=initial_integral_state, D=initial_derivative_state, yold=previous_feedback)
-    return pid
-  end
-
-  # Solution 1: decoupled PIDs
-  steering_pid = my_pid()
-  depower_pid = my_pid()
-
-  set_torque_left = steering_pid(steering_order, steering_fdbk) + depower_pid(depower_order, depower_fdbk)
-  set_torque_right = -steering_pid(steering_order, steering_fdbk) + depower_pid(depower_order, depower_fdbk)
-
-  # Solution 2: individual line controllers (optional alternative)
-  controller_linelength_pid = my_pid()
-  set_torque_left_2 = controller_linelength_pid(length_left_setpoint, length_left_feedback)
-  set_torque_right_2 = controller_linelength_pid(length_right_setpoint, length_right_feedback)
-
-
-  """
-  winch:
-      winch_model: "AsyncMachine" # or TorqueControlledMachine
-      max_force: 4000        # maximal (nominal) tether force; short overload allowed [N]
-      v_ro_max:  8.0         # maximal reel-out speed                          [m/s]
-      v_ro_min: -8.0         # minimal reel-out speed (=max reel-in speed)     [m/s]
-      drum_radius: 0.1615    # radius of the drum                              [m]
-      max_acc: 4.0           # maximal acceleration of the winch               [m/s²]
-      gear_ratio: 6.2        # gear ratio of the winch                         [-]   
-      inertia_total: 0.204   # total inertia, as seen from the motor/generator [kgm²]
-      f_coulomb: 122.0       # coulomb friction                                [N]
-      c_vf: 30.6             # coefficient for the viscous friction            [Ns/m]
-      p_speed: 1.0           # proportional gain of the winch speed controller [-]
-      i_speed: 0.1           # integral gain of the winch speed controller     [-]
-  """
-
-  function main()
-    settings = LineLengthControllerSettings(
-      max_setpoint_speed=10.0,
-      max_setpoint_acceleration=50.0,
-      sampling_time=0.02)
-    return settings
-  end
-
-end
+println("Torque Left (decoupled): ", torque_L1)
+println("Torque Right (decoupled): ", torque_R1)
+println("Torque Left (individual): ", torque_L2)
+println("Torque Right (individual): ", torque_R2)
