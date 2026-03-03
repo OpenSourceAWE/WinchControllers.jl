@@ -18,7 +18,7 @@ calc_output(cvi::CalcVSetIn)
 on_timer(cvi::CalcVSetIn)
 ```
 
-## SpeedController
+## SpeedController Type
 ```@docs
 SpeedController
 SpeedController(wcs::WCSettings)

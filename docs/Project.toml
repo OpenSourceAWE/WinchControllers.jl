@@ -1,10 +1,13 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 KiteUtils = "90980105-b163-44e5-ba9f-8b1c83bb0533"
+LiveServer = "16fef848-5104-11e9-1b77-fb7a48bbb589"
+WinchControllers = "9e74470a-8ab1-4f32-b878-f32ebd236ea2"
+
+[sources]
+WinchControllers = {path = ".."}
 
 [compat]
-julia = "1.10, 1.11, 1.12"
-KiteUtils = "0.11"
 Documenter = "1.11"
-
-
+KiteUtils = "0.11"
+julia = "1.10, 1.11, 1.12"
