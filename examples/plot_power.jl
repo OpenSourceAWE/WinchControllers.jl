@@ -1,8 +1,7 @@
 # activate the test environment if needed
 using Pkg
 if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
-    using TestEnv; TestEnv.activate()
-    using Test
+    Pkg.activate(@__DIR__)
 end
 using Timers, Statistics; tic()
 
@@ -46,7 +45,7 @@ winch = Winch(wcs, set)
 f_low = wcs.f_low
 
 for i in 1:length(lg)
-    local force, v_set
+    local force
     # model
     v_wind = V_WIND[i]
 

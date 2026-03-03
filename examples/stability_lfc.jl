@@ -3,8 +3,7 @@
 
 using Pkg
 if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
-    using TestEnv; TestEnv.activate()
-    using Test
+    Pkg.activate(@__DIR__)
 end
 using WinchControllers, WinchModels, KiteUtils, ControlPlots, ControlSystemsBase, FiniteDiff, RobustAndOptimalControl
 import FiniteDiff: finite_difference_jacobian

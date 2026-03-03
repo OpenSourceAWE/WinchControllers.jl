@@ -3,16 +3,17 @@
 
 using Pkg
 if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
-    using TestEnv; TestEnv.activate()
-    using Test
+    Pkg.activate(@__DIR__)
 end
-using WinchControllers, WinchModels, KiteUtils, ControlPlots, ControlSystemsBase, FiniteDiff, RobustAndOptimalControl
+using ControlPlots, ControlSystemsBase, FiniteDiff, KiteUtils, RobustAndOptimalControl,
+      WinchControllers, WinchModels
 import FiniteDiff: finite_difference_jacobian
+using KiteUtils: Settings, load_settings
 
-if isfile("data/system_tuned.yaml")
-    set = load_settings("system_tuned.yaml")
+set::Settings = if isfile("data/system_tuned.yaml")
+    load_settings("system_tuned.yaml")
 else
-    set = load_settings("system.yaml")
+    load_settings("system.yaml")
 end
 wcs = WCSettings(dt=0.02)
 update(wcs)
@@ -86,7 +87,7 @@ function linearize(winch, v_set, v_wind)
     C = [1.0]
     D = [0.0 0.0]
     force = calc_force(v_wind, v_act)
-    siso_sys = ss(A, B[:, 1], C, D[:, 1]) * force/v_act
+    ss(A, B[:, 1], C, D[:, 1]) * force/v_act
 end
 
 function open_loop_system(winch, v_set, v_wind)
@@ -106,7 +107,7 @@ function margins()
         try
             dm = diskmargin(sys)
             push!(margins, dm.margin)
-        catch e
+        catch
             push!(margins, 0)
         end
     end

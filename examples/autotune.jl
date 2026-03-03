@@ -1,10 +1,9 @@
 # this script tunes the controller parameters (well, eight of them)
 using Pkg
 if ! ("NOMAD" ∈ keys(Pkg.project().dependencies))
-    using TestEnv; TestEnv.activate()
-    using Test
+    Pkg.activate(@__DIR__)
 end
-using WinchControllers, KiteUtils, NOMAD, ControlPlots
+using ControlPlots, KiteUtils, NOMAD, WinchControllers
 
 LF = 2.5 # limit factor
 TUNED::Bool = false
@@ -25,10 +24,10 @@ function plot(lg::WCLogger)
 end
 
 function simulate(wcs::WCSettings; return_lg::Bool = false)
-    if TUNED
-        set = load_settings("system_tuned.yaml")
+    set = if TUNED
+        load_settings("system_tuned.yaml")
     else
-        set = load_settings("system.yaml")
+        load_settings("system.yaml")
     end
  
     # define the simulation parameters

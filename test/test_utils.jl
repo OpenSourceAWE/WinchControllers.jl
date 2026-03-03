@@ -1,5 +1,4 @@
-if false include("../src/utils.jl") end
-if false include("../src/wc_settings.jl") end
+using Test
 
 @testset "merge_angles" begin
     alpha=0

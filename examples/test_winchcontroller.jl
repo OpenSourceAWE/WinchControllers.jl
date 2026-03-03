@@ -1,8 +1,7 @@
 # activate the test environment if needed
 using Pkg
 if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
-    using TestEnv; TestEnv.activate()
-    using Test
+    Pkg.activate(@__DIR__)
 end
 using Timers, Statistics; tic()
 

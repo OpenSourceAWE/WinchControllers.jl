@@ -252,7 +252,7 @@ and updates the winch acceleration `w.acc` using a loop.
 function on_timer(w::Winch)
     last_acc = w.acc
     acc = 0.0
-    for i in 1:w.wcs.winch_iter
+    for _ in 1:w.wcs.winch_iter
         w.acc = calc_acceleration(w.wm, w.speed, w.force; set_speed = w.v_set)
         acc += w.acc
         w.speed += w.acc * w.wcs.dt/w.wcs.winch_iter
@@ -424,11 +424,11 @@ function solve(sc::SpeedController)
         sc.v_err = err
     end
     sc.sat_out = saturate(err, -sc.wcs.v_sat_error, sc.wcs.v_sat_error)
-    # begin interate
+    # begin iterate
     sol = nlsolve(calc_residual!, [ 0.0; 0.0], iterations=sc.wcs.max_iter)
     @assert sol.f_converged
     sc.wcs.iter = max(sol.iterations, sc.wcs.iter)
-    sat2_in, sat2_out, rate_out, int_in = calc_sat2in_sat2out_rateout_intin(sc, sol.zero)
+    sat2_in, sat2_out, rate_out, _ = calc_sat2in_sat2out_rateout_intin(sc, sol.zero)
     sc.v_set_out = rate_out
 end
 
