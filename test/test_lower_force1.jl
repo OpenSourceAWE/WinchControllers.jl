@@ -1,13 +1,9 @@
 # activate the test environment if needed
 using Pkg
 if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
-    using TestEnv; TestEnv.activate()
+    Pkg.activate(@__DIR__)
 end
-using WinchControllers, KiteUtils, Timers; tic()
-if false; include("../src/WinchControllers.jl"); end
-if false; include("../src/winchcontroller.jl"); end
-if false; include("../src/wc_components.jl"); end
-if false; include("../src/wc_settings.jl"); end
+using KiteUtils, Timers, WinchControllers; tic()
 
 # Test the lower force controller with a pre-described input for the measured force and a constant
 # do NOT use the higher level WinchController

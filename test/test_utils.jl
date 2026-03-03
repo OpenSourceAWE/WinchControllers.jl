@@ -1,9 +1,9 @@
-using Test
+using Test, WinchControllers
 
 @testset "merge_angles" begin
-    alpha=0
-    beta=pi/2
-    factor_beta=0
+    alpha = 0
+    beta = pi/2
+    factor_beta = 0
     angle = merge_angles(alpha, beta, factor_beta)
     @test angle ≈ 0 atol=1e-8
     factor_beta=1

@@ -1,5 +1,5 @@
-using WinchControllers, KiteUtils
-using Test
+using KiteUtils, WinchControllers
+using Pkg, Test
 
 const __TEST__ = true
 

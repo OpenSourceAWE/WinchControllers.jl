@@ -1,14 +1,14 @@
 # activate the test environment if needed
 using Pkg
 if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
-    using TestEnv; TestEnv.activate()
+    Pkg.activate(@__DIR__)
 end
 using Timers; tic()
 
 # Test the speed controller. 
 # Input: A varying wind speed. Implements the simulink block diagram, shown in
 # docs/speed_controller_test1.png
-using WinchControllers, ControlPlots, KiteUtils
+using ControlPlots, KiteUtils, WinchControllers, Statistics
 
 set = deepcopy(load_settings("system.yaml"))
 wcs = WCSettings(dt=0.02)

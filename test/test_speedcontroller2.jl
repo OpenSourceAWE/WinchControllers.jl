@@ -1,15 +1,15 @@
 # activate the test environment if needed
 using Pkg
 if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
-    using TestEnv; TestEnv.activate()
+    
 end
 using Timers; tic()
 
-# Test the speed controller. , using a reel- out speed, proportional to the sqare-root
+# Test the speed controller. , using a reel- out speed, proportional to the square-root
 # of the force.
 # Input: A varying wind speed. Implements the simulink block diagram, shown in
 # docs/speed_controller_test2.png
-using WinchControllers, ControlPlots, KiteUtils
+using WinchControllers, ControlPlots, KiteUtils, Statistics
 
 set = deepcopy(load_settings("system.yaml"))
 wcs = WCSettings(dt=0.02)

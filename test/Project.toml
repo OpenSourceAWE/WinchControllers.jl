@@ -5,8 +5,11 @@ ControlSystemsBase = "aaaaaaaa-a6ca-5380-bf3e-84a91bcd477e"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 KiteUtils = "90980105-b163-44e5-ba9f-8b1c83bb0533"
 NOMAD = "02130f1c-4665-5b79-af82-ff1385104aa0"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 RobustAndOptimalControl = "21fd56a4-db03-40ee-82ee-a87907bee541"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+Timers = "21f18d07-b854-4dab-86f0-c15a3821819a"
 WinchControllers = "9e74470a-8ab1-4f32-b878-f32ebd236ea2"
 
 [sources]
