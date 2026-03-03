@@ -102,7 +102,7 @@ function margins()
         try
             dm = diskmargin(sys)
             push!(margins, dm.margin)
-        catch e
+        catch
             push!(margins, 0)
         end
     end

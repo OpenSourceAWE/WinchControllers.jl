@@ -5,6 +5,7 @@
 #### Changed
 - bump KiteUtils to 0.11.1
 - use subprojects instead of TestEnv
+- fix warnings
 
 ### WinchControllers v0.5.3 2025-05-31
 #### Added
