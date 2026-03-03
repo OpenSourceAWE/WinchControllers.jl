@@ -1,3 +1,6 @@
+using Test, WinchControllers
+using KiteUtils: se, wrap2pi
+
 @testset "saturate" begin
     @test saturate( 10.0, -1,   1) == 1
     @test saturate(-10.0, -1,   1) == -1
@@ -90,8 +93,6 @@ end
     y = 2*x
     out = zeros(10)
     for i in 1:length(x)
-        in1=x[i]
-        in2=y[i]
         out[i] = calc_output(m2, x[i], y[i])
         select_b(m2, i > 2)
         on_timer(m2)
@@ -117,8 +118,6 @@ end
     y = 2*x
     out = zeros(10)
     for i in 1:length(x)
-        in1=x[i]
-        in2=y[i]
         out[i] = calc_output(m3, x[i], 0, y[i])
         select_c(m3, i > 2)
         on_timer(m3)

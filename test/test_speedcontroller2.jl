@@ -9,7 +9,7 @@ using Timers; tic()
 # of the force.
 # Input: A varying wind speed. Implements the simulink block diagram, shown in
 # docs/speed_controller_test2.png
-using WinchControllers, ControlPlots, KiteUtils, Statistics
+using ControlPlots, KiteUtils, Statistics, WinchControllers
 
 set = deepcopy(load_settings("system.yaml"))
 wcs = WCSettings(dt=0.02)
