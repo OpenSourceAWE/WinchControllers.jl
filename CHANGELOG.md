@@ -1,3 +1,8 @@
+### WinchControllers v0.5.5 2026-03-23
+#### Added
+- `CITATION.cff` file
+- `.markdownlint` configuration file
+
 ### WinchControllers v0.5.4 2026-03-03
 #### Added
 - the package `RobustAndOptimalControl`
