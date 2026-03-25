@@ -4,6 +4,7 @@
 [![Build Status](https://github.com/opensourceawe/WinchControllers.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/opensourceawe/WinchControllers.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/OpenSourceAWE/WinchControllers.jl/branch/main/graph/badge.svg?token=1Npjv9zPLi)](https://codecov.io/gh/OpenSourceAWE/WinchControllers.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19186696.svg)](https://doi.org/10.5281/zenodo.19186696)
 
 Discrete controllers for Winches.
 
