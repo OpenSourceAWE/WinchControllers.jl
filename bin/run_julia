@@ -1,1 +1,3 @@
+export JULIA_PKG_SERVER_REGISTRY_PREFERENCE=eager
+
 LANG=en_US julia --project
