@@ -320,11 +320,11 @@ else
     echo "Precompiling docs project..."
     julia --project=docs -e 'using Pkg; Pkg.precompile()'
     julia --project -e 'using Pkg; Pkg.test()'
-    # Julia 1.12: do not keep a manifest in the examples folder
+    # Julia 1.12: do not keep manifests in sub-project folders (workspace resolves through root)
     rm -f "examples/Manifest-v${julia_major}.toml" examples/Manifest.toml
-    echo "Removed manifest from examples/ (not needed for Julia ${julia_major})"
-    normalize_manifest_name "test"
-    normalize_manifest_name "docs"
+    rm -f "test/Manifest-v${julia_major}.toml" test/Manifest.toml
+    rm -f "docs/Manifest-v${julia_major}.toml" docs/Manifest.toml
+    echo "Removed manifests from sub-project folders (not needed for Julia ${julia_major} workspace)"
 fi
 
 echo
