@@ -1,3 +1,21 @@
+#!/bin/bash -eu
+# SPDX-FileCopyrightText: 2025 Uwe Fechner
+# SPDX-License-Identifier: MIT
+
+if [[ $(basename $(pwd)) == "bin" ]]; then
+    cd ..
+fi
+
 export JULIA_PKG_SERVER_REGISTRY_PREFERENCE=eager
+
+# Use the Qt (qtagg) backend on macOS and Linux to avoid Tk backend issues
+# (e.g. non-responsive close button). Keep any user-set override.
+if [[ "$(uname -s)" == "Darwin" || "$(uname -s)" == "Linux" ]]; then
+    if [[ -z "${MPLBACKEND:-}" ]]; then
+        export MPLBACKEND=qtagg
+    fi
+fi
+
+. ./bin/setup_env
 
 LANG=en_US julia --project "$@"
