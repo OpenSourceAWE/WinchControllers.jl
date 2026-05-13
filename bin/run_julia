@@ -18,4 +18,11 @@ fi
 
 . ./bin/setup_env
 
-LANG=en_US julia --project "$@"
+LANG=en_US julia --project -e "
+function menu()
+    include(\"examples/menu.jl\")
+end
+function menu2()
+    include(\"examples/menu2.jl\")
+end
+" -i "$@"
