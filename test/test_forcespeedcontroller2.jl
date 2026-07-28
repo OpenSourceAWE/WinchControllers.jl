@@ -1,6 +1,6 @@
 # activate the test environment if needed
 using Pkg
-if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
+if ! ("MakieControlPlots" ∈ keys(Pkg.project().dependencies))
     Pkg.activate(@__DIR__)
 end
 using Timers; tic()
@@ -8,7 +8,7 @@ using Timers; tic()
 # Test the speed controller in combination with the controller for the lower and upper force.
 # Input: A varying wind speed. Implements the simulink block diagram, shown in
 # docs/force_speed_controller_test2.png
-using WinchControllers, KiteUtils, ControlPlots, LinearAlgebra, Statistics
+using WinchControllers, KiteUtils, MakieControlPlots, LinearAlgebra, Statistics
 
 set = deepcopy(load_settings("system.yaml"))
 

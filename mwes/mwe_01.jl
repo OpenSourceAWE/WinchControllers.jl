@@ -2,11 +2,11 @@
 # input: set_speed
 # output: speed
 using Pkg
-if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
+if ! ("MakieControlPlots" ∈ keys(Pkg.project().dependencies))
     using TestEnv; TestEnv.activate()
     using Test
 end
-using WinchControllers, KiteUtils, ControlPlots
+using WinchControllers, KiteUtils, MakieControlPlots
 
 if isfile("data/system_tuned.yaml")
     set = load_settings("system_tuned.yaml")

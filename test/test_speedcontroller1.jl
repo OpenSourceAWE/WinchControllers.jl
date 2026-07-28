@@ -1,6 +1,6 @@
 # activate the test environment if needed
 using Pkg
-if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
+if ! ("MakieControlPlots" ∈ keys(Pkg.project().dependencies))
     Pkg.activate(@__DIR__)
 end
 using Timers; tic()
@@ -8,7 +8,7 @@ using Timers; tic()
 # Test the speed controller. 
 # Input: A varying wind speed. Implements the simulink block diagram, shown in
 # docs/speed_controller_test1.png
-using ControlPlots, KiteUtils, Statistics, WinchControllers
+using MakieControlPlots, KiteUtils, Statistics, WinchControllers
 
 set = deepcopy(load_settings("system.yaml"))
 wcs = WCSettings(dt=0.02)

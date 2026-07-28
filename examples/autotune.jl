@@ -3,7 +3,7 @@ using Pkg
 if ! ("NOMAD" ∈ keys(Pkg.project().dependencies))
     Pkg.activate(@__DIR__)
 end
-using ControlPlots, KiteUtils, NOMAD, WinchControllers
+using MakieControlPlots, KiteUtils, NOMAD, WinchControllers
 
 LF = 2.5 # limit factor
 TUNED::Bool = false

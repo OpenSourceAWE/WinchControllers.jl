@@ -1,11 +1,11 @@
 # Linearize the closed loop system consisting of the winch, kite and upper force controller.
 
 using Pkg
-if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
+if ! ("MakieControlPlots" ∈ keys(Pkg.project().dependencies))
     using TestEnv; TestEnv.activate()
     using Test
 end
-using WinchControllers, WinchModels, KiteUtils, ControlPlots, ControlSystemsBase, FiniteDiff, RobustAndOptimalControl
+using WinchControllers, WinchModels, KiteUtils, MakieControlPlots, ControlSystemsBase, FiniteDiff, RobustAndOptimalControl
 import FiniteDiff: finite_difference_jacobian
 
 if isfile("data/system_tuned.yaml")

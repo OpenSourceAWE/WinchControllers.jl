@@ -2,10 +2,10 @@
 # Use the function "diskmargin" to check the stability of the system.
 
 using Pkg
-if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
+if ! ("MakieControlPlots" ∈ keys(Pkg.project().dependencies))
     Pkg.activate(@__DIR__)
 end
-using WinchControllers, WinchModels, KiteUtils, ControlPlots, ControlSystemsBase, FiniteDiff, RobustAndOptimalControl
+using WinchControllers, WinchModels, KiteUtils, MakieControlPlots, ControlSystemsBase, FiniteDiff, RobustAndOptimalControl
 import FiniteDiff: finite_difference_jacobian
 
 if isfile("data/system_tuned.yaml")

@@ -2,10 +2,10 @@
 # Use the function "diskmargin" to check the stability of the system.
 
 using Pkg
-if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
+if ! ("MakieControlPlots" ∈ keys(Pkg.project().dependencies))
     Pkg.activate(@__DIR__)
 end
-using ControlPlots, ControlSystemsBase, FiniteDiff, KiteUtils, RobustAndOptimalControl,
+using MakieControlPlots, ControlSystemsBase, FiniteDiff, KiteUtils, RobustAndOptimalControl,
       WinchControllers, WinchModels
 import FiniteDiff: finite_difference_jacobian
 using KiteUtils: Settings, load_settings

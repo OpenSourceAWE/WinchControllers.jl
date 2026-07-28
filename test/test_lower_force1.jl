@@ -1,6 +1,6 @@
 # activate the test environment if needed
 using Pkg
-if ! ("ControlPlots" ∈ keys(Pkg.project().dependencies))
+if ! ("MakieControlPlots" ∈ keys(Pkg.project().dependencies))
     Pkg.activate(@__DIR__)
 end
 using KiteUtils, Timers, WinchControllers; tic()
@@ -9,7 +9,7 @@ using KiteUtils, Timers, WinchControllers; tic()
 # do NOT use the higher level WinchController
 # set force of 350 N
 # input: data/transition.arrow
-using WinchControllers, ControlPlots
+using WinchControllers, MakieControlPlots
 
 log = load_log("transition.arrow2")
 sl  = log.syslog

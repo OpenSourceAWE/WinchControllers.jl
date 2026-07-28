@@ -194,7 +194,7 @@ $(TYPEDFIELDS)
 
 # Example
 ```julia
-using WinchControllers, ControlPlots
+using WinchControllers, MakieControlPlots
 rl = RateLimiter(1.0, 0.8)
 input =  [0,0,1,2,3,3,3,3,3,2,1,0,0,0,0,0]
 out = zeros(16)
@@ -403,7 +403,7 @@ $(TYPEDFIELDS)
 
 # Example
 ```julia
-using WinchControllers, ControlPlots
+using WinchControllers, MakieControlPlots
 
 TIME = range(0.0, 10, 501)
 SIN1 = sin.(TIME * 0.5 * 2pi) * 2
