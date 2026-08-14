@@ -75,7 +75,7 @@ to check out this project from git. You can do this with:
 ```bash
 git clone https://github.com/opensourceawe/WinchControllers.jl.git
 cd WinchControllers.jl
-git checkout v0.5.3
+git checkout v0.5.6
 ```
 For the checkout command, use the tag of the latest version.
 </details>
