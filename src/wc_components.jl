@@ -48,7 +48,14 @@ end
 """
     calc_vro(wcs::WCSettings, force)
 
-Calculate the optimal reel-out speed for a given force. 
+Calculate the optimal reel-out speed for a given force.
+
+In `wcs.mode == "reelout"` (or `wcs.test == true`), the unsigned square-root law
+`kv * sqrt(force)` is used; it never commands reel-in. Below `f_low` it is the
+`LowerForceController` that takes over and pulls in at `v_sw` — that hand-over
+is REEL_OUT mode's reel-in behaviour, not a gap in the law. Otherwise (the
+default `"piecewise"` mode) the signed law below applies, which reels in
+whenever `force < f_low`.
 
 ## Parameters
 - wcs::[WCSettings](@ref): the settings struct
@@ -58,7 +65,7 @@ Calculate the optimal reel-out speed for a given force.
 - the optimal reel-out speed
 """
 function calc_vro(wcs::WCSettings, force)
-    if wcs.test
+    if wcs.test || wcs.mode == "reelout"
         return sqrt(force) * wcs.kv
     else
         if force >= wcs.f_low

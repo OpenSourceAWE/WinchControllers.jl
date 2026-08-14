@@ -24,6 +24,10 @@ end
     include("test_wc_settings.jl")
 end
 
+@testset verbose=true "reelout.jl          " begin
+    include("test_reelout.jl")
+end
+
 @testset verbose=true "aqua.jl             " begin
     include("aqua.jl")
 end

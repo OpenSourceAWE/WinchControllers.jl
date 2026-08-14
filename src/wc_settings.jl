@@ -12,6 +12,8 @@ $(TYPEDFIELDS)
     dt
     "set to true for running the unit tests"
     test::Bool = false
+    "`\"piecewise\"` (default) uses `vf_max`/`f_low`/`f_high`; `\"reelout\"` uses the unsigned `kv * sqrt(force)` law. `test = true` also selects `\"reelout\"`, kept for the existing tests"
+    mode::String = "piecewise"
     "factor for I and P of lower force controller"
     fac = 0.25
     "max iterations limit for the PID solvers"
