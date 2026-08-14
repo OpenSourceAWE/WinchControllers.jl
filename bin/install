@@ -357,7 +357,7 @@ fi
 
 julia --startup-file=no --project -e "using Pkg; Pkg.resolve(), Pkg.instantiate(); Pkg.precompile()"
 julia --startup-file=no --project -e "using KiteUtils, WinchControllers"
-julia --startup-file=no --project=test -e "using ControlPlots, ControlSystemsBase, RobustAndOptimalControl"
+julia --startup-file=no --project=test -e "using MakieControlPlots, ControlSystemsBase, RobustAndOptimalControl"
 julia --startup-file=no --project=docs -e "using Pkg; Pkg.resolve(), Pkg.instantiate(); Pkg.precompile(); using LiveServer, Documenter"
 
 echo

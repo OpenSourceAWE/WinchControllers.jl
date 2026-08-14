@@ -66,16 +66,25 @@ if git rev-parse "$tag" >/dev/null 2>&1; then
 fi
 
 # --- top CHANGELOG.md entry must match Project.toml's version --------------
-header=$(head -1 CHANGELOG.md)
+# Line-number based, not "the header is line 1": robust even if this file
+# ever grows a leading title line before the first "### " entry.
+mapfile -t header_lines < <(grep -n '^### ' CHANGELOG.md | cut -d: -f1 | head -2)
+if [[ ${#header_lines[@]} -eq 0 ]]; then
+    echo "Error: no '### ' entry found in CHANGELOG.md." >&2
+    exit 1
+fi
+first=${header_lines[0]}
+second=${header_lines[1]:-$(($(wc -l < CHANGELOG.md) + 1))}
+header=$(sed -n "${first}p" CHANGELOG.md)
 if [[ ! "$header" =~ ^\#\#\#\ WinchControllers\ v${version//./\\.}(\ |$) ]]; then
     echo "Error: CHANGELOG.md's top entry ('$header') does not match" >&2
     echo "       Project.toml's version ($version). Write the changelog entry first." >&2
     exit 1
 fi
 
-# Body of the top entry: everything after the header line, up to (not
-# including) the next "### " header or end of file.
-notes=$(awk '/^### /{n++} n==1 && NR>1' CHANGELOG.md)
+# Body of the top entry: everything between the first and second "### "
+# headers (or end of file if there is no second one).
+notes=$(sed -n "$((first + 1)),$((second - 1))p" CHANGELOG.md)
 
 echo "Releasing WinchControllers $tag"
 echo "----------------------------------------"
