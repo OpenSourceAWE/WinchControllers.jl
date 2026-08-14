@@ -1,3 +1,21 @@
+### WinchControllers v0.5.6 2026-08-14
+#### Added
+- REEL_OUT winch-controller mode: `WCSettings.mode` (`"piecewise"`/`"reelout"`), dispatched in
+  `calc_vro`; `test = true` still selects `"reelout"` for backwards compatibility
+- the examples `test_reelout.jl` (bench-test plot of the REEL_OUT law) and `test/test_reelout.jl`
+  (headless tracking test), both added to `menu.jl`/`menu2.jl`
+- `menu()` and `menu2()` functions defined by `bin/run_julia`, bringing up `examples/menu.jl` /
+  `examples/menu2.jl` in an interactive session
+- `bin/install` script
+- default manifests `Manifest-v1.11.toml.default` and `Manifest-v1.12.toml.default`
+- CI badge in `README.md`
+#### Changed
+- switched from `ControlPlots` to `MakieControlPlots` throughout `examples/`, `test/`, `mwes/` and
+  the `src/` docstrings
+- `bin/run_julia`: forwards arguments to `julia` and `cd`s to the repo root when invoked from `bin/`
+- improved `bin/install`
+- CI workflow fixes
+
 ### WinchControllers v0.5.5 2026-03-23
 #### Added
 - `CITATION.cff` file

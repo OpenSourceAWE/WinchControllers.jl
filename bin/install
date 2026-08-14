@@ -6,8 +6,6 @@ if [[ $(basename $(pwd)) == "bin" ]]; then
     cd ..
 fi
 
-. ./bin/setup_env
-
 # Check if juliaup is installed
 if ! command -v juliaup &> /dev/null; then
     echo "Error: juliaup is not installed. Please install it first."
@@ -100,8 +98,6 @@ fi
 echo "Detected Julia version: $julia_version (major: $julia_major)"
 
 export JULIA_PKG_SERVER_REGISTRY_PREFERENCE=eager
-
-. ./bin/setup_env
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
     # Avoid Tk backend issues on macOS (e.g. non-responsive close button in PyPlot windows).

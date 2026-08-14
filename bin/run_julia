@@ -16,8 +16,6 @@ if [[ "$(uname -s)" == "Darwin" || "$(uname -s)" == "Linux" ]]; then
     fi
 fi
 
-. ./bin/setup_env
-
 LANG=en_US julia --project -e "
 function menu()
     include(\"examples/menu.jl\")
