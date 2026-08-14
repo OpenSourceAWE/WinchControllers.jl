@@ -99,14 +99,6 @@ echo "Detected Julia version: $julia_version (major: $julia_major)"
 
 export JULIA_PKG_SERVER_REGISTRY_PREFERENCE=eager
 
-if [[ "$(uname -s)" == "Darwin" ]]; then
-    # Avoid Tk backend issues on macOS (e.g. non-responsive close button in PyPlot windows).
-    # Keep user override if MPLBACKEND is already set.
-    if [[ -z "${MPLBACKEND:-}" ]]; then
-        export MPLBACKEND=qtagg
-    fi
-fi
-
 # Delete any existing custom system image for this Julia version
 SOFILE="bin/kps-image-${julia_major}.so"
 if test -f "$SOFILE"; then
