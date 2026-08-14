@@ -3,8 +3,8 @@ using Pkg, Test
 
 const __TEST__ = true
 
-cd("..")
-KiteUtils.set_data_path("data") 
+if basename(pwd()) == "test"; cd(".."); end
+KiteUtils.set_data_path(joinpath(dirname(@__DIR__), "data"))
 
 @testset verbose=true "WinchControllers.jl " begin
 
