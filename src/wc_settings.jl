@@ -12,9 +12,7 @@ file, not one per controller:
 - The cascaded length controller ([`winch_position_torque!`](@ref)) and force
   mode ([`winch_force_torque!`](@ref)) — the `winch_pos_*`/`winch_speed_*`/
   `winch_ff_scale` and `winch_force_*`/`winch_len_kp`/`winch_damp` fields.
-  Their output is a winch TORQUE. Moved here from V3Kite.jl (where they were a
-  separate `WC_Settings` struct with its own YAML file) so that one struct and
-  one `wc_settings.yaml` describe the whole winch.
+  Their output is a winch TORQUE. 
 
 A run uses one mode; they share only the drum.
 
