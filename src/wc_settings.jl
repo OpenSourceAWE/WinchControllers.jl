@@ -24,12 +24,14 @@ $(TYPEDFIELDS)
 """
 @with_kw mutable struct WCSettings @deftype Float64
     """
-    Timestep of the winch controller [s]. The default is a placeholder — every
-    caller overwrites it with the plant's own timestep. It exists only so that
-    `WCSettings()` works for the torque controllers below, which read their
-    gains from a default-constructed instance.
+    Timestep of the winch controller [s]. Defaults to `NaN` — every caller must
+    overwrite it with the plant's own timestep, and a `NaN` makes a missing one
+    fail loudly (e.g. `DiscretePID(; Ts=NaN, ...)`) instead of silently running
+    at the wrong rate. The field exists at all so that `WCSettings()` works for
+    the torque controllers below, which read their gains from a
+    default-constructed instance without touching `dt`.
     """
-    dt = 0.02
+    dt = NaN
     "set to true for running the unit tests"
     test::Bool = false
     "`\"piecewise\"` (default) uses `vf_max`/`f_low`/`f_high`; `\"reelout\"` uses the unsigned `kv * sqrt(force)` law. `test = true` also selects `\"reelout\"`, kept for the existing tests"

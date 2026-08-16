@@ -10,6 +10,9 @@
 - `DiscretePIDs` dependency, used by the torque controllers' inner speed loop
 - documentation of the torque controllers in `docs/src/winchcontroller.md`
 - `build/` to `.gitignore`
+#### Changed
+- `WCSettings.dt` defaults to `NaN` instead of `0.02`, so a caller that forgets
+  to set it fails loudly instead of silently running at the wrong timestep
 
 ### WinchControllers v0.5.6 2026-08-14
 #### Added
