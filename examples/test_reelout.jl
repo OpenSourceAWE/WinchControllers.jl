@@ -24,7 +24,7 @@ calc_force_openloop(v_wind, v_ro) = K_KITE * v_wind^2
 calc_force_closedloop(v_wind, v_ro) = K_KITE * (v_wind - v_ro)^2
 
 CLOSED_LOOP = false
-calc_force = CLOSED_LOOP ? calc_force_closedloop : calc_force_openloop
+force_law = CLOSED_LOOP ? calc_force_closedloop : calc_force_openloop
 
 set = load_settings("system.yaml")
 
@@ -55,7 +55,7 @@ function run_leg(f_high, label)
         v_wind = V_WIND[i]
 
         v_act = get_speed(winch)
-        force = calc_force(v_wind, v_act)
+        force = force_law(v_wind, v_act)
         set_force(winch, force)
 
         v_set_out = calc_v_set(wc, v_act, force, f_low)

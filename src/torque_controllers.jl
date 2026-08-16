@@ -30,10 +30,8 @@ end
     winch_acc_limit(max_acc) -> Float64
 
 The winch acceleration limit [m/s²] in the form the rate limiter of
-[`winch_position_torque!`](@ref) wants. A non-positive `max_acc` — which is what
-a settings file that never names one inherits from `KiteUtils.Settings` — means
-*unlimited*, not a frozen drum, and maps to `Inf`; taking it literally would pin
-the speed setpoint at `v_sp_prev` forever and kill the winch silently.
+[`winch_position_torque!`](@ref) wants. A non-positive `max_acc` — means
+*unlimited*, not a frozen drum, and maps to `Inf`.
 """
 winch_acc_limit(max_acc) = max_acc > 0 ? Float64(max_acc) : Inf
 
