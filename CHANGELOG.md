@@ -9,6 +9,9 @@
   `wc_settings.yaml`
 - `DiscretePIDs` dependency, used by the torque controllers' inner speed loop
 - documentation of the torque controllers in `docs/src/winchcontroller.md`
+- `test/test_torque_controllers.jl`, covering `force_to_torque`, `winch_acc_limit`,
+  the saturation/rate-limiting of `winch_position_torque!` and the `f_lpf`
+  initialization/force floor of `winch_force_torque!`
 - `build/` to `.gitignore`
 #### Changed
 - `WCSettings.dt` defaults to `NaN` instead of `0.02`, so a caller that forgets
