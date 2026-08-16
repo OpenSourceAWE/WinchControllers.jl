@@ -107,9 +107,9 @@ $(TYPEDFIELDS)
     # Moved from V3Kite.jl's own `WC_Settings` struct. These are new parameters
     # with no historical counterpart; tune on a constant-length parking run and
     # change them by at most 10 % per iteration.
-    "Outer proportional gain: tether length error [m] → reel-out speed setpoint [1/s]"
+    "Outer proportional gain [1/s]: tether length error [m] → reel-out speed setpoint [m/s]"
     winch_pos_kp = 0.5
-    "Inner speed-loop proportional gain: speed error [m/s] → winch torque [N·m·s/m]"
+    "Inner speed-loop proportional gain [N·m·s/m]: speed error [m/s] → winch torque [N·m]"
     winch_speed_k = 30.0
     "Inner speed-loop integral time [s] (larger = weaker integral action)"
     winch_speed_ti = 2.0
@@ -136,11 +136,11 @@ $(TYPEDFIELDS)
     kite trade line length for speed within a lap.
     """
     winch_force_tau = 10.0
-    "Force mode only: length-trim gain, length error [m] → reference force [N/m]"
+    "Force mode only: length-trim gain [N/m], length error [m] → reference force [N]"
     winch_len_kp = 100.0
     """
-    Force mode only: viscous damping on the drum, reel-out speed [m/s] → reference
-    force [N·s/m]. Without it force mode has no velocity feedback at all — the drum
+    Force mode only: viscous damping on the drum [N·s/m], reel-out speed [m/s] →
+    reference force [N]. Without it force mode has no velocity feedback at all — the drum
     is a free mass on the `winch_len_kp` spring and its speed runs away (measured:
     3.5 m/s of payout, `v_app` 49.6 m/s, run lost at t = 19.8 s). This is what makes
     the winch compliant rather than free-wheeling; it opposes fast reel-out without
