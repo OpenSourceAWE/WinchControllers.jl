@@ -2,6 +2,7 @@ module WinchControllers
 
 using Parameters, StructTypes, KiteUtils, WinchModels, StaticArrays, NLsolve, DocStringExtensions, YAML
 using LinearAlgebra, Statistics, Pkg
+using DiscretePIDs: DiscretePID
 
 import Base.reset
 import Base.log
@@ -19,6 +20,9 @@ export SpeedController, set_inactive, set_v_act, set_v_set, set_v_set_in, set_tr
 export LowerForceController, UpperForceController
 export get_startup, get_triangle_wind
 export WCLogger, log, f_err, v_err, gamma, damage, rms
+# Torque controllers (torque_controllers.jl), moved here from V3Kite.jl
+export WinchPosController, WinchForceController
+export winch_position_torque!, winch_force_torque!, force_to_torque, winch_acc_limit
 
 abstract type AbstractForceController end
 const AFC = AbstractForceController
@@ -91,6 +95,9 @@ include("utils.jl")
 include("components.jl")
 include("wc_components.jl")
 include("winchcontroller.jl")
+# After winchcontroller.jl: same package, but an independent controller family
+# (torque out, not speed out). Moved here from V3Kite.jl.
+include("torque_controllers.jl")
 include("logging.jl")
 
 end
