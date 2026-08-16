@@ -1,3 +1,16 @@
+### WinchControllers v0.6.0 2026-08-16
+#### Added
+- torque controllers, moved here from V3Kite.jl: `WinchPosController` (cascaded
+  length/speed control) and `WinchForceController` (compliant force mode), with
+  `winch_position_torque!`, `winch_force_torque!`, `force_to_torque` and
+  `winch_acc_limit`
+- the `winch_pos_*`/`winch_speed_*`/`winch_ff_scale`/`winch_force_*`/`winch_len_kp`/
+  `winch_damp` fields on `WCSettings`, tuning the torque controllers from the same
+  `wc_settings.yaml`
+- `DiscretePIDs` dependency, used by the torque controllers' inner speed loop
+- documentation of the torque controllers in `docs/src/winchcontroller.md`
+- `build/` to `.gitignore`
+
 ### WinchControllers v0.5.6 2026-08-14
 #### Added
 - REEL_OUT winch-controller mode: `WCSettings.mode` (`"piecewise"`/`"reelout"`), dispatched in
