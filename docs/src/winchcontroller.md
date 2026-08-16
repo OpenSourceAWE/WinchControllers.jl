@@ -72,6 +72,19 @@ get_v_err(wc::WinchController)
 on_timer(wc::WinchController)
 ```
 
+## Torque Controllers
+Cascaded controllers whose output is a winch torque instead of a reel-out speed
+setpoint, for plants driven by a torque command rather than a speed command.
+
+```@docs
+force_to_torque
+winch_acc_limit
+WinchPosController
+WinchForceController
+winch_position_torque!
+winch_force_torque!
+```
+
 ## Controller Settings
 ```@docs
 WCSettings

@@ -22,10 +22,9 @@ The goal of this package is to provide controllers for winches that consist of a
 - speed control
 - auto-tuning of the controller
 - disk based stability analysis of linearized system including the force controllers
+- torque controlled winches, holding either a length ([WinchPosController](https://opensourceawe.github.io/WinchControllers.jl/dev/winchcontroller/#WinchControllers.WinchPosController)) or a force ([WinchForceController](https://opensourceawe.github.io/WinchControllers.jl/dev/winchcontroller/#WinchControllers.WinchForceController))
 
 **Planned features**
-- support of torque controlled winches
-- length control (position control)
 - improved, simplified system model using a quasi-steady tether model and an aerodynamic model including kite mass the cross-wind factor
 
 ## Installation
@@ -96,6 +95,7 @@ You should now see a terminal menu with some examples. Select one using the
 - a set of generic control components, see [Generic Components](https://opensourceawe.github.io/WinchControllers.jl/dev/components/#Generic-Components)
 - a winch controller [WinchController](https://opensourceawe.github.io/WinchControllers.jl/dev/winchcontroller/), that limits the upper and lower force and controls the speed as function of the force
 - a winch controller settings struct [WCSettings](https://opensourceawe.github.io/WinchControllers.jl/dev/winchcontroller/#WinchControllers.WCSettings) for the settings
+- [Torque Controllers](https://opensourceawe.github.io/WinchControllers.jl/dev/winchcontroller/#Torque-Controllers), `WinchPosController` and `WinchForceController`, for winches driven by a torque command instead of a speed command
 - [Utility Functions and Macros](https://opensourceawe.github.io/WinchControllers.jl/dev/functions/)
 
 ### WinchController - Usage -

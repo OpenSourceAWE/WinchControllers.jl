@@ -20,6 +20,10 @@ end
     include("test_winchcontroller.jl")
 end
 
+@testset verbose=true "torque_controllers.jl" begin
+    include("test_torque_controllers.jl")
+end
+
 @testset verbose=true "wc_settings.jl      " begin
     include("test_wc_settings.jl")
 end
