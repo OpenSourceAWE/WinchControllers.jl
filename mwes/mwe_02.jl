@@ -54,17 +54,6 @@ v_act = find_equilibrium_speed(winch, v_set, force)
 x0 = [v_act]         # State at operating point
 u0 = [v_set, force]  # Input at operating point
 
-function finite_jacobian(f, x; ϵ=sqrt(eps(eltype(x))))
-    n = length(x)
-    m = length(f(x))
-    J = zeros(m, n)
-    for i in 1:n
-        Δx = zeros(n)
-        Δx[i] = ϵ
-        J[:, i] = (f(x + Δx) - f(x - Δx)) ./ (2ϵ)
-    end
-    J
-end
 
 @time A = finite_jacobian(x -> motor_dynamics(x, u0), x0)
 B = finite_jacobian(u -> motor_dynamics(x0, u), u0)
