@@ -10,9 +10,10 @@ import Base.length
 
 export WCSettings, WinchController, Winch, update
 export WinchControllerState, wcsLowerForceLimit, wcsUpperForceLimit, wcsSpeedControl
-export Mixer_2CH, Mixer_3CH, Integrator, UnitDelay, RateLimiter, CalcVSetIn
+export Mixer_2CH, Mixer_3CH, Integrator, UnitDelay, RateLimiter, LowPass, CalcVSetIn
 export set_f_set, set_v_sw, set_reset, set_inactive, set_vset_pc
 export set_tracking, set_f_set, get_v_set, get_v_set_in, get_v_err, calc_vro, get_f_err
+export calc_vro_soft
 export get_speed, set_force, calc_v_set, set_v_set, on_timer, get_acc, get_state, get_status
 export select_b, select_c, reset, calc_output 
 export merge_angles, @limit, saturate

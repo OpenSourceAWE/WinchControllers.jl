@@ -6,6 +6,7 @@ Components:
 - Integrator
 - UnitDelay
 - RateLimiter
+- LowPass       first order low-pass filter
 - Mixer_2CH    two channel mixer
 - Mixer_3CH    three channel mixer
 """
@@ -281,6 +282,98 @@ Update the field `last_output`. Must be called once per time-step.
 """
 function on_timer(rl::RateLimiter)
     rl.last_output = rl.output
+    nothing
+end
+
+"""
+    mutable struct LowPass
+
+First order low-pass filter, `y += dt/(tau+dt) * (u - y)`. `tau = 0` makes it a
+pass-through, so a filter can be switched off by its time constant alone.
+
+The first sample is passed through unchanged (`last_output` starts at `NaN`),
+which starts the filter at the signal instead of ramping up from zero.
+
+## Fields
+
+$(TYPEDFIELDS)
+
+# Example
+```julia
+lp = LowPass(0.05, 1.0)          # dt, tau
+for i in 1:3
+    out = calc_output(lp, 1.0)
+    on_timer(lp)
+end
+```
+"""
+@with_kw mutable struct LowPass @deftype Float64
+    dt                    # timestep [s]
+    tau         = 1.0     # time constant [s]; 0 = pass-through
+    output      = 0.0
+    last_output = NaN     # NaN = no sample seen yet
+end
+
+"""
+    LowPass(dt, tau=1.0)
+
+## Parameters
+- dt: the time-step [s]
+- tau: the time constant [s], default 1.0; `0` disables the filter
+
+## Returns
+- a new struct of type `LowPass`
+"""
+LowPass(dt, tau=1.0) = LowPass(dt, tau, 0.0, NaN)
+
+"""
+    reset(lp::LowPass)
+
+Forget the filter state, so the next sample is passed through unchanged.
+
+## Returns
+- nothing
+"""
+function reset(lp::LowPass)
+    lp.output = 0.0
+    lp.last_output = NaN
+    nothing
+end
+
+"""
+    calc_output(lp::LowPass, input)
+
+Calculate and return the filtered value without updating `last_output`.
+
+## Parameters
+- lp::LowPass: a `LowPass` struct
+- input: the input value
+
+## Returns
+- the filtered output
+"""
+function calc_output(lp::LowPass, input)
+    if isnan(lp.last_output) || lp.tau <= 0.0
+        lp.output = input
+    else
+        lp.output = lp.last_output + lp.dt / (lp.tau + lp.dt) * (input - lp.last_output)
+    end
+    lp.output
+end
+
+"""
+    on_timer(lp::LowPass)
+
+Update the field `last_output`. Must be called once per time-step.
+
+## Parameters
+- lp::LowPass: a `LowPass` struct
+
+## Returns
+- nothing
+"""
+function on_timer(lp::LowPass)
+    lp.last_output = lp.output
     nothing
 end
 

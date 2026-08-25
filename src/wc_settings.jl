@@ -147,6 +147,48 @@ $(TYPEDFIELDS)
     winch_damp = 500.0
     "Force mode only: floor on the reference force, keeps the tether taut [N]"
     winch_force_min = 100.0
+
+    # ---- Soft force limiting (REEL_OUT mode) -------------------------------- #
+    # New fields go HERE, at the end: the positional `WCSettings(update; dt)`
+    # constructor other packages use keeps working, and YAML falls back to the
+    # struct defaults for every key a file does not carry.
+    """
+    How the force limits are enforced, orthogonal to `mode`, which selects the
+    law's shape. `"hard"` (the default) is the historical behaviour: the bare
+    law of [`calc_vro`](@ref) plus the `LowerForceController` and the
+    `UpperForceController` switching in at the limits.
+
+    `"soft"` replaces the UPPER limiter with a static, continuous law
+    ([`calc_vro_soft`](@ref)) that inverts a tension curve saturating smoothly at
+    `f_low` and `f_high` — no threshold, no hand-over, no integrator. The
+    `UpperForceController` is then held in reset for the whole run, because the
+    law itself is the upper limiter; the `LowerForceController` stays, since the
+    soft law never commands reel-in. Requires `mode == "reelout"`.
+    """
+    force_limit::String = "hard"
+    """
+    `"soft"` only: corner sharpness of the UPPER limit [1/N]. The transition
+    spans a tension band of order `1/softplus_beta`, so LARGER is sharper; at
+    `f_high` itself the curve sits `ln(2)/softplus_beta` below the limit. Must
+    match the value the trajectory optimizer applies to the same curve — both
+    sides default to 1e-3.
+    """
+    softplus_beta = 1e-3
+    """
+    `"soft"` only: corner sharpness of the LOWER limit [1/N], as
+    `softplus_beta`. Watch this one: the effective floor is
+    `sp(beta*f_low)/beta`, so a `1/beta` larger than `f_low` itself dominates the
+    limit it smooths — at 1e-3 an `f_low` of 700 N acts as 1103 N.
+    """
+    softminus_beta = 1e-3
+    """
+    `"soft"` only: time constant of the low-pass on the measured force before it
+    is inverted [s]; `0` disables the filter. The inverse is near-vertical close
+    to `f_high` — `dv/dF` rises by a factor 50 over the last kN — so the force
+    ripple of a single figure-eight lap would otherwise be amplified straight
+    into the speed command.
+    """
+    force_limit_tau = 1.0
 end
 
 function pf_low_scaled(wcs::WCSettings)

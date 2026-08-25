@@ -20,12 +20,16 @@ Component for calculation `v_set_in`, using soft switching.
 ## Fields
 - wcs::[WCSettings](@ref)
 - mixer2::[Mixer_2CH](@ref): mixer component. Default: `Mixer_2CH(wcs.dt, wcs.t_blend)`
+- filter::[LowPass](@ref): low-pass on the force, `"soft"` force limiting only
+- `f_low`: lower force limit of the soft law; tracks `calc_v_set`'s argument
 - input_a: Default: 0
 - input_b: Default: 0
 """
 @with_kw mutable struct CalcVSetIn @deftype Float64
     wcs::WCSettings
     mixer2::Mixer_2CH = Mixer_2CH(wcs.dt, wcs.t_blend)
+    filter::LowPass   = LowPass(wcs.dt, wcs.force_limit_tau)
+    f_low       = wcs.f_low
     input_a     = 0
     input_b     = 0
 end
@@ -57,6 +61,11 @@ is REEL_OUT mode's reel-in behaviour, not a gap in the law. Otherwise (the
 default `"piecewise"` mode) the signed law below applies, which reels in
 whenever `force < f_low`.
 
+This is the NOMINAL law, unaffected by `wcs.force_limit`: the force controllers'
+hand-over speeds `v_sw` are read off it under both settings, and the soft law of
+[`calc_vro_soft`](@ref) returns exactly 0 at `f_low` and `v_sat` at `f_high` —
+the two worst possible values for that purpose.
+
 ## Parameters
 - wcs::[WCSettings](@ref): the settings struct
 - force: the tether force at the winch
@@ -77,6 +86,46 @@ function calc_vro(wcs::WCSettings, force)
 end
 
 """
+    sp_inv(y)
+
+Inverse of the softplus `sp(x) = ln(1 + eˣ)`, i.e. `ln(eʸ - 1)`. Written with
+`expm1` so it stays accurate for small `y`, where `eʸ - 1` cancels. Defined for
+`y > 0` only; `y -> 0` gives `-Inf`, which the callers turn into a zero speed.
+"""
+sp_inv(y) = y + log(-expm1(-y))
+
+"""
+    calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low)
+
+Reel-out speed under SOFT force limiting: the exact inverse of the tension curve
+`T = (v/kv)²` soft-saturated at `f_high` and then at `f_low`, which is the curve
+the trajectory optimizer plans against. Continuous everywhere, no threshold and
+no state — the upper force limit is the law itself rather than a controller that
+switches in.
+
+The saturations are undone in the reverse of the order they are applied: the
+lower one first, then the upper one. `wcs.v_sat` is load-bearing, not a guard —
+the inverse diverges as `force` approaches `f_high`.
+
+## Parameters
+- wcs::[WCSettings](@ref): the settings struct; reads `kv`, `f_high`, `v_sat` and
+  both `beta`s
+- force: the tether force at the winch [N], filtered by the caller
+- `f_low`: the lower force limit [N]; per-call, since `calc_v_set` takes one too
+
+## Returns
+- the reel-out speed [m/s], in `[0, wcs.v_sat]`; never negative, so reeling in
+  stays the `LowerForceController`'s job
+"""
+function calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low)
+    force <= f_low && return 0.0
+    force >= wcs.f_high && return wcs.v_sat
+    t = f_low + sp_inv(wcs.softminus_beta * (force - f_low)) / wcs.softminus_beta
+    t = wcs.f_high - sp_inv(wcs.softplus_beta * (wcs.f_high - t)) / wcs.softplus_beta
+    min(wcs.kv * sqrt(max(t, 0.0)), wcs.v_sat)
+end
+
+"""
     set_vset_pc(cvi::CalcVSetIn, v_set_pc, force)
 
 ## Parameters:
@@ -89,7 +138,11 @@ end
 """
 function set_vset_pc(cvi::CalcVSetIn, v_set_pc, force=nothing)
     if isnothing(v_set_pc)
-        cvi.input_a = calc_vro(cvi.wcs, force)
+        if cvi.wcs.force_limit == "soft"
+            cvi.input_a = calc_vro_soft(cvi.wcs, calc_output(cvi.filter, force), cvi.f_low)
+        else
+            cvi.input_a = calc_vro(cvi.wcs, force)
+        end
         select_b(cvi.mixer2, false)
     else
         cvi.input_b = v_set_pc
@@ -124,6 +177,7 @@ Update the mixer. Must be called once per time-step.
 """
 function on_timer(cvi::CalcVSetIn)
     on_timer(cvi.mixer2)
+    on_timer(cvi.filter)
     nothing
 end
 

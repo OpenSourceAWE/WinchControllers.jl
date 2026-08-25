@@ -43,6 +43,12 @@ end
 
 Constructor for a WinchController, based on the winch controller settings.
 
+At `wcs.force_limit == "soft"` the `UpperForceController` is left in reset and
+never activates again: the soft law of [`calc_vro_soft`](@ref) is then the upper
+limiter, and running a second one on top of it is what the soft law exists to
+avoid. The `LowerForceController` is unaffected — the soft law never commands
+reel-in.
+
 ## Parameters
 - wcs::[WCSettings](@ref): the winch controller settings struct
 
@@ -50,6 +56,12 @@ Constructor for a WinchController, based on the winch controller settings.
 - a struct of type [WinchController](@ref)
 """
 function WinchController(wcs::WCSettings)
+    wcs.force_limit in ("hard", "soft") ||
+        error("WCSettings.force_limit must be \"hard\" or \"soft\", got \"$(wcs.force_limit)\".")
+    if wcs.force_limit == "soft" && ! (wcs.test || wcs.mode == "reelout")
+        error("force_limit = \"soft\" inverts the kv*sqrt(force) law and needs \
+               mode = \"reelout\", got \"$(wcs.mode)\".")
+    end
     wc = WinchController(wcs=wcs)
     set_f_set(wc.lfc, wcs.f_low)
     set_reset(wc.lfc, true)
@@ -57,7 +69,7 @@ function WinchController(wcs::WCSettings)
     set_f_set(wc.ufc, wcs.f_high)
     set_v_sw(wc.ufc, calc_vro(wcs, wc.ufc.f_set))
     set_reset(wc.ufc, true)
-    set_reset(wc.ufc, false)
+    wcs.force_limit == "soft" || set_reset(wc.ufc, false)
     wc
 end
 
@@ -82,6 +94,7 @@ Calculate the set velocity (`v_set`) for the winch.
 """
 function calc_v_set(wc::WinchController, v_act, force, f_low, v_set_pc=nothing)
     set_f_set(wc.lfc, f_low)
+    wc.calc.f_low = f_low   # the soft law's lower limit is this one, not wcs.f_low
     wc.v_act = v_act
     wc.force = force
     set_vset_pc(wc.calc, v_set_pc, wc.force)
@@ -117,7 +130,9 @@ function calc_v_set(wc::WinchController, v_act, force, f_low, v_set_pc=nothing)
     select_c(wc.mix3, wc.ufc.active)
     v_set_out_A = get_v_set_out(wc.sc)
     v_set_out_B = get_v_set_out(wc.lfc)
-    v_set_out_C = get_v_set_out(wc.ufc)
+    # Held in reset under `force_limit = "soft"`: it can never go active, the
+    # mixer therefore ignores channel C, and the nlsolve would be pure waste.
+    v_set_out_C = wc.ufc.reset ? wc.ufc.v_set_out : get_v_set_out(wc.ufc)
     wc.v_set = calc_output(wc.mix3, v_set_out_A, v_set_out_B, v_set_out_C)
     wc.v_set_out = v_set_out_A # for logging, store the output of the speed controller
     wc.v_set

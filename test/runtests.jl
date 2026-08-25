@@ -32,6 +32,10 @@ end
     include("test_reelout.jl")
 end
 
+@testset verbose=true "soft_limit.jl       " begin
+    include("test_soft_limit.jl")
+end
+
 @testset verbose=true "aqua.jl             " begin
     include("aqua.jl")
 end
