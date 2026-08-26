@@ -41,6 +41,63 @@ end
     @test abs(lp.output) < 1e-6              # settles on the input
     reset(lp)
     @test calc_output(lp, 5.0) == 5.0
+
+    # Asymmetric: fast attack, slow release.
+    lp = LowPass(0.1, 2.0, 0.0)          # instant on the way up, tau 2 on the way down
+    @test calc_output(lp, 0.0) == 0.0
+    on_timer(lp)
+    @test calc_output(lp, 10.0) == 10.0  # rising -> tau_rise = 0, passes straight through
+    on_timer(lp)
+    out = calc_output(lp, 0.0)           # falling -> tau = 2.0, lags
+    @test out ≈ 10.0 * (1 - 0.1 / 2.1)
+    @test out > 9.0
+
+    # Biased toward the PEAKS of an oscillation, which is the point of using it
+    # to drive a limiter: the mean of the output exceeds the mean of the input.
+    lp = LowPass(0.02, 2.0, 0.1)
+    sig = [100.0 + 50.0 * sin(2pi * i * 0.02 / 5.0) for i in 1:2000]
+    out = Float64[]
+    for x in sig
+        push!(out, calc_output(lp, x)); on_timer(lp)
+    end
+    settled = out[1001:end]
+    @test sum(settled) / length(settled) > sum(sig[1001:end]) / length(sig[1001:end])
+    @test maximum(settled) <= maximum(sig) + 1e-9   # never overshoots the input
+
+    # tau_rise defaults to tau, i.e. the symmetric filter is unchanged.
+    a = LowPass(0.02, 1.5); b = LowPass(0.02, 1.5, 1.5)
+    for x in (3.0, -2.0, 7.0, 7.0, 0.5)
+        @test calc_output(a, x) == calc_output(b, x)
+        on_timer(a); on_timer(b)
+    end
+end
+
+@testset "force_limit_tau_rise defaults to symmetric" begin
+    # The sentinel is NaN, resolved where the filter is built. A plain default of
+    # `force_limit_tau` would freeze the STRUCT default, so a settings file (or a
+    # caller) that sets only `force_limit_tau` would get a silently asymmetric
+    # filter -- rising on 1.0 s while falling on whatever was configured.
+    wcs = soft_settings()
+    @test isnan(wcs.force_limit_tau_rise)
+    wcs.force_limit_tau = 2.48              # as a YAML load would leave it
+    wc = WinchController(wcs)
+    @test wc.calc.filter.tau == 2.48
+    @test wc.calc.filter.tau_rise == 2.48   # follows tau, not the struct default
+
+    # And an explicit value is honoured.
+    wcs2 = soft_settings()
+    wcs2.force_limit_tau = 2.48
+    wcs2.force_limit_tau_rise = 0.25
+    wc2 = WinchController(wcs2)
+    @test wc2.calc.filter.tau == 2.48
+    @test wc2.calc.filter.tau_rise == 0.25
+
+    # `force_limit_tau = 0` must stay a pass-through in BOTH directions.
+    wcs3 = soft_settings()
+    wcs3.force_limit_tau = 0.0
+    wc3 = WinchController(wcs3)
+    @test wc3.calc.filter.tau == 0.0
+    @test wc3.calc.filter.tau_rise == 0.0
 end
 
 @testset "calc_vro_soft" begin

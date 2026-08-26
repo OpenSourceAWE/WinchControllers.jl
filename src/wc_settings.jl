@@ -189,6 +189,22 @@ $(TYPEDFIELDS)
     into the speed command.
     """
     force_limit_tau = 1.0
+    """
+    `"soft"` only: time constant of the same low-pass while the force is RISING
+    [s]. `NaN` — the default — means "the same as `force_limit_tau`", i.e. a
+    symmetric filter, and is resolved where the filter is BUILT rather than here:
+    a plain default of `force_limit_tau` would freeze the struct default 1.0 and
+    leave a YAML that sets only `force_limit_tau` silently asymmetric.
+
+    Setting it BELOW `force_limit_tau` gives a fast attack with a slow release: the limiter follows
+    a force spike up promptly but gives the speed back slowly, so the noise
+    attenuation that keeps the loop stable is retained on the way down.
+
+    This makes the filter non-linear. Its output is biased toward the PEAKS of an
+    oscillating force rather than its mean, so the law commands a higher speed for
+    the same mean force — better peak limiting, less power.
+    """
+    force_limit_tau_rise = NaN
 end
 
 function pf_low_scaled(wcs::WCSettings)

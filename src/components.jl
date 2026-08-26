@@ -291,6 +291,13 @@ end
 First order low-pass filter, `y += dt/(tau+dt) * (u - y)`. `tau = 0` makes it a
 pass-through, so a filter can be switched off by its time constant alone.
 
+ASYMMETRIC when `tau_rise != tau`: a rising input is tracked with `tau_rise` and a
+falling one with `tau`. `tau_rise < tau` is a fast attack with a slow release — it
+follows a spike up and lets it decay slowly, which biases the output toward the
+PEAKS of an oscillating input rather than its mean. That is deliberate where the
+output drives a limiter, and it makes the filter non-linear: its effective gain
+then depends on the input's amplitude and shape, not only on its frequency.
+
 The first sample is passed through unchanged (`last_output` starts at `NaN`),
 which starts the filter at the signal instead of ramping up from zero.
 
@@ -309,22 +316,25 @@ end
 """
 @with_kw mutable struct LowPass @deftype Float64
     dt                    # timestep [s]
-    tau         = 1.0     # time constant [s]; 0 = pass-through
+    tau         = 1.0     # time constant for a FALLING input [s]; 0 = pass-through
+    tau_rise    = tau     # time constant for a RISING input [s]; == tau is symmetric
     output      = 0.0
     last_output = NaN     # NaN = no sample seen yet
 end
 
 """
-    LowPass(dt, tau=1.0)
+    LowPass(dt, tau=1.0, tau_rise=tau)
 
 ## Parameters
 - dt: the time-step [s]
-- tau: the time constant [s], default 1.0; `0` disables the filter
+- tau: the time constant for a FALLING input [s], default 1.0; `0` disables the filter
+- `tau_rise`: the time constant for a RISING input [s]; defaults to `tau`, which is
+  the symmetric filter
 
 ## Returns
 - a new struct of type `LowPass`
 """
-LowPass(dt, tau=1.0) = LowPass(dt, tau, 0.0, NaN)
+LowPass(dt, tau=1.0, tau_rise=tau) = LowPass(dt, tau, tau_rise, 0.0, NaN)
 
 """
     reset(lp::LowPass)
@@ -353,10 +363,11 @@ Calculate and return the filtered value without updating `last_output`.
 - the filtered output
 """
 function calc_output(lp::LowPass, input)
-    if isnan(lp.last_output) || lp.tau <= 0.0
+    tau = input > lp.last_output ? lp.tau_rise : lp.tau
+    if isnan(lp.last_output) || tau <= 0.0
         lp.output = input
     else
-        lp.output = lp.last_output + lp.dt / (lp.tau + lp.dt) * (input - lp.last_output)
+        lp.output = lp.last_output + lp.dt / (tau + lp.dt) * (input - lp.last_output)
     end
     lp.output
 end
