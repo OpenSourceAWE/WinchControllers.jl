@@ -25,4 +25,16 @@ Config: gains/thresholds (`kv`, `f_low`, `f_high`, `vf_max`, `v_sat`, `force_lim
 in `data/wc_settings.yaml`; wind-speed overrides are in `data/winch_kv_table.yaml`.
 
 ## Plot current winch curve
-Add a script plot_winch_curve.jl to the examples folder that plots
+Add a script `plot_winch_curve.jl` to the `examples` folder that plots the winch curve
+computed by `calc_vro_soft()`, in the style of a motor/winch datasheet torque-speed
+curve: **speed on the x-axis, force on the y-axis**.
+
+- Follow this repo's plotting conventions (see CLAUDE.md "Plotting"): only
+  `MakieControlPlots.plot(x, y; xlabel, ylabel, labels, fig)`, never GLMakie/Plots
+  directly, behind the standard activation guard, and `display(...)` the result.
+- Settings: `wcs = WCSettings(dt=0.02); update(wcs)`, matching
+  `examples/plot_power.jl`/`examples/test_winchcontroller.jl`.
+- Sweep `force` from `0` to somewhat past `wcs.f_high` (e.g. `1.1 * wcs.f_high`) so the
+  plot shows all three regions of the curve: flat zero below `f_low`, the rising
+  soft-saturated section, and the `v_sat` plateau above `f_high`.
+- `speed = calc_vro_soft.(Ref(wcs), force)`, then `plot(speed, force; xlabel="speed [m/s]", ylabel="force [N]", fig="winch_curve")`.
