@@ -138,6 +138,59 @@ end
     for f in [1000.0, 1500.0, 2500.0]
         @test calc_vro_soft(wcs, f) < wcs.kv * sqrt(f)
     end
+
+    # `reel_in` defaults to `wcs.soft_reel_in`, which is false here: every call
+    # above already exercises the regression path. Spelling it out once more so
+    # a future change of the default cannot silently break it.
+    @test calc_vro_soft(wcs, 1000.0) == calc_vro_soft(wcs, 1000.0; reel_in=false)
+    @test ! wcs.soft_reel_in
+end
+
+@testset "calc_vro_soft, reel_in" begin
+    wcs = soft_settings()
+    # softminus_beta * f_reel_in_band = 1e-3 * 75 = 0.075 < 2: the shipped
+    # corner is far too soft (see WinchController's validation) and would
+    # reopen the dead band this branch is built to close. Sharpen it, as the
+    # example script does.
+    wcs.softminus_beta = 3e-2
+    band = wcs.f_reel_in_band     # 75.0
+    v_ri = wcs.v_reel_in          # -0.3
+    m = -v_ri / band              # slope of the reel-in line [m/s per N]
+
+    # The two anchor points, exact.
+    @test calc_vro_soft(wcs, wcs.f_low; reel_in=true) == 0.0
+    @test calc_vro_soft(wcs, wcs.f_low - band; reel_in=true) ≈ v_ri
+
+    # Clamp below the ramp, and the line's midpoint exactly halfway to v_ri.
+    @test calc_vro_soft(wcs, wcs.f_low - band - 200.0; reel_in=true) == v_ri
+    @test calc_vro_soft(wcs, wcs.f_low - band / 2; reel_in=true) ≈ v_ri / 2
+
+    # Monotone over the whole range, no dead band anywhere above f_low — the
+    # defect the sharper corner exists to close.
+    forces = range(wcs.f_low - band - 100.0, 1.1 * wcs.f_high; length = 2001)
+    speeds = [calc_vro_soft(wcs, f; reel_in=true) for f in forces]
+    @test all(isfinite, speeds)
+    @test all(>=(-1e-9), diff(speeds))
+    @test count(==(0.0), [calc_vro_soft(wcs, f; reel_in=true)
+                           for f in (wcs.f_low + 0.5):0.5:(wcs.f_high - 0.5)]) == 0
+
+    # The point of the whole construction: a finite slope through the crossing,
+    # in contrast to the vertical tangent of the plain √ law at f_low. Checked
+    # well below F_x (~600 N here), where the line still governs.
+    d(x) = (calc_vro_soft(wcs, x + 0.01; reel_in=true) -
+            calc_vro_soft(wcs, x - 0.01; reel_in=true)) / 0.02
+    for f in (wcs.f_low - band):5.0:(wcs.f_low + 100.0)
+        @test abs(d(f)) <= 1.05 * m
+    end
+
+    # `min`/`max` handover: below f_low the ramp; above it, whichever of the
+    # ramp and the tension curve is smaller — so the command never exceeds
+    # what the tension curve allows.
+    for f in [400.0, 500.0, 700.0, 1000.0, 3000.0]
+        v_sqrt = calc_vro_soft(wcs, f; reel_in=false)
+        @test calc_vro_soft(wcs, f; reel_in=true) ≈ min(m * (f - wcs.f_low), v_sqrt)
+        @test calc_vro_soft(wcs, f; reel_in=true) <= v_sqrt + 1e-9
+    end
 end
 
 @testset "soft force limit, WinchController" begin
@@ -172,7 +225,9 @@ end
     @test wc.lfc.v_sw ≈ calc_vro(wcs, wc.lfc.f_set) * 1.05
     @test wc.ufc.v_sw ≈ calc_vro(wcs, wc.ufc.f_set) * 0.95
 
-    # The LowerForceController stays: the soft law never commands reel-in.
+    # `soft_reel_in = false` (the default): the LowerForceController stays,
+    # since the soft law never commands reel-in on its own.
+    @test ! wcs.soft_reel_in
     wc = WinchController(wcs)
     for _ in 1:400
         calc_v_set(wc, 0.0, 100.0, wcs.f_low)
@@ -180,6 +235,53 @@ end
     end
     @test wc.lfc.active
     @test get_state(wc) == Int(wcsLowerForceLimit)
+end
+
+@testset "soft force limit, soft_reel_in" begin
+    dt = 0.02
+    wcs = soft_settings(; dt)
+    wcs.force_limit_tau = 0.0
+    wcs.soft_reel_in = true
+    wcs.softminus_beta = 3e-2   # required: softminus_beta * f_reel_in_band >= 2
+    wc = WinchController(wcs)
+
+    # The LowerForceController is held in permanent reset, same as the UFC.
+    @test wc.lfc.reset
+    @test ! wc.lfc.active
+
+    # Below f_low, `calc_v_set` now feeds the reel-in ramp instead of 0 into the
+    # speed controller. Checked on `input_a`, the direct output of the law
+    # (same quantity the pre-existing "v_set_in follows the soft law" test
+    # above checks), not the closed-loop `v_set` — this run pins v_act at 0.0
+    # forever, so the speed loop never actually settles.
+    for _ in 1:400
+        calc_v_set(wc, 0.0, 100.0, wcs.f_low)
+        on_timer(wc)
+    end
+    @test ! wc.lfc.active
+    @test wc.calc.input_a ≈ calc_vro_soft(wcs, 100.0, wcs.f_low; reel_in=true)
+    @test wc.calc.input_a < 0.0
+
+    # With both force controllers permanently in reset, the SpeedController is
+    # always in control — `get_state`/`get_f_err` can never report anything
+    # else, at any force.
+    for f in [0.0, 100.0, wcs.f_low, 1000.0, wcs.f_high, 12_000.0]
+        for _ in 1:50
+            calc_v_set(wc, 0.0, f, wcs.f_low)
+            on_timer(wc)
+        end
+        @test get_state(wc) == Int(wcsSpeedControl)
+        @test isnan(get_f_err(wc))
+    end
+
+    # `f_err(logger)`/`gamma(logger)` must not throw when every logged f_err is
+    # NaN — the direct consequence of `get_f_err` above.
+    logger = WCLogger(1.0, dt, 1.0, 1.0, 0.2, 0.9)
+    for _ in 1:length(logger)
+        log(logger; f_err = NaN, v_set = 1.0, v_err = 0.0, jerk = 0.0, acc = 0.0)
+    end
+    @test f_err(logger) == 0.0
+    @test isfinite(gamma(logger))
 end
 
 @testset "soft force limit, filtering" begin
@@ -219,4 +321,47 @@ end
     @test wcs.force_limit == "hard"
     wc = WinchController(wcs)
     @test ! wc.ufc.reset
+end
+
+@testset "soft_reel_in validation" begin
+    # Requires force_limit = "soft".
+    wcs = WCSettings(dt = 0.02)
+    wcs.soft_reel_in = true
+    @test wcs.force_limit == "hard"
+    @test_throws ErrorException WinchController(wcs)
+
+    base() = begin
+        w = WCSettings(dt = 0.02)
+        w.mode = "reelout"
+        w.force_limit = "soft"
+        w.soft_reel_in = true
+        w
+    end
+
+    # The shipped softminus_beta/f_reel_in_band combination fails the check
+    # this whole design exists to enforce (see calc_vro_soft): 1e-3 * 75 = 0.075 < 2.
+    wcs = base()
+    @test wcs.softminus_beta * wcs.f_reel_in_band < 2
+    @test_throws ErrorException WinchController(wcs)
+
+    # Sharpening the corner is enough on its own.
+    wcs = base()
+    wcs.softminus_beta = 3e-2
+    @test WinchController(wcs) isa WinchController
+
+    # v_reel_in must be strictly negative and within v_ri_max.
+    wcs = base()
+    wcs.softminus_beta = 3e-2
+    wcs.v_reel_in = 0.5
+    @test_throws ErrorException WinchController(wcs)
+    wcs.v_reel_in = -100.0
+    @test_throws ErrorException WinchController(wcs)
+
+    # f_reel_in_band must be positive and fit under f_low.
+    wcs = base()
+    wcs.softminus_beta = 3e-2
+    wcs.f_reel_in_band = 0.0
+    @test_throws ErrorException WinchController(wcs)
+    wcs.f_reel_in_band = wcs.f_low + 1.0
+    @test_throws ErrorException WinchController(wcs)
 end

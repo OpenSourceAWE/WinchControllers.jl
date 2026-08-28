@@ -70,4 +70,20 @@ wc_settings:
     damage_factor: 0.05 # damage at max acceleration for jerk_factor=0
     jerk_factor: 0.90   # factor for the jerk (derivative of the acceleration), 0..1 
     kv: 0.06         # proportional factor of the square root law, see function calc_vro
+
+    # --- Soft force limiting (REEL_OUT mode), see calc_vro_soft --------------
+    force_limit: "hard"    # "hard" (default) or "soft"; see WCSettings.force_limit
+    softplus_beta: 1e-3     # "soft" only: corner sharpness of the UPPER limit [1/N]
+    softminus_beta: 1e-3    # "soft" only: corner sharpness of the LOWER limit [1/N]
+    force_limit_tau: 1.0    # "soft" only: low-pass time constant on the force [s]
+    force_limit_tau_rise: NaN  # "soft" only: same, while the force is RISING [s]; NaN = symmetric
+    soft_reel_in: false     # "soft" only: also replace the LowerForceController with a reel-in ramp
+    f_reel_in_band: 75.0    # soft_reel_in only: width of the ramp below f_low [N]
+    v_reel_in: -0.3         # soft_reel_in only: reel-in speed at the bottom of the ramp [m/s]
 ```
+
+`soft_reel_in` needs `softminus_beta * f_reel_in_band >= 2` (the shipped defaults above
+fail this by a factor of ~27): the lower corner must be sharp enough that the tension
+curve itself reaches 0 at `f_low`, or a dead band of zero speed opens between the ramp
+and the curve once the `LowerForceController` is switched off. `WinchController`
+validates this, and every other `soft_reel_in` invariant, at construction time.

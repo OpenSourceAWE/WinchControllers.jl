@@ -47,7 +47,10 @@ At `wcs.force_limit == "soft"` the `UpperForceController` is left in reset and
 never activates again: the soft law of [`calc_vro_soft`](@ref) is then the upper
 limiter, and running a second one on top of it is what the soft law exists to
 avoid. The `LowerForceController` is unaffected — the soft law never commands
-reel-in.
+reel-in — UNLESS `wcs.soft_reel_in` is also set, in which case it is held in
+reset too, and `calc_v_set` degenerates to `calc_vro_soft -> SpeedController`
+(the `Mixer_3CH` always selects channel A, since neither force controller can
+ever activate).
 
 ## Parameters
 - wcs::[WCSettings](@ref): the winch controller settings struct
@@ -61,6 +64,23 @@ function WinchController(wcs::WCSettings)
     if wcs.force_limit == "soft" && ! (wcs.test || wcs.mode == "reelout")
         error("force_limit = \"soft\" inverts the kv*sqrt(force) law and needs \
                mode = \"reelout\", got \"$(wcs.mode)\".")
+    end
+    if wcs.soft_reel_in
+        wcs.force_limit == "soft" ||
+            error("WCSettings.soft_reel_in requires force_limit = \"soft\", got \"$(wcs.force_limit)\".")
+        -wcs.v_ri_max <= wcs.v_reel_in < 0 ||
+            error("WCSettings.v_reel_in must be in [-v_ri_max, 0), got $(wcs.v_reel_in) " *
+                  "with v_ri_max = $(wcs.v_ri_max).")
+        wcs.f_reel_in_band > 0 ||
+            error("WCSettings.f_reel_in_band must be positive, got $(wcs.f_reel_in_band).")
+        wcs.f_low - wcs.f_reel_in_band >= 0 ||
+            error("WCSettings.f_reel_in_band = $(wcs.f_reel_in_band) exceeds f_low = $(wcs.f_low); " *
+                  "the reel-in ramp would cross zero force.")
+        wcs.softminus_beta * wcs.f_reel_in_band >= 2 ||
+            error("WCSettings.softminus_beta = $(wcs.softminus_beta) is too soft for " *
+                  "f_reel_in_band = $(wcs.f_reel_in_band): need softminus_beta * f_reel_in_band >= 2 " *
+                  "(softminus_beta >= $(2 / wcs.f_reel_in_band) here), or the reel-out curve leaves " *
+                  "a dead band of zero speed above f_low.")
     end
     wc = WinchController(wcs=wcs)
     set_f_set(wc.lfc, wcs.f_low)
@@ -107,8 +127,10 @@ function calc_v_set(wc::WinchController, v_act, force, f_low, v_set_pc=nothing)
     else
         reset = false
     end
-    # set the inputs of lfc and ufc    
-    set_reset(wc.lfc, reset)
+    # set the inputs of lfc and ufc
+    # Held in permanent reset under `wcs.soft_reel_in`: the soft law is the
+    # lower limiter instead, and it can never go active.
+    wc.wcs.soft_reel_in || set_reset(wc.lfc, reset)
     set_v_sw(wc.lfc, calc_vro(wc.wcs, wc.lfc.f_set) * 1.05)
     set_v_sw(wc.ufc, calc_vro(wc.wcs, wc.ufc.f_set) * 0.95)
     set_v_act(wc.lfc, v_act)
@@ -129,7 +151,11 @@ function calc_v_set(wc::WinchController, v_act, force, f_low, v_set_pc=nothing)
     select_b(wc.mix3, wc.lfc.active)
     select_c(wc.mix3, wc.ufc.active)
     v_set_out_A = get_v_set_out(wc.sc)
-    v_set_out_B = get_v_set_out(wc.lfc)
+    # Held in PERMANENT reset under `soft_reel_in` (unlike the startup reset
+    # above, which still runs the nlsolve to keep the controller bumpless for
+    # when it activates): it can never go active, so the mixer ignores
+    # channel B and the nlsolve would be pure waste.
+    v_set_out_B = wc.wcs.soft_reel_in ? wc.lfc.v_set_out : get_v_set_out(wc.lfc)
     # Held in reset under `force_limit = "soft"`: it can never go active, the
     # mixer therefore ignores channel C, and the nlsolve would be pure waste.
     v_set_out_C = wc.ufc.reset ? wc.ufc.v_set_out : get_v_set_out(wc.ufc)

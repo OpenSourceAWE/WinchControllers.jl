@@ -73,12 +73,18 @@ only — older Pkg resolves subprojects standalone). `examples/Project.toml` sou
   - `calc_vro(wcs, force)`: `WCSettings.mode` selects the law's shape — `"piecewise"`
     (default) uses `vf_max`/`f_low`/`f_high`, signed (reel-in below `f_low`); `"reelout"`
     is the unsigned `kv * sqrt(force)` law. `test = true` also forces `"reelout"`.
-  - `calc_vro_soft(wcs, force, f_low)`: continuous alternative, orthogonal to `mode`,
-    selected by `WCSettings.force_limit = "soft"` (default `"hard"`). Requires
+  - `calc_vro_soft(wcs, force, f_low; reel_in)`: continuous alternative, orthogonal to
+    `mode`, selected by `WCSettings.force_limit = "soft"` (default `"hard"`). Requires
     `mode == "reelout"`; when active it replaces the `UpperForceController` as the upper
     limiter (which is then held in permanent reset) via softplus/softminus corners
     (`softplus_beta`/`softminus_beta`) and an optional asymmetric low-pass
-    (`force_limit_tau`/`force_limit_tau_rise`).
+    (`force_limit_tau`/`force_limit_tau_rise`). `reel_in` (defaults to
+    `wcs.soft_reel_in`) additionally replaces the `LowerForceController`: a straight
+    line through `(f_low, 0)` and `(f_low - f_reel_in_band, v_reel_in)`, capped by
+    `min` where the tension curve overtakes it. Requires
+    `softminus_beta * f_reel_in_band >= 2`, checked in `WinchController` — the shipped
+    `softminus_beta` default is 27x too soft for the default `f_reel_in_band` and
+    reopens a dead band of zero speed above `f_low` if unmet.
 - **`winchcontroller.jl`** — `WinchController`, the top-level speed-output controller.
   `calc_v_set` drives one timestep: sets force/speed on the three sub-controllers, mixes
   their outputs through `Mixer_3CH` (channel selection = which sub-controller is active),

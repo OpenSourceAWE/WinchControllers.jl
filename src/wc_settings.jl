@@ -162,10 +162,37 @@ $(TYPEDFIELDS)
     ([`calc_vro_soft`](@ref)) that inverts a tension curve saturating smoothly at
     `f_low` and `f_high` — no threshold, no hand-over, no integrator. The
     `UpperForceController` is then held in reset for the whole run, because the
-    law itself is the upper limiter; the `LowerForceController` stays, since the
-    soft law never commands reel-in. Requires `mode == "reelout"`.
+    law itself is the upper limiter. The `LowerForceController` stays UNLESS
+    `soft_reel_in` is also set, in which case it is held in reset too and the
+    same law commands reel-in below `f_low`. Requires `mode == "reelout"`.
     """
     force_limit::String = "hard"
+    """
+    `"soft"` only: if `true`, [`calc_vro_soft`](@ref) also replaces the
+    `LowerForceController` — a straight line through `(f_low, 0)` and
+    `(f_low - f_reel_in_band, v_reel_in)`, capped where the reel-out tension
+    curve overtakes it. Requires `softminus_beta * f_reel_in_band >= 2`: the
+    lower corner must be sharp enough that the tension curve itself reaches 0
+    at `f_low`, rather than somewhere above it — a wide corner otherwise
+    leaves a dead band of exactly-zero speed between the reel-in ramp and the
+    reel-out curve, with nothing left to bridge it once the
+    `LowerForceController` is gone. The shipped `softminus_beta` default fails
+    this check by a factor of ~27.
+    """
+    soft_reel_in::Bool = false
+    """
+    `soft_reel_in` only: width of the linear reel-in ramp below `f_low` [N].
+    Together with `v_reel_in` this fixes the ramp's slope; the ramp then
+    governs the commanded speed until the reel-out tension curve overtakes it,
+    which on this winch's numbers is well above `f_low + f_reel_in_band`.
+    """
+    f_reel_in_band = 75.0
+    """
+    `soft_reel_in` only: reel-in speed [m/s] at `f_low - f_reel_in_band`, and
+    the clamp for every force below it. Must satisfy
+    `-v_ri_max <= v_reel_in < 0`.
+    """
+    v_reel_in = -0.3
     """
     `"soft"` only: corner sharpness of the UPPER limit [1/N]. The transition
     spans a tension band of order `1/softplus_beta`, so LARGER is sharper; at
@@ -178,7 +205,10 @@ $(TYPEDFIELDS)
     `"soft"` only: corner sharpness of the LOWER limit [1/N], as
     `softplus_beta`. Watch this one: the effective floor is
     `sp(beta*f_low)/beta`, so a `1/beta` larger than `f_low` itself dominates the
-    limit it smooths — at 1e-3 an `f_low` of 700 N acts as 1103 N.
+    limit it smooths — at 1e-3 an `f_low` of 700 N acts as 1103 N. Under
+    `soft_reel_in` this must also satisfy `softminus_beta * f_reel_in_band >= 2`
+    (validated in [`WinchController`](@ref)), or the same effect leaves a dead
+    band of zero speed above `f_low`.
     """
     softminus_beta = 1e-3
     """
