@@ -77,19 +77,19 @@ wc_settings:
     softminus_beta: 1e-3    # "soft" only: corner sharpness of the LOWER limit [1/N]
     force_limit_tau: 1.0    # "soft" only: low-pass time constant on the force [s]
     force_limit_tau_rise: NaN  # "soft" only: same, while the force is RISING [s]; NaN = symmetric
-    soft_reel_in: false     # "soft" only: also replace the LowerForceController with a reel-in line
-    v_reel_in: -2.0         # soft_reel_in only: reel-in speed at zero force [m/s]
-    reel_in_beta: 20.0      # soft_reel_in only: sharpness of the smooth line/curve handover [s/m]
+    soft_lfc: false     # "soft" only: also replace the LowerForceController with a reel-in line
+    v_reel_in: -2.0         # soft_lfc only: reel-in speed at zero force [m/s]
+    reel_in_beta: 20.0      # soft_lfc only: sharpness of the smooth line/curve handover [s/m]
 ```
 
-`soft_reel_in` draws a straight line from `(0, v_reel_in)` to `(f_low, 0)` — the whole
+`soft_lfc` draws a straight line from `(0, v_reel_in)` to `(f_low, 0)` — the whole
 physically valid range below `f_low`, since force is never negative — so there is no
 separate ramp-width setting; the slope is `-v_reel_in / f_low`. It needs
 `softminus_beta * f_low >= 8` (the shipped defaults above fail this by roughly an order
 of magnitude): the lower corner must be sharp enough that the tension curve itself
 reaches 0 at `f_low`, or a dead band of zero speed opens between the line and the curve
 once the `LowerForceController` is switched off. `WinchController` validates this, and
-every other `soft_reel_in` invariant, at construction time.
+every other `soft_lfc` invariant, at construction time.
 
 Above `f_low` the line hands over to the reel-out tension curve via a smooth minimum
 (`soft_min`, sharpness `reel_in_beta`) rather than a hard `min`, so the handover has no

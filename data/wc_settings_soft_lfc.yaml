@@ -41,7 +41,7 @@ wc_settings:
     force_limit: "soft"    # replace the UpperForceController with the soft law
     softplus_beta: 1e-3    # corner sharpness of the UPPER limit [1/N]
     softminus_beta: 0.03   # corner sharpness of the LOWER limit [1/N]; needs * f_low >= 8
-    soft_reel_in: true     # also replace the LowerForceController with a reel-in line
+    soft_lfc: true     # also replace the LowerForceController with a reel-in line
     v_reel_in: -2.0        # reel-in speed at zero force [m/s]
     reel_in_beta: 2.0     # sharpness of the smooth line/curve handover [s/m]
 

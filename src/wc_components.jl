@@ -66,7 +66,7 @@ whenever `force < f_low`.
 This is the NOMINAL law, unaffected by `wcs.force_limit`: the force controllers'
 hand-over speeds `v_sw` are read off it under both settings, and the soft law of
 [`calc_vro_soft`](@ref) returns exactly 0 at `f_low` (negative below it under
-`wcs.soft_reel_in`) and `v_sat` at `f_high` — the two worst possible values for
+`wcs.soft_lfc`) and `v_sat` at `f_high` — the two worst possible values for
 that purpose.
 
 ## Parameters
@@ -110,7 +110,7 @@ Numerically stable log-sum-exp form: `log(exp(-beta*a) + exp(-beta*b)) =
 soft_min(a, b, beta) = min(a, b) - log1p(exp(-beta * abs(a - b))) / beta
 
 """
-    calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; reel_in=wcs.soft_reel_in)
+    calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; soft_lfc=wcs.soft_lfc)
 
 Reel-out speed under SOFT force limiting: the exact inverse of the tension curve
 `T = (v/kv)²` soft-saturated at `f_high` and then at `f_low`, which is the curve
@@ -122,7 +122,7 @@ The saturations are undone in the reverse of the order they are applied: the
 lower one first, then the upper one. `wcs.v_sat` is load-bearing, not a guard —
 the inverse diverges as `force` approaches `f_high`.
 
-With `reel_in`, the law also replaces the `LowerForceController`: below `f_low`
+With `soft_lfc`, the law also replaces the `LowerForceController`: below `f_low`
 it follows a straight line through `(0, wcs.v_reel_in)` and `(f_low, 0)` — the
 whole physically valid range below `f_low`, since force is never negative, so
 no separate ramp-width setting is needed. Above `f_low` the returned speed is
@@ -140,30 +140,30 @@ line and the curve.
 
 ## Parameters
 - wcs::[WCSettings](@ref): the settings struct; reads `kv`, `f_high`, `v_sat`,
-  both `beta`s and, under `reel_in`, `v_reel_in`/`reel_in_beta`
+  both `beta`s and, under `soft_lfc`, `v_reel_in`/`reel_in_beta`
 - force: the tether force at the winch [N], filtered by the caller
 - `f_low`: the lower force limit [N]; per-call, since `calc_v_set` takes one
-  too, and it also sets the reel-in line's slope under `reel_in`
-- `reel_in`: selects the branch below `f_low`; defaults to `wcs.soft_reel_in`
+  too, and it also sets the reel-in line's slope under `soft_lfc`
+- `soft_lfc`: selects the branch below `f_low`; defaults to `wcs.soft_lfc`
 
 ## Returns
-- the reel-out speed [m/s]. With `reel_in = false` (the default), in
+- the reel-out speed [m/s]. With `soft_lfc = false` (the default), in
   `[0, wcs.v_sat]` — never negative, so reeling in stays the
-  `LowerForceController`'s job. With `reel_in = true`, in
+  `LowerForceController`'s job. With `soft_lfc = true`, in
   `[wcs.v_reel_in, wcs.v_sat]`, and the `LowerForceController` must be held in
-  reset (`WCSettings.soft_reel_in` does this in [`WinchController`](@ref)).
+  reset (`WCSettings.soft_lfc` does this in [`WinchController`](@ref)).
 """
-function calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; reel_in=wcs.soft_reel_in)
-    m = reel_in ? -wcs.v_reel_in / f_low : 0.0
+function calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; soft_lfc=wcs.soft_lfc)
+    m = soft_lfc ? -wcs.v_reel_in / f_low : 0.0
     if force <= f_low
-        reel_in && return max(m * (force - f_low), wcs.v_reel_in)
+        soft_lfc && return max(m * (force - f_low), wcs.v_reel_in)
         return 0.0
     end
     force >= wcs.f_high && return wcs.v_sat
     t = f_low + sp_inv(wcs.softminus_beta * (force - f_low)) / wcs.softminus_beta
     t = wcs.f_high - sp_inv(wcs.softplus_beta * (wcs.f_high - t)) / wcs.softplus_beta
     v_sqrt = min(wcs.kv * sqrt(max(t, 0.0)), wcs.v_sat)
-    reel_in ? soft_min(m * (force - f_low), v_sqrt, wcs.reel_in_beta) : v_sqrt
+    soft_lfc ? soft_min(m * (force - f_low), v_sqrt, wcs.reel_in_beta) : v_sqrt
 end
 
 """

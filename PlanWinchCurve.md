@@ -77,7 +77,7 @@ beta-    1/beta     zero up to    dead band    v(1000)   v(3000)
 5e-2       20 N       350 N           0 N       1.956     3.598
 ```
 
-So `soft_reel_in = true` requires a sharper lower corner rather than new maths. Validate
+So `soft_lfc = true` requires a sharper lower corner rather than new maths. Validate
 `softminus_beta * f_reel_in_band >= 2` (corner at most half the band, i.e. `>= 0.0267` at
 75 N) and fail loudly — the default `1e-3` misses it by a factor of 27. Note the price:
 the over-soft floor was dragging the whole lower half of the curve down, so the reel-out
@@ -99,8 +99,8 @@ A LINE through the two anchor points, cut off where the reel-out curve overtakes
 new setting: the slope is fixed by the anchors, and the meeting point falls out of `min`.
 
 ```text
-reel_in = false:  unchanged, bit for bit.
-reel_in = true:   m       = -v_reel_in / f_reel_in_band          [m/s per N]
+soft_lfc = false:  unchanged, bit for bit.
+soft_lfc = true:   m       = -v_reel_in / f_reel_in_band          [m/s per N]
                   line(F) = m * (F - f_low)
                   sqrt(F) = the CURRENT double inversion, unchanged
 
@@ -142,12 +142,12 @@ band comes straight back.
 75 N and −0.3 m/s go into `WCSettings`/`data/wc_settings.yaml`, since `f_low` is a
 per-call argument that varies at runtime:
 
-- `soft_reel_in::Bool = false` — selects the branch. Requires `force_limit == "soft"`.
+- `soft_lfc::Bool = false` — selects the branch. Requires `force_limit == "soft"`.
 - `f_reel_in_band = 75.0` — width of the reel-in ramp below `f_low` [N], absolute.
 - `v_reel_in = -0.3` — reel-in speed at the bottom of the ramp [m/s]. Must satisfy
   `-v_ri_max <= v_reel_in < 0`; `v_ri_max = 8.0` already exists and keeps its meaning.
 
-Signature: `calc_vro_soft(wcs, force, f_low=wcs.f_low; reel_in=wcs.soft_reel_in)`. The
+Signature: `calc_vro_soft(wcs, force, f_low=wcs.f_low; soft_lfc=wcs.soft_lfc)`. The
 keyword is what lets the example draw both curves from one settings struct; the
 production path through `set_vset_pc` (src/wc_components.jl:144) picks up the setting.
 Validate in `WinchController(wcs)`, next to the existing `force_limit`/`mode` checks
@@ -162,7 +162,7 @@ Without this the change is cosmetic: below `f_low` the LFC activates
 (src/wc_components.jl:751-753) and `Mixer_3CH` selects its channel
 (src/winchcontroller.jl:129), so the new negative values would never reach the winch.
 
-- Constructor: hold `wc.lfc` in permanent reset when `soft_reel_in`, mirroring
+- Constructor: hold `wc.lfc` in permanent reset when `soft_lfc`, mirroring
   `wcs.force_limit == "soft" || set_reset(wc.ufc, false)` (src/winchcontroller.jl:72).
 - `calc_v_set`: leave `set_reset(wc.lfc, reset)` (src/winchcontroller.jl:111) at `true`,
   and bypass `get_v_set_out(wc.lfc)` the way the UFC's nlsolve is bypassed at
@@ -189,14 +189,14 @@ x-axis in the datasheet orientation via `plot`. Use `plotxy(Xs, Ys; legend)`
 (MakieControlPlots/src/plotxy.jl:81) instead, which takes an independent X per series —
 still the sanctioned plotting package, just a different entry point, so it does not
 violate "never GLMakie/Plots directly". One figure, `winch_curve`: `Xs = [speed_false,
-speed_true]`, `Ys = [force, force]` (the same grid twice), `legend=["reel_in = false",
-"reel_in = true"]`, sweeping `f_low - f_reel_in_band - 50 … 1.1*f_high`.
+speed_true]`, `Ys = [force, force]` (the same grid twice), `legend=["soft_lfc = false",
+"soft_lfc = true"]`, sweeping `f_low - f_reel_in_band - 50 … 1.1*f_high`.
 
 ### Tests
 
 Extend `test/test_soft_limit.jl`:
 
-- regression: `reel_in = false` reproduces the current values exactly;
+- regression: `soft_lfc = false` reproduces the current values exactly;
 - anchors: `v(f_low) == 0`, `v(f_low - f_reel_in_band) ≈ v_reel_in`, clamp below it;
 - monotonicity of the whole curve and no dead band above `f_low`;
 - the slope bound `max |dv/dF| <= 1.05 * m` below `F_x` — this is the point of the whole
@@ -209,7 +209,7 @@ Extend `test/test_soft_limit.jl`:
 
 The existing assertions at test/test_soft_limit.jl:174-181 ("The LowerForceController
 stays") must be split by mode rather than deleted — they still hold for
-`soft_reel_in = false`.
+`soft_lfc = false`.
 
 ### Docs to update
 
@@ -246,7 +246,7 @@ reference length instead of `f_reel_in_band`: analytically, the residual dead ba
 number above that, matching the old check's actual strength: it worked out to
 `beta*f_low ≈ 9.3` at the original `beta=3e-2`/`f_low=350`). The shipped `softminus_beta`
 default (`1e-3`) now misses by roughly 8x instead of 27x — still fails, still needs
-sharpening for `soft_reel_in`.
+sharpening for `soft_lfc`.
 
 Everything downstream (`min`/`max` handover, the `LowerForceController` switch-off, the
 `f_err(logger)` fix, the crossing-point kink) is unchanged in kind, only in the specific

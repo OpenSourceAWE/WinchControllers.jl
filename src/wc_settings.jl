@@ -163,7 +163,7 @@ $(TYPEDFIELDS)
     `f_low` and `f_high` — no threshold, no hand-over, no integrator. The
     `UpperForceController` is then held in reset for the whole run, because the
     law itself is the upper limiter. The `LowerForceController` stays UNLESS
-    `soft_reel_in` is also set, in which case it is held in reset too and the
+    `soft_lfc` is also set, in which case it is held in reset too and the
     same law commands reel-in below `f_low`. Requires `mode == "reelout"`.
     """
     force_limit::String = "hard"
@@ -183,15 +183,15 @@ $(TYPEDFIELDS)
     `softminus_beta` default fails this check by roughly one order of
     magnitude.
     """
-    soft_reel_in::Bool = false
+    soft_lfc::Bool = false
     """
-    `soft_reel_in` only: reel-in speed [m/s] at zero force, and the clamp for
+    `soft_lfc` only: reel-in speed [m/s] at zero force, and the clamp for
     every (physically unreachable) negative force. Must satisfy
     `-v_ri_max <= v_reel_in < 0`.
     """
     v_reel_in = -2.0
     """
-    `soft_reel_in` only: sharpness of the smooth handover between the reel-in
+    `soft_lfc` only: sharpness of the smooth handover between the reel-in
     line and the reel-out tension curve [s/m], where [`calc_vro_soft`](@ref)
     combines them with [`soft_min`](@ref) instead of a hard `min`. Larger is
     sharper; right at the crossing the soft curve sits `log(2) / reel_in_beta`
@@ -214,7 +214,7 @@ $(TYPEDFIELDS)
     `softplus_beta`. Watch this one: the effective floor is
     `sp(beta*f_low)/beta`, so a `1/beta` larger than `f_low` itself dominates the
     limit it smooths — at 1e-3 an `f_low` of 700 N acts as 1103 N. Under
-    `soft_reel_in` this must also satisfy `softminus_beta * f_low >= 8`
+    `soft_lfc` this must also satisfy `softminus_beta * f_low >= 8`
     (validated in [`WinchController`](@ref)), or the same effect leaves a dead
     band of zero speed above `f_low`.
     """

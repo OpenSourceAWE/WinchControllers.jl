@@ -142,7 +142,7 @@ Calculate the normalized maximal force error of a log.
 
 # Returns
 The normalized maximal force error with respect to the maximum force of the winch.
-`0.0` if every sample is `NaN` (e.g. `WCSettings.soft_reel_in`, where neither
+`0.0` if every sample is `NaN` (e.g. `WCSettings.soft_lfc`, where neither
 force controller ever activates and `f_err` has no meaning).
 """
 function f_err(logger::WCLogger)

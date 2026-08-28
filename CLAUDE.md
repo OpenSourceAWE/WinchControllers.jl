@@ -73,13 +73,13 @@ only — older Pkg resolves subprojects standalone). `examples/Project.toml` sou
   - `calc_vro(wcs, force)`: `WCSettings.mode` selects the law's shape — `"piecewise"`
     (default) uses `vf_max`/`f_low`/`f_high`, signed (reel-in below `f_low`); `"reelout"`
     is the unsigned `kv * sqrt(force)` law. `test = true` also forces `"reelout"`.
-  - `calc_vro_soft(wcs, force, f_low; reel_in)`: continuous alternative, orthogonal to
+  - `calc_vro_soft(wcs, force, f_low; soft_lfc)`: continuous alternative, orthogonal to
     `mode`, selected by `WCSettings.force_limit = "soft"` (default `"hard"`). Requires
     `mode == "reelout"`; when active it replaces the `UpperForceController` as the upper
     limiter (which is then held in permanent reset) via softplus/softminus corners
     (`softplus_beta`/`softminus_beta`) and an optional asymmetric low-pass
-    (`force_limit_tau`/`force_limit_tau_rise`). `reel_in` (defaults to
-    `wcs.soft_reel_in`) additionally replaces the `LowerForceController`: a straight
+    (`force_limit_tau`/`force_limit_tau_rise`). `soft_lfc` (defaults to
+    `wcs.soft_lfc`) additionally replaces the `LowerForceController`: a straight
     line through `(0, v_reel_in)` and `(f_low, 0)` — the whole physically valid range
     below `f_low`, since force is never negative, so no separate ramp-width setting
     exists — smoothly capped (`soft_min`, sharpness `reel_in_beta`) where the tension
@@ -136,7 +136,7 @@ Four plotting entry points cover everything in this repo:
   being compared, not the shared one) use `plotxy` instead.
 - `plotxy(xs, ys; xlabel, ylabel, legend, fig)` — like `plot`, but each series gets its OWN
   x AND y vector (`xs`/`ys` are vectors of vectors); `legend` labels them. Used by
-  `examples/plot_winch_curve.jl` to compare `calc_vro_soft`'s `reel_in` branches on one
+  `examples/plot_winch_curve.jl` to compare `calc_vro_soft`'s `soft_lfc` branches on one
   speed/force datasheet axis, since the two curves differ in speed at a given force.
 - `plotx(x, sig1, sig2, ...; title, ylabels, ysize, labels, fig)` — the stacked-panel form
   used for full controller runs (one panel per signal, shared x-axis); see

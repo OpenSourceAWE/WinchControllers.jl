@@ -143,14 +143,15 @@ end
         @test calc_vro_soft(wcs, f) < wcs.kv * sqrt(f)
     end
 
-    # `reel_in` defaults to `wcs.soft_reel_in`, which is false here: every call
-    # above already exercises the regression path. Spelling it out once more so
-    # a future change of the default cannot silently break it.
-    @test calc_vro_soft(wcs, 1000.0) == calc_vro_soft(wcs, 1000.0; reel_in=false)
-    @test ! wcs.soft_reel_in
+    # The `soft_lfc` keyword defaults to the `wcs.soft_lfc` field, which is
+    # false here: every call above already exercises the regression path.
+    # Spelling it out once more so a future change of the default cannot
+    # silently break it.
+    @test calc_vro_soft(wcs, 1000.0) == calc_vro_soft(wcs, 1000.0; soft_lfc=false)
+    @test ! wcs.soft_lfc
 end
 
-@testset "calc_vro_soft, reel_in" begin
+@testset "calc_vro_soft, soft_lfc" begin
     wcs = soft_settings()
     @test wcs.v_reel_in == -2.0    # the struct default
     # softminus_beta * f_low = 1e-3 * 350 = 0.35 < 8: the shipped corner is far
@@ -163,28 +164,28 @@ end
     # The two anchor points, exact: the line spans the WHOLE physically valid
     # range below f_low (force is never negative), so there is no separate
     # ramp-width setting any more.
-    @test calc_vro_soft(wcs, 0.0; reel_in=true) == v_ri
-    @test calc_vro_soft(wcs, wcs.f_low; reel_in=true) == 0.0
-    @test calc_vro_soft(wcs, wcs.f_low / 2; reel_in=true) ≈ v_ri / 2
+    @test calc_vro_soft(wcs, 0.0; soft_lfc=true) == v_ri
+    @test calc_vro_soft(wcs, wcs.f_low; soft_lfc=true) == 0.0
+    @test calc_vro_soft(wcs, wcs.f_low / 2; soft_lfc=true) ≈ v_ri / 2
 
     # Clamp below zero force (never happens physically, but the formula must
     # not run away for a caller that somehow passes a negative value).
-    @test calc_vro_soft(wcs, -100.0; reel_in=true) == v_ri
+    @test calc_vro_soft(wcs, -100.0; soft_lfc=true) == v_ri
 
     # Monotone over the whole range, no dead band anywhere above f_low — the
     # defect the sharper corner exists to close.
     forces = range(-100.0, 1.1 * wcs.f_high; length = 2001)
-    speeds = [calc_vro_soft(wcs, f; reel_in=true) for f in forces]
+    speeds = [calc_vro_soft(wcs, f; soft_lfc=true) for f in forces]
     @test all(isfinite, speeds)
     @test all(>=(-1e-9), diff(speeds))
-    @test count(==(0.0), [calc_vro_soft(wcs, f; reel_in=true)
+    @test count(==(0.0), [calc_vro_soft(wcs, f; soft_lfc=true)
                            for f in (wcs.f_low + 0.5):0.5:(wcs.f_high - 0.5)]) == 0
 
     # The point of the whole construction: a finite slope through the crossing,
     # in contrast to the vertical tangent of the plain √ law at f_low. Checked
     # well below F_x (~512 N here), where the line still governs.
-    d(x) = (calc_vro_soft(wcs, x + 0.01; reel_in=true) -
-            calc_vro_soft(wcs, x - 0.01; reel_in=true)) / 0.02
+    d(x) = (calc_vro_soft(wcs, x + 0.01; soft_lfc=true) -
+            calc_vro_soft(wcs, x - 0.01; soft_lfc=true)) / 0.02
     for f in -50.0:5.0:(wcs.f_low + 100.0)
         @test abs(d(f)) <= 1.05 * m
     end
@@ -194,9 +195,9 @@ end
     # line), and never more than `log(2)/reel_in_beta` below it.
     slack = log(2) / wcs.reel_in_beta
     for f in [400.0, 500.0, 700.0, 1000.0, 3000.0]
-        v_sqrt = calc_vro_soft(wcs, f; reel_in=false)
+        v_sqrt = calc_vro_soft(wcs, f; soft_lfc=false)
         hard_min = min(m * (f - wcs.f_low), v_sqrt)
-        v = calc_vro_soft(wcs, f; reel_in=true)
+        v = calc_vro_soft(wcs, f; soft_lfc=true)
         @test v <= hard_min + 1e-9
         @test v >= hard_min - slack - 1e-9
         @test v <= v_sqrt + 1e-9
@@ -206,16 +207,16 @@ end
     # the softening is invisible — matches the hard min closely, confirming
     # the `(f_low, 0)` anchor's neighbourhood is undisturbed.
     for f in [351.0, 355.0, 360.0, 400.0]
-        v_sqrt = calc_vro_soft(wcs, f; reel_in=false)
+        v_sqrt = calc_vro_soft(wcs, f; soft_lfc=false)
         hard_min = min(m * (f - wcs.f_low), v_sqrt)
-        @test calc_vro_soft(wcs, f; reel_in=true) ≈ hard_min atol = 1e-4
+        @test calc_vro_soft(wcs, f; soft_lfc=true) ≈ hard_min atol = 1e-4
     end
 
     # Pinned exactly against the independent soft_min_ref, close to the actual
     # crossing (F_x ≈ 512 N here) where the softening is largest.
     for f in [480.0, 500.0, 511.0, 520.0, 550.0]
-        v_sqrt = calc_vro_soft(wcs, f; reel_in=false)
-        @test calc_vro_soft(wcs, f; reel_in=true) ≈
+        v_sqrt = calc_vro_soft(wcs, f; soft_lfc=false)
+        @test calc_vro_soft(wcs, f; soft_lfc=true) ≈
               soft_min_ref(m * (f - wcs.f_low), v_sqrt, wcs.reel_in_beta)
     end
 end
@@ -282,9 +283,9 @@ end
     @test wc.lfc.v_sw ≈ calc_vro(wcs, wc.lfc.f_set) * 1.05
     @test wc.ufc.v_sw ≈ calc_vro(wcs, wc.ufc.f_set) * 0.95
 
-    # `soft_reel_in = false` (the default): the LowerForceController stays,
+    # `soft_lfc = false` (the default): the LowerForceController stays,
     # since the soft law never commands reel-in on its own.
-    @test ! wcs.soft_reel_in
+    @test ! wcs.soft_lfc
     wc = WinchController(wcs)
     for _ in 1:400
         calc_v_set(wc, 0.0, 100.0, wcs.f_low)
@@ -294,11 +295,11 @@ end
     @test get_state(wc) == Int(wcsLowerForceLimit)
 end
 
-@testset "soft force limit, soft_reel_in" begin
+@testset "soft force limit, soft_lfc" begin
     dt = 0.02
     wcs = soft_settings(; dt)
     wcs.force_limit_tau = 0.0
-    wcs.soft_reel_in = true
+    wcs.soft_lfc = true
     wcs.softminus_beta = 3e-2   # required: softminus_beta * f_low >= 8
     wc = WinchController(wcs)
 
@@ -316,7 +317,7 @@ end
         on_timer(wc)
     end
     @test ! wc.lfc.active
-    @test wc.calc.input_a ≈ calc_vro_soft(wcs, 100.0, wcs.f_low; reel_in=true)
+    @test wc.calc.input_a ≈ calc_vro_soft(wcs, 100.0, wcs.f_low; soft_lfc=true)
     @test wc.calc.input_a < 0.0
 
     # With both force controllers permanently in reset, the SpeedController is
@@ -380,10 +381,10 @@ end
     @test ! wc.ufc.reset
 end
 
-@testset "soft_reel_in validation" begin
+@testset "soft_lfc validation" begin
     # Requires force_limit = "soft".
     wcs = WCSettings(dt = 0.02)
-    wcs.soft_reel_in = true
+    wcs.soft_lfc = true
     @test wcs.force_limit == "hard"
     @test_throws ErrorException WinchController(wcs)
 
@@ -391,7 +392,7 @@ end
         w = WCSettings(dt = 0.02)
         w.mode = "reelout"
         w.force_limit = "soft"
-        w.soft_reel_in = true
+        w.soft_lfc = true
         w
     end
 
