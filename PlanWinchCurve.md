@@ -290,3 +290,173 @@ No change to the `softminus_beta * f_low >= 8` requirement — that fixes a DEAD
 (a real defect), `reel_in_beta` only rounds a kink (cosmetic/dynamic-response, not a
 correctness defect); `reel_in_beta > 0` is the only new invariant, validated alongside
 the others in `WinchController`.
+
+## Investigate which function with which parameters is currently used in AWETrim
+
+### The law and where it lives
+
+`Winch.tension_curve()` (AWETrim/src/awetrim/system/winch.py:33-132), a CasADi symbolic
+`T(v_r)`. Base curve (winch.py:97-100), `mode="quadratic"` (the one the server uses):
+
+```python
+T = slope * (speed_radial - offset) * (speed_radial - offset)
+```
+
+then optionally soft-clamped (winch.py:121-130):
+
+```python
+if softplus:  T = T - (1/beta) * log(1 + exp(beta * (T - max_tf)))   # from above, at f_max
+if softminus: T = T + (1/beta) * log(1 + exp(beta * (min_tf - T)))   # from below, at f_min
+```
+
+Unlike `calc_vro_soft`, this is **never inverted to `v(F)` in code** — it is fed into
+`Winch.radial_equation()` (winch.py:134-164) as an algebraic residual
+`F_tether - T(v_r) = 0` that IPOPT solves jointly with the rest of the trajectory, not a
+closed-form speed law called at runtime.
+
+The REST server's `WinchParams` (`v_set = k_v * sqrt(force)`, server/schemas.py:165) is
+mapped onto this SAME machinery in `ReeloutSession._apply_winch_params()`
+(server/session.py:592-675):
+
+```python
+slope_winch_ro = 1.0 / (k_v * k_v)
+offset_winch_ro = 0.0
+min_tether_force = f_min;  max_tether_force = f_max
+softplus = softminus = True
+```
+
+i.e. server-side `F = v_r² / k_v²`, soft-clamped to `[f_min, f_max]`, offset fixed at 0.
+
+### `mode`
+
+`WinchParams.mode: Literal["reelout", "reelin"] = "reelout"` (schemas.py:169), but
+`_apply_winch_params` hard-rejects anything but `"reelout"` (session.py:617-621,
+confirmed by tests/server/test_session.py:361-364 and README:322 — `"reelin"` → 400).
+**No reel-in mode is reachable through the server API today.**
+
+### The `beta` corner-sharpness parameters
+
+Two independent betas, same split as here: `softplus_beta` (upper/`f_max`),
+`softminus_beta` (lower/`f_min`) — both `WinchParams` fields, `gt=0` only, **no
+`beta * f_min >= constant` check enforced in code**, just a docstring warning
+(schemas.py:213-228): *"at 1e-3 an f_min of 350 N gives an 884 N floor, 2.5x the value
+requested"* — this is the exact defect `WinchControllers.jl`'s
+`softminus_beta * f_low >= 8` validation now catches at construction time; AWETrim only
+documents it.
+
+Default is genuinely inconsistent across entry points — no single canonical value:
+
+| Path | softplus_beta | softminus_beta |
+|---|---|---|
+| `WinchParams`/session.py:639-644 (server default when unset) | 1e-3 | 1e-3 |
+| `Winch.tension_curve` bare fallback / `DEFAULT_WINCH_CONFIG["sharpness_beta"]` (defaults.py:122) | 1e-4 | 1e-4 |
+| `DEFAULT_RADIAL_PARAMETERS` (defaults.py:199-211) / YAML-loader default (utils.py:148-204) | 1e-4 | 1e-3 |
+| Actual production LEI-V3 cycle YAMLs (helix/uploop/downloop/full_cycle) | 0.001 | 0.001 |
+
+### Numeric defaults actually exercised
+
+- `k_v`: no single canonical value — tests mostly use `0.04`/`0.0408`
+  (test_session.py:384+, test_schemas.py), README/demo client uses `0.11`
+  (client_example.py:209), one "too-stiff" example uses `0.02`.
+- `f_min`/`f_max`: most common pair `1000.0`/`8400.0` (client_example.py:210,
+  test_session.py, README:490); one test uses `350.0`/`7600.0` (test_schemas.py:124) —
+  the same `f_low`/`f_high` pair this repo's tests use.
+- `v_max`/`p_max`: only in test_schemas.py:126-127 (`v_max=8.0` or `p_max=38000.0`);
+  unset falls back to the optimizer's own `speed_radial` bound `(-10, 15)`
+  (defaults.py:154).
+- Production cycle YAMLs (helix/uploop/downloop/full_cycle_periodic_from_exp):
+  `slope_winch_ro ≈ 5380-5556`, `offset_winch_ro ≈ 0.41-0.58`, `max_tether_force =
+  8400`, `min_tether_force` in `{865.4, 1000, 1500}` N.
+
+### Reel-in: exists, but as a SEPARATE curve, not a branch of one law
+
+The server/`WinchParams` path is reel-out only (see `mode` above). The OFFLINE
+`Winch`/cycle-config machinery does model reel-in, but as its OWN quadratic curve with a
+shifted, negative `offset_winch_ri` (e.g. `-3` m/s in helix/downloop/uploop
+`_spline.yaml:57`) — i.e. two separate curves (`slope_winch_ro`/`offset_winch_ro` vs.
+`slope_winch_ri`/`offset_winch_ri`), each used in its own phase
+(`src/awetrim/timeseries/reelin_phase.py`), not one law with a soft branch at `f_low`
+the way `calc_vro_soft`'s `soft_lfc` now works.
+
+There is also an experimental depower-driven single-law variant (`winch.py:43-53,89-95`,
+`offset += winch_offset_depower_gain * (input_depower - winch_depower_ref)`) that can
+span reel-out and reel-in within one phase by shifting the offset with depower — opt-in,
+only exercised in the reduced-order-model cycle-fitting scripts and
+`tests/system/test_winch.py:160-197`, not by the REST server.
+
+### Takeaway for this repo
+
+AWETrim's `softplus_beta`/`softminus_beta` split, defaults, and the "effective floor"
+caveat match `WinchControllers.jl` closely enough that `f_low=350`/`f_high=3800`-ish
+runs are directly comparable — but there is no AWETrim equivalent of `soft_lfc`/
+`v_reel_in`/`reel_in_beta` to stay compatible with: AWETrim's reel-in is a structurally
+different mechanism (a second curve, or an experimental offset shift), not a smooth
+`min`-based handover on one curve. Coordinating `softminus_beta` between the two repos
+(per wc_settings.jl's docstring: "must match the value the trajectory optimizer applies
+to the same curve") only needs to track AWETrim's REEL-OUT corner — nothing there
+currently depends on, or would be affected by, this repo's `soft_lfc` extension.
+
+## Can you plot the function that AWETrim uses in our example as third curve
+
+- using the parameters used when we call the REST interface for 3 m/s wind speed
+
+### The exact WinchParams sent for the v03 (3 m/s) scenario
+
+From SimpleKiteControllers.jl's `examples/awetrim_client.jl`'s `winch_from_wc` (called by
+`simple_opt_reelout.jl:515`), cross-checked against the archived
+`output/scenarios/v03/reelout_150m_opt.yaml`'s `traj_opt.winch:` record — exact match on
+every field both sides log:
+
+```text
+mode           = "reelout"
+k_v            = 0.0408   # winch_kv(3.0; project), clamped to the lowest table row
+f_min          = 350.0    # winch_f_low(3.0; project)
+f_max          = 8000.0   # data/wc_settings.yaml f_high (no per-project override)
+softplus_beta  = 0.001    # data/wc_settings.yaml, sent unconditionally, not nothing
+softminus_beta = 0.001    # data/wc_settings.yaml, sent unconditionally, not nothing
+v_max          = 3.5      # wc.v_sat, default arg of winch_from_wc
+optimize_k_v   = false    # data/traj_opt.yaml
+```
+
+`force_limit` in the archive's summary reads `"hard"` — that is `WinchControllers.jl`'s
+OWN local-controller setting for this run, unrelated to what AWETrim uses: the server
+always evaluates its own soft/quadratic `tension_curve` internally regardless of it, so
+the plotted curve uses `f_min`/`f_max`/betas above regardless of that field.
+
+### The curve itself
+
+AWETrim's `Winch.tension_curve()` (winch.py:33-132) is never inverted to `v(F)` in
+Python — it's a forward `T(v)`, fed to the optimizer as a residual (see the section
+above). Re-derived independently here (softplus/upper corner applied first, then
+softminus/lower corner — the order `calc_vro_soft`'s own docstring says its inversion
+undoes in reverse):
+
+```julia
+sp_fwd(x) = max(x, 0.0) + log1p(exp(-abs(x)))
+function awetrim_tension(v; k_v, f_min, f_max, softplus_beta, softminus_beta)
+    t = (v / k_v)^2
+    t = t - sp_fwd(softplus_beta * (t - f_max)) / softplus_beta
+    t + sp_fwd(softminus_beta * (f_min - t)) / softminus_beta
+end
+```
+
+Verified bit-for-bit against `test/test_soft_limit.jl`'s independent `tension_fwd`
+(algebraically the same formula, `sp_fwd(-x) = sp_fwd(x) - x` identity) across
+`v = 0.0:8.0`, e.g. `v=3.0 -> T=5341.29` both ways.
+
+Plotted directly as `(v, T(v))` — unlike the two `calc_vro_soft` curves, no inversion is
+needed since AWETrim's law already IS force-of-speed. `plotxy`'s third series, same
+figure (`examples/plot_winch_curve.jl`), swept over `v ∈ [0, wcs.v_sat]` only — AWETrim's
+server rejects `mode="reelin"`, so plotting negative `v` here would imply a capability
+that doesn't exist even though the bare quadratic formula is mathematically symmetric.
+
+### What it shows
+
+At these production values (`softminus_beta = 0.001`, same as this repo's shipped
+default), AWETrim's curve carries the EXACT "effective floor" artefact this whole
+investigation started from: `T(0) ≈ 883 N`, not `350 N` — `1/softminus_beta = 1000 N` is
+~3x `f_min`, so the corner dominates the limit it's meant to smooth, precisely as
+`softminus_beta`'s docstring (src/wc_settings.jl) and AWETrim's own `WinchParams`
+docstring (schemas.py) both separately warn. AWETrim has no equivalent of the
+`softminus_beta * f_low >= 8` check `WinchController` now enforces — nothing there
+would catch this at request time.

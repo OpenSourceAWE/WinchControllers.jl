@@ -30,7 +30,31 @@ force = range(0.0, 1.1 * wcs.f_high, 500)
 speed_false = calc_vro_soft.(Ref(wcs), force; soft_lfc=false)
 speed_true  = calc_vro_soft.(Ref(wcs), force; soft_lfc=true)
 
-p = plotxy([speed_false, speed_true], [force, force];
+# Third curve: AWETrim's own forward tension curve (`Winch.tension_curve` in
+# AWETrim/src/awetrim/system/winch.py), independently re-derived here (AWETrim
+# is Python, out of reach at plot time) -- T(v) = (v/k_v)^2, soft-clamped from
+# ABOVE at f_max first, then from BELOW at f_min (the order calc_vro_soft's own
+# docstring says its inversion UNDOES in reverse). AWETrim never inverts this to
+# v(F) itself, so it is plotted directly as force(speed), unlike the two curves
+# above. Reel-out only (AWETrim's server rejects mode="reelin"), hence v >= 0.
+#
+# Parameters are the literal WinchParams examples/awetrim_client.jl's
+# `winch_from_wc` sends for the v03 (3 m/s wind) reel-out scenario in
+# SimpleKiteControllers.jl, cross-checked against the archived
+# output/scenarios/v03/reelout_150m_opt.yaml -- see PlanWinchCurve.md, "Can you
+# plot the function that AWETrim uses".
+sp_fwd(x) = max(x, 0.0) + log1p(exp(-abs(x)))
+function awetrim_tension(v; k_v = 0.0408, f_min = 350.0, f_max = 8000.0,
+                          softplus_beta = 0.001, softminus_beta = 0.001)
+    t = (v / k_v)^2
+    t = t - sp_fwd(softplus_beta * (t - f_max)) / softplus_beta
+    t + sp_fwd(softminus_beta * (f_min - t)) / softminus_beta
+end
+v_awetrim = range(0.0, wcs.v_sat, 500)
+force_awetrim = awetrim_tension.(v_awetrim)
+
+p = plotxy([speed_false, speed_true, v_awetrim], [force, force, force_awetrim];
            xlabel="speed [m/s]", ylabel="force [N]",
-           legend=["soft_lfc = false", "soft_lfc = true"], fig="winch_curve")
+           legend=["soft_lfc = false", "soft_lfc = true", "AWETrim (v03, 3 m/s)"],
+           fig="winch_curve")
 display(p)
