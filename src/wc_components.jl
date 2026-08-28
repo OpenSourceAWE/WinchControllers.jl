@@ -111,21 +111,22 @@ lower one first, then the upper one. `wcs.v_sat` is load-bearing, not a guard �
 the inverse diverges as `force` approaches `f_high`.
 
 With `reel_in`, the law also replaces the `LowerForceController`: below `f_low`
-it follows a straight line through `(f_low, 0)` and
-`(f_low - wcs.f_reel_in_band, wcs.v_reel_in)`, clamped at `wcs.v_reel_in` below
-that. Above `f_low` the returned speed is `min` of that same line and the
-tension-curve inverse, so the line governs near `f_low` and the tension curve
-takes back over once it exceeds the line — this also guarantees the command
-never exceeds what the tension curve allows. Requires
-`wcs.softminus_beta * wcs.f_reel_in_band >= 2`, validated in
+it follows a straight line through `(0, wcs.v_reel_in)` and `(f_low, 0)` — the
+whole physically valid range below `f_low`, since force is never negative, so
+no separate ramp-width setting is needed. Above `f_low` the returned speed is
+`min` of that same line and the tension-curve inverse, so the line governs
+near `f_low` and the tension curve takes back over once it exceeds the line —
+this also guarantees the command never exceeds what the tension curve allows.
+Requires `wcs.softminus_beta * f_low >= 8`, validated in
 [`WinchController`](@ref): a softer corner leaves the tension-curve inverse at
-0 well above `f_low`, opening a dead band between the ramp and the curve.
+0 well above `f_low`, opening a dead band between the line and the curve.
 
 ## Parameters
 - wcs::[WCSettings](@ref): the settings struct; reads `kv`, `f_high`, `v_sat`,
-  both `beta`s and, under `reel_in`, `f_reel_in_band`/`v_reel_in`
+  both `beta`s and, under `reel_in`, `v_reel_in`
 - force: the tether force at the winch [N], filtered by the caller
-- `f_low`: the lower force limit [N]; per-call, since `calc_v_set` takes one too
+- `f_low`: the lower force limit [N]; per-call, since `calc_v_set` takes one
+  too, and it also sets the reel-in line's slope under `reel_in`
 - `reel_in`: selects the branch below `f_low`; defaults to `wcs.soft_reel_in`
 
 ## Returns
@@ -136,7 +137,7 @@ never exceeds what the tension curve allows. Requires
   reset (`WCSettings.soft_reel_in` does this in [`WinchController`](@ref)).
 """
 function calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; reel_in=wcs.soft_reel_in)
-    m = reel_in ? -wcs.v_reel_in / wcs.f_reel_in_band : 0.0
+    m = reel_in ? -wcs.v_reel_in / f_low : 0.0
     if force <= f_low
         reel_in && return max(m * (force - f_low), wcs.v_reel_in)
         return 0.0

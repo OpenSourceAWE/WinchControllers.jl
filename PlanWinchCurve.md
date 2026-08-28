@@ -185,12 +185,12 @@ No change is needed in the `SpeedController`: it already saturates at
 
 `plot(X, Ys; labels)` (MakieControlPlots/src/plot.jl:84) takes ONE shared X and several
 Ys. The two curves share the force grid and differ in speed, so they cannot share an
-x-axis in the datasheet orientation. Two figures:
-
-- `winch_curve_compare` — force on x, speed on y, `labels=["reel_in = false",
-  "reel_in = true"]`, sweeping `0 … 1.1*f_high` (which already covers
-  `f_low - f_reel_in_band = 275`).
-- `winch_curve` — the existing datasheet-oriented figure, now showing the `true` curve.
+x-axis in the datasheet orientation via `plot`. Use `plotxy(Xs, Ys; legend)`
+(MakieControlPlots/src/plotxy.jl:81) instead, which takes an independent X per series —
+still the sanctioned plotting package, just a different entry point, so it does not
+violate "never GLMakie/Plots directly". One figure, `winch_curve`: `Xs = [speed_false,
+speed_true]`, `Ys = [force, force]` (the same grid twice), `legend=["reel_in = false",
+"reel_in = true"]`, sweeping `f_low - f_reel_in_band - 50 … 1.1*f_high`.
 
 ### Tests
 
@@ -223,3 +223,36 @@ CLAUDE.md, and `docs/src/settings.md` for the three new settings.
 
 `force >= f_high && return v_sat` is a genuine jump — 5.096 m/s at 3799.9 N, 8.0 m/s at
 3800 N — contradicting the "continuous everywhere" claim, independently of this change.
+
+### Revision: floor moved to zero force, `f_reel_in_band` removed
+
+Implemented as above with `v_reel_in = -0.3`, `f_reel_in_band = 75`, then asked to deepen
+the floor to `-2 m/s` "without changing the slope". Since `m = -v_reel_in / f_reel_in_band`,
+holding `m` fixed while `v_reel_in -> -2.0` forces `f_reel_in_band -> 500`, which exceeds
+`f_low = 350` — the ramp would need negative force to reach the floor. Flagged this before
+touching anything; the resolution, on request, was to anchor the SLOPE at zero force
+instead: line through `(0, v_reel_in)` and `(f_low, 0)`, spanning the whole physically
+valid range below `f_low` rather than a separately-configured sub-band.
+
+This removes `f_reel_in_band` entirely — it was doing double duty as both "how far the
+ramp is wide" and "where the clamp sits", and anchoring at `F=0` collapses both onto
+`f_low`, which is already a setting. `m` is now `-v_reel_in / f_low` (per-call `f_low`,
+consistent with the rest of the function). New default `v_reel_in = -2.0`.
+
+The `softminus_beta` corner-sharpness requirement carries over with `f_low` as the
+reference length instead of `f_reel_in_band`: analytically, the residual dead band above
+`f_low` is `sp(-beta*f_low)/beta`, which decays like `exp(-beta*f_low)/beta` — negligible
+(< 0.05 N) once `beta*f_low >= 7`. Validate `softminus_beta * f_low >= 8` (one round
+number above that, matching the old check's actual strength: it worked out to
+`beta*f_low ≈ 9.3` at the original `beta=3e-2`/`f_low=350`). The shipped `softminus_beta`
+default (`1e-3`) now misses by roughly 8x instead of 27x — still fails, still needs
+sharpening for `soft_reel_in`.
+
+Everything downstream (`min`/`max` handover, the `LowerForceController` switch-off, the
+`f_err(logger)` fix, the crossing-point kink) is unchanged in kind, only in the specific
+numbers: `F_x` (where the line meets the tension curve) moves to ~512 N at the test
+settings (was ~600 N), since the slope itself changed.
+
+The plot merge (single `winch_curve` figure via `plotxy`, described above) also changed
+its sweep domain: since the line now spans exactly `[0, f_low]` with no separate band,
+the sweep starts at `0` rather than `f_low - f_reel_in_band - 50`.

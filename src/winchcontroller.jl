@@ -71,15 +71,10 @@ function WinchController(wcs::WCSettings)
         -wcs.v_ri_max <= wcs.v_reel_in < 0 ||
             error("WCSettings.v_reel_in must be in [-v_ri_max, 0), got $(wcs.v_reel_in) " *
                   "with v_ri_max = $(wcs.v_ri_max).")
-        wcs.f_reel_in_band > 0 ||
-            error("WCSettings.f_reel_in_band must be positive, got $(wcs.f_reel_in_band).")
-        wcs.f_low - wcs.f_reel_in_band >= 0 ||
-            error("WCSettings.f_reel_in_band = $(wcs.f_reel_in_band) exceeds f_low = $(wcs.f_low); " *
-                  "the reel-in ramp would cross zero force.")
-        wcs.softminus_beta * wcs.f_reel_in_band >= 2 ||
+        wcs.softminus_beta * wcs.f_low >= 8 ||
             error("WCSettings.softminus_beta = $(wcs.softminus_beta) is too soft for " *
-                  "f_reel_in_band = $(wcs.f_reel_in_band): need softminus_beta * f_reel_in_band >= 2 " *
-                  "(softminus_beta >= $(2 / wcs.f_reel_in_band) here), or the reel-out curve leaves " *
+                  "f_low = $(wcs.f_low): need softminus_beta * f_low >= 8 " *
+                  "(softminus_beta >= $(8 / wcs.f_low) here), or the reel-out curve leaves " *
                   "a dead band of zero speed above f_low.")
     end
     wc = WinchController(wcs=wcs)

@@ -148,26 +148,28 @@ end
 
 @testset "calc_vro_soft, reel_in" begin
     wcs = soft_settings()
-    # softminus_beta * f_reel_in_band = 1e-3 * 75 = 0.075 < 2: the shipped
-    # corner is far too soft (see WinchController's validation) and would
-    # reopen the dead band this branch is built to close. Sharpen it, as the
-    # example script does.
+    @test wcs.v_reel_in == -2.0    # the struct default
+    # softminus_beta * f_low = 1e-3 * 350 = 0.35 < 8: the shipped corner is far
+    # too soft (see WinchController's validation) and would reopen the dead
+    # band this branch is built to close. Sharpen it, as the example script does.
     wcs.softminus_beta = 3e-2
-    band = wcs.f_reel_in_band     # 75.0
-    v_ri = wcs.v_reel_in          # -0.3
-    m = -v_ri / band              # slope of the reel-in line [m/s per N]
+    v_ri = wcs.v_reel_in          # -2.0
+    m = -v_ri / wcs.f_low         # slope of the reel-in line [m/s per N]
 
-    # The two anchor points, exact.
+    # The two anchor points, exact: the line spans the WHOLE physically valid
+    # range below f_low (force is never negative), so there is no separate
+    # ramp-width setting any more.
+    @test calc_vro_soft(wcs, 0.0; reel_in=true) == v_ri
     @test calc_vro_soft(wcs, wcs.f_low; reel_in=true) == 0.0
-    @test calc_vro_soft(wcs, wcs.f_low - band; reel_in=true) ≈ v_ri
+    @test calc_vro_soft(wcs, wcs.f_low / 2; reel_in=true) ≈ v_ri / 2
 
-    # Clamp below the ramp, and the line's midpoint exactly halfway to v_ri.
-    @test calc_vro_soft(wcs, wcs.f_low - band - 200.0; reel_in=true) == v_ri
-    @test calc_vro_soft(wcs, wcs.f_low - band / 2; reel_in=true) ≈ v_ri / 2
+    # Clamp below zero force (never happens physically, but the formula must
+    # not run away for a caller that somehow passes a negative value).
+    @test calc_vro_soft(wcs, -100.0; reel_in=true) == v_ri
 
     # Monotone over the whole range, no dead band anywhere above f_low — the
     # defect the sharper corner exists to close.
-    forces = range(wcs.f_low - band - 100.0, 1.1 * wcs.f_high; length = 2001)
+    forces = range(-100.0, 1.1 * wcs.f_high; length = 2001)
     speeds = [calc_vro_soft(wcs, f; reel_in=true) for f in forces]
     @test all(isfinite, speeds)
     @test all(>=(-1e-9), diff(speeds))
@@ -176,15 +178,15 @@ end
 
     # The point of the whole construction: a finite slope through the crossing,
     # in contrast to the vertical tangent of the plain √ law at f_low. Checked
-    # well below F_x (~600 N here), where the line still governs.
+    # well below F_x (~512 N here), where the line still governs.
     d(x) = (calc_vro_soft(wcs, x + 0.01; reel_in=true) -
             calc_vro_soft(wcs, x - 0.01; reel_in=true)) / 0.02
-    for f in (wcs.f_low - band):5.0:(wcs.f_low + 100.0)
+    for f in -50.0:5.0:(wcs.f_low + 100.0)
         @test abs(d(f)) <= 1.05 * m
     end
 
-    # `min`/`max` handover: below f_low the ramp; above it, whichever of the
-    # ramp and the tension curve is smaller — so the command never exceeds
+    # `min`/`max` handover: below f_low the line; above it, whichever of the
+    # line and the tension curve is smaller — so the command never exceeds
     # what the tension curve allows.
     for f in [400.0, 500.0, 700.0, 1000.0, 3000.0]
         v_sqrt = calc_vro_soft(wcs, f; reel_in=false)
@@ -242,7 +244,7 @@ end
     wcs = soft_settings(; dt)
     wcs.force_limit_tau = 0.0
     wcs.soft_reel_in = true
-    wcs.softminus_beta = 3e-2   # required: softminus_beta * f_reel_in_band >= 2
+    wcs.softminus_beta = 3e-2   # required: softminus_beta * f_low >= 8
     wc = WinchController(wcs)
 
     # The LowerForceController is held in permanent reset, same as the UFC.
@@ -338,10 +340,10 @@ end
         w
     end
 
-    # The shipped softminus_beta/f_reel_in_band combination fails the check
-    # this whole design exists to enforce (see calc_vro_soft): 1e-3 * 75 = 0.075 < 2.
+    # The shipped softminus_beta/f_low combination fails the check this whole
+    # design exists to enforce (see calc_vro_soft): 1e-3 * 350 = 0.35 < 8.
     wcs = base()
-    @test wcs.softminus_beta * wcs.f_reel_in_band < 2
+    @test wcs.softminus_beta * wcs.f_low < 8
     @test_throws ErrorException WinchController(wcs)
 
     # Sharpening the corner is enough on its own.
@@ -355,13 +357,5 @@ end
     wcs.v_reel_in = 0.5
     @test_throws ErrorException WinchController(wcs)
     wcs.v_reel_in = -100.0
-    @test_throws ErrorException WinchController(wcs)
-
-    # f_reel_in_band must be positive and fit under f_low.
-    wcs = base()
-    wcs.softminus_beta = 3e-2
-    wcs.f_reel_in_band = 0.0
-    @test_throws ErrorException WinchController(wcs)
-    wcs.f_reel_in_band = wcs.f_low + 1.0
     @test_throws ErrorException WinchController(wcs)
 end

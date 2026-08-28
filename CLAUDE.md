@@ -80,11 +80,12 @@ only — older Pkg resolves subprojects standalone). `examples/Project.toml` sou
     (`softplus_beta`/`softminus_beta`) and an optional asymmetric low-pass
     (`force_limit_tau`/`force_limit_tau_rise`). `reel_in` (defaults to
     `wcs.soft_reel_in`) additionally replaces the `LowerForceController`: a straight
-    line through `(f_low, 0)` and `(f_low - f_reel_in_band, v_reel_in)`, capped by
-    `min` where the tension curve overtakes it. Requires
-    `softminus_beta * f_reel_in_band >= 2`, checked in `WinchController` — the shipped
-    `softminus_beta` default is 27x too soft for the default `f_reel_in_band` and
-    reopens a dead band of zero speed above `f_low` if unmet.
+    line through `(0, v_reel_in)` and `(f_low, 0)` — the whole physically valid range
+    below `f_low`, since force is never negative, so no separate ramp-width setting
+    exists — capped by `min` where the tension curve overtakes it above `f_low`.
+    Requires `softminus_beta * f_low >= 8`, checked in `WinchController` — the shipped
+    `softminus_beta` default misses this by roughly an order of magnitude and reopens
+    a dead band of zero speed above `f_low` if unmet.
 - **`winchcontroller.jl`** — `WinchController`, the top-level speed-output controller.
   `calc_v_set` drives one timestep: sets force/speed on the three sub-controllers, mixes
   their outputs through `Mixer_3CH` (channel selection = which sub-controller is active),
@@ -122,11 +123,17 @@ end
 using WinchControllers, MakieControlPlots
 ```
 
-Three plotting entry points cover everything in this repo:
+Four plotting entry points cover everything in this repo:
 
 - `plot(x, y; xlabel, ylabel, labels, fig)` — a single-panel line plot; `y` can be a vector
   of series for one panel with a `labels` vector, `fig` names the window. Always
   `display(...)` it — scripts run via `include`, so the return value is otherwise dropped.
+  All series share one `x`; when they don't (e.g. two curves that diverge along the axis
+  being compared, not the shared one) use `plotxy` instead.
+- `plotxy(xs, ys; xlabel, ylabel, legend, fig)` — like `plot`, but each series gets its OWN
+  x AND y vector (`xs`/`ys` are vectors of vectors); `legend` labels them. Used by
+  `examples/plot_winch_curve.jl` to compare `calc_vro_soft`'s `reel_in` branches on one
+  speed/force datasheet axis, since the two curves differ in speed at a given force.
 - `plotx(x, sig1, sig2, ...; title, ylabels, ysize, labels, fig)` — the stacked-panel form
   used for full controller runs (one panel per signal, shared x-axis); see
   `examples/plot_power.jl`'s `plot(lg::WCLogger)` for the canonical multi-panel layout
