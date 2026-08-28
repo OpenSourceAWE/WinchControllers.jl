@@ -170,7 +170,8 @@ $(TYPEDFIELDS)
     """
     `"soft"` only: if `true`, [`calc_vro_soft`](@ref) also replaces the
     `LowerForceController` — a straight line through `(0, v_reel_in)` and
-    `(f_low, 0)`, capped where the reel-out tension curve overtakes it above
+    `(f_low, 0)`, smoothly capped ([`soft_min`](@ref), sharpness
+    `reel_in_beta`) where the reel-out tension curve overtakes it above
     `f_low`. The line spans the whole physically valid force range below
     `f_low` (force is never negative), so no separate ramp-width setting is
     needed: the slope is `-v_reel_in / f_low`. Requires
@@ -189,6 +190,17 @@ $(TYPEDFIELDS)
     `-v_ri_max <= v_reel_in < 0`.
     """
     v_reel_in = -2.0
+    """
+    `soft_reel_in` only: sharpness of the smooth handover between the reel-in
+    line and the reel-out tension curve [s/m], where [`calc_vro_soft`](@ref)
+    combines them with [`soft_min`](@ref) instead of a hard `min`. Larger is
+    sharper; right at the crossing the soft curve sits `log(2) / reel_in_beta`
+    below the exact `min`. The line governs by such a wide margin near `f_low`
+    itself that this only visibly rounds the corner well above `f_low`, near
+    the actual crossing — it does not touch the `(f_low, 0)` anchor. Must be
+    positive.
+    """
+    reel_in_beta = 20.0
     """
     `"soft"` only: corner sharpness of the UPPER limit [1/N]. The transition
     spans a tension band of order `1/softplus_beta`, so LARGER is sharper; at

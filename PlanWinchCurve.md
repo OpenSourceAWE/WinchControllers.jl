@@ -256,3 +256,37 @@ settings (was ~600 N), since the slope itself changed.
 The plot merge (single `winch_curve` figure via `plotxy`, described above) also changed
 its sweep domain: since the line now spans exactly `[0, f_low]` with no separate band,
 the sweep starts at `0` rather than `f_low - f_reel_in_band - 50`.
+
+### Revision: soften the line/tension-curve crossing
+
+The `min(line, sqrt)` handover above `f_low` is a genuine kink (`C0`, not `C1`) at `F_x`
+where the two curves cross — asked to make it soft, matching the softplus/softminus
+treatment already used at the `f_low`/`f_high` corners on the FORCE side.
+
+Replace `min` with a smooth minimum, same log-sum-exp construction as `sp`/`sp_inv`
+elsewhere in this file, numerically stable by subtracting out the hard min first:
+
+```julia
+soft_min(a, b, beta) = min(a, b) - log1p(exp(-beta * abs(a - b))) / beta
+```
+
+`beta` [s/m — the domain here is SPEED, not force] sets the sharpness; `soft_min <= min`
+always, exact at `beta -> Inf`, and sits exactly `log(2)/beta` below the hard min right at
+the crossing. New setting `reel_in_beta = 20.0`. Only the `F > f_low` branch changes,
+`soft_min(line, sqrt, reel_in_beta)` in place of `min(line, sqrt)`; the `F <= f_low`
+branch (`max(line, v_reel_in)`) is untouched, so the `(0, v_reel_in)`/`(f_low, 0)` anchors
+stay exact.
+
+Checked numerically before committing to it: near `f_low` the tension-curve inverse
+already jumps to a sizeable value within a fraction of a newton (the same steep corner
+behaviour documented under "the vertical tangent" earlier), while the line is still tiny
+there — so `|line - sqrt|` is large near `f_low` regardless of `reel_in_beta`, and
+`soft_min` reduces to the exact `min`. The softening is therefore invisible near the
+`(f_low, 0)` anchor and only visibly rounds the corner near the actual crossing (~512 N at
+the test settings, matched `hard_min` to float precision away from it, within `log(2)/beta`
+of it at `F_x` itself — verified against an independent naive log-sum-exp reference).
+
+No change to the `softminus_beta * f_low >= 8` requirement — that fixes a DEAD BAND
+(a real defect), `reel_in_beta` only rounds a kink (cosmetic/dynamic-response, not a
+correctness defect); `reel_in_beta > 0` is the only new invariant, validated alongside
+the others in `WinchController`.

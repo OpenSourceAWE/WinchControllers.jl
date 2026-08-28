@@ -82,10 +82,14 @@ only — older Pkg resolves subprojects standalone). `examples/Project.toml` sou
     `wcs.soft_reel_in`) additionally replaces the `LowerForceController`: a straight
     line through `(0, v_reel_in)` and `(f_low, 0)` — the whole physically valid range
     below `f_low`, since force is never negative, so no separate ramp-width setting
-    exists — capped by `min` where the tension curve overtakes it above `f_low`.
-    Requires `softminus_beta * f_low >= 8`, checked in `WinchController` — the shipped
-    `softminus_beta` default misses this by roughly an order of magnitude and reopens
-    a dead band of zero speed above `f_low` if unmet.
+    exists — smoothly capped (`soft_min`, sharpness `reel_in_beta`) where the tension
+    curve overtakes it above `f_low`, rather than a hard `min` (kink-free handover;
+    `soft_min` is the same log-sum-exp construction as `sp`/`sp_inv` above, just
+    applied on the SPEED axis instead of force). Requires `softminus_beta * f_low >=
+    8`, checked in `WinchController` — the shipped `softminus_beta` default misses
+    this by roughly an order of magnitude and reopens a dead band of zero speed above
+    `f_low` if unmet; that is a real defect and independent of `reel_in_beta`, which
+    only rounds a kink.
 - **`winchcontroller.jl`** — `WinchController`, the top-level speed-output controller.
   `calc_v_set` drives one timestep: sets force/speed on the three sub-controllers, mixes
   their outputs through `Mixer_3CH` (channel selection = which sub-controller is active),

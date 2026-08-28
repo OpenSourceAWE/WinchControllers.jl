@@ -98,6 +98,18 @@ Inverse of the softplus `sp(x) = ln(1 + eˣ)`, i.e. `ln(eʸ - 1)`. Written with
 sp_inv(y) = y + log(-expm1(-y))
 
 """
+    soft_min(a, b, beta)
+
+Smooth approximation to `min(a, b)`: exact as `a == b`, and converges to `min(a, b)`
+away from the crossing or as `beta -> Inf`. Always `<= min(a, b)`, by up to
+`log(2) / beta` right at the crossing. `beta` sets the sharpness, in units of `1/[a]`.
+
+Numerically stable log-sum-exp form: `log(exp(-beta*a) + exp(-beta*b)) =
+-beta*min(a,b) + log1p(exp(-beta*|a-b|))`, so no term ever overflows.
+"""
+soft_min(a, b, beta) = min(a, b) - log1p(exp(-beta * abs(a - b))) / beta
+
+"""
     calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; reel_in=wcs.soft_reel_in)
 
 Reel-out speed under SOFT force limiting: the exact inverse of the tension curve
@@ -114,16 +126,21 @@ With `reel_in`, the law also replaces the `LowerForceController`: below `f_low`
 it follows a straight line through `(0, wcs.v_reel_in)` and `(f_low, 0)` — the
 whole physically valid range below `f_low`, since force is never negative, so
 no separate ramp-width setting is needed. Above `f_low` the returned speed is
-`min` of that same line and the tension-curve inverse, so the line governs
-near `f_low` and the tension curve takes back over once it exceeds the line —
-this also guarantees the command never exceeds what the tension curve allows.
-Requires `wcs.softminus_beta * f_low >= 8`, validated in
-[`WinchController`](@ref): a softer corner leaves the tension-curve inverse at
-0 well above `f_low`, opening a dead band between the line and the curve.
+the [`soft_min`](@ref) of that same line and the tension-curve inverse (corner
+sharpness `wcs.reel_in_beta`), so the line governs near `f_low` and the
+tension curve takes back over once it exceeds the line, with a smooth corner
+rather than a kink where they cross — this also guarantees the command never
+exceeds what the tension curve allows (`soft_min <= min`, always). The line
+governs by such a wide margin near `f_low` itself (the tension-curve inverse
+is pinned near 0 there) that the smoothing is invisible until close to the
+actual crossing, well above `f_low`. Requires `wcs.softminus_beta * f_low >=
+8`, validated in [`WinchController`](@ref): a softer corner leaves the
+tension-curve inverse at 0 well above `f_low`, opening a dead band between the
+line and the curve.
 
 ## Parameters
 - wcs::[WCSettings](@ref): the settings struct; reads `kv`, `f_high`, `v_sat`,
-  both `beta`s and, under `reel_in`, `v_reel_in`
+  both `beta`s and, under `reel_in`, `v_reel_in`/`reel_in_beta`
 - force: the tether force at the winch [N], filtered by the caller
 - `f_low`: the lower force limit [N]; per-call, since `calc_v_set` takes one
   too, and it also sets the reel-in line's slope under `reel_in`
@@ -146,7 +163,7 @@ function calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; reel_in=wcs.soft
     t = f_low + sp_inv(wcs.softminus_beta * (force - f_low)) / wcs.softminus_beta
     t = wcs.f_high - sp_inv(wcs.softplus_beta * (wcs.f_high - t)) / wcs.softplus_beta
     v_sqrt = min(wcs.kv * sqrt(max(t, 0.0)), wcs.v_sat)
-    reel_in ? min(m * (force - f_low), v_sqrt) : v_sqrt
+    reel_in ? soft_min(m * (force - f_low), v_sqrt, wcs.reel_in_beta) : v_sqrt
 end
 
 """

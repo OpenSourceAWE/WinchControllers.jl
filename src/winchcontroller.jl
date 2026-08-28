@@ -76,6 +76,8 @@ function WinchController(wcs::WCSettings)
                   "f_low = $(wcs.f_low): need softminus_beta * f_low >= 8 " *
                   "(softminus_beta >= $(8 / wcs.f_low) here), or the reel-out curve leaves " *
                   "a dead band of zero speed above f_low.")
+        wcs.reel_in_beta > 0 ||
+            error("WCSettings.reel_in_beta must be positive, got $(wcs.reel_in_beta).")
     end
     wc = WinchController(wcs=wcs)
     set_f_set(wc.lfc, wcs.f_low)

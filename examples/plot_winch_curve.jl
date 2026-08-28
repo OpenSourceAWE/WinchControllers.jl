@@ -3,7 +3,7 @@ using Pkg
 if ! ("MakieControlPlots" ∈ keys(Pkg.project().dependencies))
     Pkg.activate(@__DIR__)
 end
-using WinchControllers, MakieControlPlots
+using WinchControllers, MakieControlPlots, KiteUtils
 import MakieControlPlots: plotxy
 
 # Winch curve under SOFT force limiting, with and without the reel-in extension
@@ -11,12 +11,14 @@ import MakieControlPlots: plotxy
 # `(f_low, 0)` -- the whole physically valid range below f_low, since force is
 # never negative -- see `calc_vro_soft`. It needs a lower corner sharp enough
 # that the tension curve itself reaches 0 at f_low (softminus_beta * f_low >= 8);
-# the shipped default misses this by roughly an order of magnitude, so it is
-# bumped here for the demo.
+# the shipped default of `data/wc_settings.yaml` misses this by roughly an
+# order of magnitude, so this example loads `data/wc_settings_soft_reel_in.yaml`
+# instead (via `system_soft_reel_in.yaml`), which already sets force_limit,
+# softminus_beta, soft_reel_in, v_reel_in and reel_in_beta -- edit that file to
+# change the curve, not this script.
+load_settings("system_soft_reel_in.yaml")
 wcs = WCSettings(dt=0.02)
 update(wcs)
-wcs.force_limit = "soft"
-wcs.softminus_beta = max(wcs.softminus_beta, 8.0 / wcs.f_low)
 
 # Both curves, in the style of a motor/winch datasheet torque-speed curve: speed
 # on the x-axis, force on the y-axis. Sweep force past f_high to show all

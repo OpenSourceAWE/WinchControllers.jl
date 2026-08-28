@@ -11,6 +11,10 @@ function tension_fwd(wcs, v)
     wcs.f_low + sp_fwd(wcs.softminus_beta * (t - wcs.f_low)) / wcs.softminus_beta
 end
 
+# Independent statement of the smooth minimum `calc_vro_soft` uses for the
+# reel-in/reel-out handover, same reasoning as `tension_fwd` above.
+soft_min_ref(a, b, beta) = -log(exp(-beta * a) + exp(-beta * b)) / beta
+
 function soft_settings(; dt = 0.02)
     wcs = WCSettings(dt = dt)
     wcs.mode = "reelout"
@@ -185,14 +189,65 @@ end
         @test abs(d(f)) <= 1.05 * m
     end
 
-    # `min`/`max` handover: below f_low the line; above it, whichever of the
-    # line and the tension curve is smaller — so the command never exceeds
-    # what the tension curve allows.
+    # Soft handover above f_low: `soft_min(line, sqrt, reel_in_beta)` — never
+    # above the hard min (never exceeds what the tension curve allows, nor the
+    # line), and never more than `log(2)/reel_in_beta` below it.
+    slack = log(2) / wcs.reel_in_beta
     for f in [400.0, 500.0, 700.0, 1000.0, 3000.0]
         v_sqrt = calc_vro_soft(wcs, f; reel_in=false)
-        @test calc_vro_soft(wcs, f; reel_in=true) ≈ min(m * (f - wcs.f_low), v_sqrt)
-        @test calc_vro_soft(wcs, f; reel_in=true) <= v_sqrt + 1e-9
+        hard_min = min(m * (f - wcs.f_low), v_sqrt)
+        v = calc_vro_soft(wcs, f; reel_in=true)
+        @test v <= hard_min + 1e-9
+        @test v >= hard_min - slack - 1e-9
+        @test v <= v_sqrt + 1e-9
     end
+
+    # Near f_low the line clears the tension curve by such a wide margin that
+    # the softening is invisible — matches the hard min closely, confirming
+    # the `(f_low, 0)` anchor's neighbourhood is undisturbed.
+    for f in [351.0, 355.0, 360.0, 400.0]
+        v_sqrt = calc_vro_soft(wcs, f; reel_in=false)
+        hard_min = min(m * (f - wcs.f_low), v_sqrt)
+        @test calc_vro_soft(wcs, f; reel_in=true) ≈ hard_min atol = 1e-4
+    end
+
+    # Pinned exactly against the independent soft_min_ref, close to the actual
+    # crossing (F_x ≈ 512 N here) where the softening is largest.
+    for f in [480.0, 500.0, 511.0, 520.0, 550.0]
+        v_sqrt = calc_vro_soft(wcs, f; reel_in=false)
+        @test calc_vro_soft(wcs, f; reel_in=true) ≈
+              soft_min_ref(m * (f - wcs.f_low), v_sqrt, wcs.reel_in_beta)
+    end
+end
+
+@testset "soft_min (calc_vro_soft's handover, pinned independently)" begin
+    # Exact at the crossing: soft_min(a, a, beta) = a - log(2)/beta.
+    for beta in [1.0, 5.0, 20.0, 100.0]
+        @test soft_min_ref(1.5, 1.5, beta) ≈ 1.5 - log(2) / beta
+    end
+
+    # Always <= the hard min, converging to it as beta grows. beta is kept
+    # moderate (not e.g. 1e6): the NAIVE log-sum-exp reference above
+    # over/underflows once beta*max(|a|, |b|) exceeds ~700, unlike the actual
+    # (numerically stable) `soft_min` — 100 is already sharp enough here to
+    # confirm convergence without hitting that wall.
+    for (a, b) in [(1.0, 2.0), (-0.5, 3.0), (0.0, 0.0), (5.0, 5.0001)]
+        for beta in [1.0, 10.0, 100.0]
+            @test soft_min_ref(a, b, beta) <= min(a, b) + 1e-12
+        end
+        @test soft_min_ref(a, b, 100.0) ≈ min(a, b) atol = 1e-2
+    end
+    @test soft_min_ref(0.0, 10.0, 5.0) ≈ 0.0 atol = 1e-2   # far apart: matches hard min closely
+
+    # Symmetric in its two arguments.
+    @test soft_min_ref(2.0, 7.0, 3.0) == soft_min_ref(7.0, 2.0, 3.0)
+
+    # Monotone non-decreasing in F when both a(F) and b(F) are.
+    beta = 4.0
+    a(F) = 0.01 * F
+    b(F) = 0.5 + 0.001 * F
+    vals = [soft_min_ref(a(F), b(F), beta) for F in 0.0:0.1:200.0]
+    @test all(>=(-1e-12), diff(vals))
 end
 
 @testset "soft force limit, WinchController" begin
@@ -357,5 +412,13 @@ end
     wcs.v_reel_in = 0.5
     @test_throws ErrorException WinchController(wcs)
     wcs.v_reel_in = -100.0
+    @test_throws ErrorException WinchController(wcs)
+
+    # reel_in_beta must be positive.
+    wcs = base()
+    wcs.softminus_beta = 3e-2
+    wcs.reel_in_beta = 0.0
+    @test_throws ErrorException WinchController(wcs)
+    wcs.reel_in_beta = -5.0
     @test_throws ErrorException WinchController(wcs)
 end
