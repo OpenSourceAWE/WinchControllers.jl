@@ -23,3 +23,6 @@ in this repo (src/winch_kv_table.jl:38).
 
 Config: gains/thresholds (`kv`, `f_low`, `f_high`, `vf_max`, `v_sat`, `force_limit`) are
 in `data/wc_settings.yaml`; wind-speed overrides are in `data/winch_kv_table.yaml`.
+
+## Plot current winch curve
+Add a script plot_winch_curve.jl to the examples folder that plots
