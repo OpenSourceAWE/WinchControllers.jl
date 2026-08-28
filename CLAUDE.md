@@ -101,6 +101,39 @@ Block-diagram docs for the speed-output family live in `docs/src/` (`winchcontro
 `tests.md`, `functions.md`); `WinchController`'s own docstring links to
 `docs/src/assets/winch_controller.png`.
 
+## Plotting
+
+Use the functions of the package MakieControlPlots.jl for plotting — never GLMakie/Plots
+directly. It is a dependency of `examples/`, `test/` and `mwes/`, not of the library
+(`src/` never plots). Every script that plots opens with this guard, since `test/` and
+`mwes/` scripts are sometimes run with the root project active instead of their own:
+
+```julia
+using Pkg
+if ! ("MakieControlPlots" ∈ keys(Pkg.project().dependencies))
+    Pkg.activate(@__DIR__)
+end
+using WinchControllers, MakieControlPlots
+```
+
+Three plotting entry points cover everything in this repo:
+
+- `plot(x, y; xlabel, ylabel, labels, fig)` — a single-panel line plot; `y` can be a vector
+  of series for one panel with a `labels` vector, `fig` names the window. Always
+  `display(...)` it — scripts run via `include`, so the return value is otherwise dropped.
+- `plotx(x, sig1, sig2, ...; title, ylabels, ysize, labels, fig)` — the stacked-panel form
+  used for full controller runs (one panel per signal, shared x-axis); see
+  `examples/plot_power.jl`'s `plot(lg::WCLogger)` for the canonical multi-panel layout
+  logging a `WCLogger` run (wind, speed, acceleration, jerk, force, power, controller
+  state).
+- `bode_plot(sys; from, to, title)` — frequency-response plots for the linearized-system
+  stability examples (`stability_lfc.jl`, `stability_ufc.jl`, `mwes/mwe_02..06.jl`), used
+  together with `ControlSystemsBase`/`RobustAndOptimalControl`.
+
+`examples/plot_power.jl` and `examples/autotune.jl` both `import MakieControlPlots: plot`
+and add a `plot(lg::WCLogger)` method — follow that pattern (extend `plot`, don't invent a
+new function name) when a script needs a repeatable, run-specific plot.
+
 ## Use Kaimon
 
 Kaimon exposes the live Julia REPL and code-intelligence tools; prefer it over a shell
