@@ -80,6 +80,8 @@ wc_settings:
     soft_lfc: false     # "soft" only: also replace the LowerForceController with a reel-in line
     v_reel_in: -2.0         # soft_lfc only: reel-in speed at zero force [m/s]
     reel_in_beta: 20.0      # soft_lfc only: sharpness of the smooth line/curve handover [s/m]
+    use_awe_trim: 0.0       # "soft" only: default calc_vro_soft blend towards AWETrim's
+                             # own curve constants, in [0, 1]; 0.0 leaves the law unchanged
 ```
 
 `soft_lfc` draws a straight line, SHIFTED DOWN by `log(2) / reel_in_beta`, from the one

@@ -120,7 +120,7 @@ end
 
 """
     calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; soft_lfc=wcs.soft_lfc,
-                  use_awe_trim=0.0)
+                  use_awe_trim=wcs.use_awe_trim)
 
 Reel-out speed under SOFT force limiting: the exact inverse of the tension curve
 `T = (v/kv)²` soft-saturated at `f_high` and then at `f_low`, which is the curve
@@ -197,7 +197,7 @@ elsewhere in this file, even nested three deep.
   too, and it also sets the reel-in line's slope under `soft_lfc`
 - `soft_lfc`: selects the branch below `f_low`; defaults to `wcs.soft_lfc`
 - `use_awe_trim`: blend factor in `[0, 1]` towards AWETrim's curve; defaults
-  to `0.0` (current behaviour)
+  to `wcs.use_awe_trim` (itself `0.0`, i.e. current behaviour, unless set)
 
 ## Returns
 - the reel-out speed [m/s]. With `soft_lfc = false` (the default), in
@@ -207,7 +207,7 @@ elsewhere in this file, even nested three deep.
   reset (`WCSettings.soft_lfc` does this in [`WinchController`](@ref)).
 """
 function calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; soft_lfc=wcs.soft_lfc,
-                        use_awe_trim=0.0)
+                        use_awe_trim=wcs.use_awe_trim)
     0.0 <= use_awe_trim <= 1.0 || throw(ArgumentError("use_awe_trim must be in [0, 1], got $use_awe_trim"))
     use_awe_trim == 1.0 && return _calc_vro_soft(wcs, force, 350.0, soft_lfc, 0.0408, 8000.0, 1e-3, 1e-3)
     soft_lfc && _check_reel_in_beta(wcs, wcs.kv, f_low)

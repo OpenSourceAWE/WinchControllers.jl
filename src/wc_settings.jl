@@ -251,6 +251,16 @@ $(TYPEDFIELDS)
     the same mean force — better peak limiting, less power.
     """
     force_limit_tau_rise = NaN
+    """
+    `"soft"` only: default `use_awe_trim` for [`calc_vro_soft`](@ref) — blend
+    factor in `[0, 1]` towards the curve that uses AWETrim's own tension-curve
+    constants instead of this struct's. `0.0` (default) leaves the law exactly
+    as `use_awe_trim` were never passed. See `calc_vro_soft`'s own docstring
+    for what the blend actually does; this field only supplies its default so
+    the choice can live in a settings file instead of being hardcoded at every
+    call site.
+    """
+    use_awe_trim = 0.0
 end
 
 function pf_low_scaled(wcs::WCSettings)
