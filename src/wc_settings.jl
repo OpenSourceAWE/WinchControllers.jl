@@ -174,14 +174,14 @@ $(TYPEDFIELDS)
     `reel_in_beta`) where the reel-out tension curve overtakes it above
     `f_low`. The line spans the whole physically valid force range below
     `f_low` (force is never negative), so no separate ramp-width setting is
-    needed: the slope is `-v_reel_in / f_low`. Requires
-    `softminus_beta * f_low >= 8`: the lower corner must be sharp enough that
-    the tension curve itself reaches 0 at `f_low`, rather than somewhere above
-    it — a wide corner otherwise leaves a dead band of exactly-zero speed
-    between the reel-in line and the reel-out curve, with nothing left to
-    bridge it once the `LowerForceController` is gone. The shipped
-    `softminus_beta` default fails this check by roughly one order of
-    magnitude.
+    needed: the slope is `-v_reel_in / f_low`. The tension curve is HARD
+    clamped at `f_low` here (`softminus_beta` plays no part in this branch —
+    it only smooths the plain, line-less branch used when `soft_lfc = false`,
+    see there), so `reel_in_beta` alone controls the sharpness of the whole
+    handover; see its own docstring for the requirement that keeps it a smooth
+    curve rather than a visible hump. Requires
+    `reel_in_beta * kv * sqrt(f_low) >= 8`, validated in
+    [`WinchController`](@ref).
     """
     soft_lfc::Bool = false
     """
@@ -193,11 +193,20 @@ $(TYPEDFIELDS)
     """
     `soft_lfc` only: sharpness of the smooth handover between the reel-in
     line and the reel-out tension curve [s/m], where [`calc_vro_soft`](@ref)
-    combines them with [`soft_min`](@ref) instead of a hard `min`. Larger is
-    sharper; right at the crossing the soft curve sits `log(2) / reel_in_beta`
-    below the exact `min`. The line governs by such a wide margin near `f_low`
-    itself that this only visibly rounds the corner well above `f_low`, near
-    the actual crossing — it does not touch the `(f_low, 0)` anchor. Must be
+    combines them with [`soft_min`](@ref) instead of a hard `min`. This is the
+    SOLE tuning knob for that handover — the tension curve is hard-clamped at
+    `f_low` in this branch, so changing `reel_in_beta` can never un-straighten
+    the reel-in line below `f_low` (it only moves by a constant,
+    `log(2) / reel_in_beta`, uniformly). Larger is sharper; right at `f_low`
+    the soft curve sits `log(2) / reel_in_beta` below the true crossing. Just
+    above `f_low`, the (hard-clamped) tension-curve inverse jumps from `0` to
+    `kv * sqrt(f_low)` almost immediately — NOT a gentle ramp from `0` — so for
+    the line to actually govern near `f_low` (rather than a visible hump where
+    `soft_min` blends the two over a wide band), `reel_in_beta` must be sharp
+    relative to that jump: `reel_in_beta * kv * sqrt(f_low) >= 8` (validated in
+    [`WinchController`](@ref); the residual hump left behind is then
+    `<= exp(-8)` relative to that jump, the same margin
+    `softminus_beta * f_low >= 8` uses for the other corner). Must be
     positive.
     """
     reel_in_beta = 20.0
@@ -210,13 +219,12 @@ $(TYPEDFIELDS)
     """
     softplus_beta = 1e-3
     """
-    `"soft"` only: corner sharpness of the LOWER limit [1/N], as
-    `softplus_beta`. Watch this one: the effective floor is
+    `"soft"` only, and only when `soft_lfc = false` — with `soft_lfc = true`
+    the tension curve is hard-clamped at `f_low` instead (see `soft_lfc`'s
+    docstring) and this parameter plays no part. Corner sharpness of the LOWER
+    limit [1/N], as `softplus_beta`. Watch this one: the effective floor is
     `sp(beta*f_low)/beta`, so a `1/beta` larger than `f_low` itself dominates the
-    limit it smooths — at 1e-3 an `f_low` of 700 N acts as 1103 N. Under
-    `soft_lfc` this must also satisfy `softminus_beta * f_low >= 8`
-    (validated in [`WinchController`](@ref)), or the same effect leaves a dead
-    band of zero speed above `f_low`.
+    limit it smooths — at 1e-3 an `f_low` of 700 N acts as 1103 N.
     """
     softminus_beta = 1e-3
     """

@@ -71,13 +71,7 @@ function WinchController(wcs::WCSettings)
         -wcs.v_ri_max <= wcs.v_reel_in < 0 ||
             error("WCSettings.v_reel_in must be in [-v_ri_max, 0), got $(wcs.v_reel_in) " *
                   "with v_ri_max = $(wcs.v_ri_max).")
-        wcs.softminus_beta * wcs.f_low >= 8 ||
-            error("WCSettings.softminus_beta = $(wcs.softminus_beta) is too soft for " *
-                  "f_low = $(wcs.f_low): need softminus_beta * f_low >= 8 " *
-                  "(softminus_beta >= $(8 / wcs.f_low) here), or the reel-out curve leaves " *
-                  "a dead band of zero speed above f_low.")
-        wcs.reel_in_beta > 0 ||
-            error("WCSettings.reel_in_beta must be positive, got $(wcs.reel_in_beta).")
+        _check_reel_in_beta(wcs, wcs.kv, wcs.f_low)
     end
     wc = WinchController(wcs=wcs)
     set_f_set(wc.lfc, wcs.f_low)

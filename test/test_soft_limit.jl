@@ -15,6 +15,17 @@ end
 # reel-in/reel-out handover, same reasoning as `tension_fwd` above.
 soft_min_ref(a, b, beta) = -log(exp(-beta * a) + exp(-beta * b)) / beta
 
+# Independent statement of the tension-curve inverse `soft_lfc = true` uses
+# above f_low: HARD-clamped at f_low (no softminus_beta there any more -- see
+# calc_vro_soft's docstring), only softplus_beta still smooths the f_high
+# side. Reuses the package's own `sp_inv` for that shared, already
+# round-trip-tested f_high step; only the f_low side is independent here.
+function v_sqrt_hard(wcs, f)
+    f >= wcs.f_high && return wcs.v_sat
+    t = wcs.f_high - WinchControllers.sp_inv(wcs.softplus_beta * (wcs.f_high - f)) / wcs.softplus_beta
+    min(wcs.kv * sqrt(max(t, 0.0)), wcs.v_sat)
+end
+
 function soft_settings(; dt = 0.02)
     wcs = WCSettings(dt = dt)
     wcs.mode = "reelout"
@@ -154,19 +165,22 @@ end
 @testset "calc_vro_soft, soft_lfc" begin
     wcs = soft_settings()
     @test wcs.v_reel_in == -2.0    # the struct default
-    # softminus_beta * f_low = 1e-3 * 350 = 0.35 < 8: the shipped corner is far
-    # too soft (see WinchController's validation) and would reopen the dead
-    # band this branch is built to close. Sharpen it, as the example script does.
-    wcs.softminus_beta = 3e-2
+    @test wcs.reel_in_beta == 20.0 # the struct default; satisfies reel_in_beta*kv*sqrt(f_low)>=8
     v_ri = wcs.v_reel_in          # -2.0
     m = -v_ri / wcs.f_low         # slope of the reel-in line [m/s per N]
 
-    # The two anchor points, exact: the line spans the WHOLE physically valid
-    # range below f_low (force is never negative), so there is no separate
-    # ramp-width setting any more.
+    # The line spans the WHOLE physically valid range below f_low (force is
+    # never negative), so there is no separate ramp-width setting any more --
+    # but it is shifted DOWN by log(2)/reel_in_beta from the line through
+    # (0, v_reel_in) and (f_low, 0), so it meets soft_min continuously at
+    # f_low (where the unshifted line and the tension-curve inverse both sit
+    # at exactly 0) without eroding its own constant slope -- see
+    # calc_vro_soft's docstring. Exact at f_low/2 (the shift, not an
+    # approximation); at force = 0 the shifted value is clamped back up to
+    # v_ri by the outer max, since it would otherwise undershoot it.
     @test calc_vro_soft(wcs, 0.0; soft_lfc=true) == v_ri
-    @test calc_vro_soft(wcs, wcs.f_low; soft_lfc=true) == 0.0
-    @test calc_vro_soft(wcs, wcs.f_low / 2; soft_lfc=true) ≈ v_ri / 2
+    @test calc_vro_soft(wcs, wcs.f_low; soft_lfc=true) ≈ -log(2) / wcs.reel_in_beta
+    @test calc_vro_soft(wcs, wcs.f_low / 2; soft_lfc=true) ≈ v_ri / 2 - log(2) / wcs.reel_in_beta
 
     # Clamp below zero force (never happens physically, but the formula must
     # not run away for a caller that somehow passes a negative value).
@@ -182,20 +196,24 @@ end
                            for f in (wcs.f_low + 0.5):0.5:(wcs.f_high - 0.5)]) == 0
 
     # The point of the whole construction: a finite slope through the crossing,
-    # in contrast to the vertical tangent of the plain √ law at f_low. Checked
-    # well below F_x (~512 N here), where the line still governs.
+    # in contrast to the vertical tangent of the plain √ law at f_low. The
+    # shifted line's slope is exactly m everywhere below f_low (no decay-based
+    # erosion approaching the crossing, unlike blending through soft_min
+    # itself would give) except where the v_reel_in floor clamps it flat near
+    # force = 0, hence the one-sided bound; checked up to f_low - 1, clear of
+    # the kink into soft_min exactly at f_low.
     d(x) = (calc_vro_soft(wcs, x + 0.01; soft_lfc=true) -
             calc_vro_soft(wcs, x - 0.01; soft_lfc=true)) / 0.02
-    for f in -50.0:5.0:(wcs.f_low + 100.0)
+    for f in -50.0:5.0:(wcs.f_low - 1.0)
         @test abs(d(f)) <= 1.05 * m
     end
 
-    # Soft handover above f_low: `soft_min(line, sqrt, reel_in_beta)` — never
-    # above the hard min (never exceeds what the tension curve allows, nor the
-    # line), and never more than `log(2)/reel_in_beta` below it.
+    # Soft handover above f_low: `soft_min(line, v_sqrt_hard, reel_in_beta)` —
+    # never above the hard min (never exceeds what the tension curve allows,
+    # nor the line), and never more than `log(2)/reel_in_beta` below it.
     slack = log(2) / wcs.reel_in_beta
     for f in [400.0, 500.0, 700.0, 1000.0, 3000.0]
-        v_sqrt = calc_vro_soft(wcs, f; soft_lfc=false)
+        v_sqrt = v_sqrt_hard(wcs, f)
         hard_min = min(m * (f - wcs.f_low), v_sqrt)
         v = calc_vro_soft(wcs, f; soft_lfc=true)
         @test v <= hard_min + 1e-9
@@ -203,19 +221,20 @@ end
         @test v <= v_sqrt + 1e-9
     end
 
-    # Near f_low the line clears the tension curve by such a wide margin that
-    # the softening is invisible — matches the hard min closely, confirming
-    # the `(f_low, 0)` anchor's neighbourhood is undisturbed.
+    # Near f_low the (hard-clamped) tension curve inverse is already close to
+    # its own kv*sqrt(f_low) value, clearing the line by such a wide margin
+    # that the softening is invisible — matches the hard min closely.
     for f in [351.0, 355.0, 360.0, 400.0]
-        v_sqrt = calc_vro_soft(wcs, f; soft_lfc=false)
+        v_sqrt = v_sqrt_hard(wcs, f)
         hard_min = min(m * (f - wcs.f_low), v_sqrt)
         @test calc_vro_soft(wcs, f; soft_lfc=true) ≈ hard_min atol = 1e-4
     end
 
     # Pinned exactly against the independent soft_min_ref, close to the actual
-    # crossing (F_x ≈ 512 N here) where the softening is largest.
-    for f in [480.0, 500.0, 511.0, 520.0, 550.0]
-        v_sqrt = calc_vro_soft(wcs, f; soft_lfc=false)
+    # crossing (F_x ≈ 505 N here, where line ≈ v_sqrt_hard) where the
+    # softening is largest.
+    for f in [480.0, 495.0, 505.0, 515.0, 530.0]
+        v_sqrt = v_sqrt_hard(wcs, f)
         @test calc_vro_soft(wcs, f; soft_lfc=true) ≈
               soft_min_ref(m * (f - wcs.f_low), v_sqrt, wcs.reel_in_beta)
     end
@@ -299,8 +318,8 @@ end
     dt = 0.02
     wcs = soft_settings(; dt)
     wcs.force_limit_tau = 0.0
-    wcs.soft_lfc = true
-    wcs.softminus_beta = 3e-2   # required: softminus_beta * f_low >= 8
+    wcs.soft_lfc = true   # struct default reel_in_beta=20 already satisfies
+                           # reel_in_beta * kv * sqrt(f_low) >= 8
     wc = WinchController(wcs)
 
     # The LowerForceController is held in permanent reset, same as the UFC.
@@ -396,28 +415,36 @@ end
         w
     end
 
-    # The shipped softminus_beta/f_low combination fails the check this whole
-    # design exists to enforce (see calc_vro_soft): 1e-3 * 350 = 0.35 < 8.
+    # The struct default (reel_in_beta = 20, kv = 0.06) passes the sharpness
+    # check this whole design exists to enforce (see calc_vro_soft) on its own.
     wcs = base()
-    @test wcs.softminus_beta * wcs.f_low < 8
+    @test wcs.reel_in_beta * wcs.kv * sqrt(wcs.f_low) >= 8
+    @test WinchController(wcs) isa WinchController
+
+    # An insufficiently sharp reel_in_beta fails it: with kv = 0.0408 (as
+    # data/wc_settings_soft_lfc.yaml uses), reel_in_beta = 2 gives
+    # 2 * 0.0408 * sqrt(350) ≈ 1.53 < 8 -- the exact combination that yaml
+    # shipped with before being retuned, leaving a visible hump instead of a
+    # smooth corner at the f_low handover.
+    wcs = base()
+    wcs.kv = 0.0408
+    wcs.reel_in_beta = 2.0
+    @test wcs.reel_in_beta * wcs.kv * sqrt(wcs.f_low) < 8
     @test_throws ErrorException WinchController(wcs)
 
-    # Sharpening the corner is enough on its own.
-    wcs = base()
-    wcs.softminus_beta = 3e-2
+    # Sharpening reel_in_beta is enough on its own.
+    wcs.reel_in_beta = 20.0
     @test WinchController(wcs) isa WinchController
 
     # v_reel_in must be strictly negative and within v_ri_max.
     wcs = base()
-    wcs.softminus_beta = 3e-2
     wcs.v_reel_in = 0.5
     @test_throws ErrorException WinchController(wcs)
     wcs.v_reel_in = -100.0
     @test_throws ErrorException WinchController(wcs)
 
-    # reel_in_beta must be positive.
+    # reel_in_beta must be positive (the sharpness check above subsumes this).
     wcs = base()
-    wcs.softminus_beta = 3e-2
     wcs.reel_in_beta = 0.0
     @test_throws ErrorException WinchController(wcs)
     wcs.reel_in_beta = -5.0

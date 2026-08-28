@@ -42,10 +42,13 @@ wc_settings:
     # --- Soft force limiting (REEL_OUT mode), see calc_vro_soft --------------
     force_limit: "soft"    # replace the UpperForceController with the soft law
     softplus_beta: 1e-3    # corner sharpness of the UPPER limit [1/N]
-    softminus_beta: 0.03   # corner sharpness of the LOWER limit [1/N]; needs * f_low >= 8
+    softminus_beta: 1e-3   # corner sharpness of the LOWER limit [1/N]; unused here (soft_lfc
+                            # hard-clamps at f_low instead), left at the package default
     soft_lfc: true     # also replace the LowerForceController with a reel-in line
     v_reel_in: -2.0        # reel-in speed at zero force [m/s]
-    reel_in_beta: 2.0     # sharpness of the smooth line/curve handover [s/m]
+    reel_in_beta: 11.0     # sharpness of the smooth line/curve handover [s/m]; needs
+                            # * kv * sqrt(f_low) >= 8, i.e. >= 10.48 here -- calc_vro_soft
+                            # itself now throws if this is violated
 
     # --- Torque controllers: cascaded length loop (winch_position_torque!) ---
     winch_pos_kp:       0.5    # Outer proportional gain: length error [m] -> reel-out speed setpoint [1/s]

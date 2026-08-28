@@ -82,17 +82,21 @@ wc_settings:
     reel_in_beta: 20.0      # soft_lfc only: sharpness of the smooth line/curve handover [s/m]
 ```
 
-`soft_lfc` draws a straight line from `(0, v_reel_in)` to `(f_low, 0)` — the whole
-physically valid range below `f_low`, since force is never negative — so there is no
-separate ramp-width setting; the slope is `-v_reel_in / f_low`. It needs
-`softminus_beta * f_low >= 8` (the shipped defaults above fail this by roughly an order
-of magnitude): the lower corner must be sharp enough that the tension curve itself
-reaches 0 at `f_low`, or a dead band of zero speed opens between the line and the curve
-once the `LowerForceController` is switched off. `WinchController` validates this, and
-every other `soft_lfc` invariant, at construction time.
+`soft_lfc` draws a straight line, SHIFTED DOWN by `log(2) / reel_in_beta`, from the one
+through `(0, v_reel_in)` to `(f_low, 0)` — the whole physically valid range below
+`f_low`, since force is never negative — so there is no separate ramp-width setting; the
+slope is `-v_reel_in / f_low`, unaffected by the shift or by `reel_in_beta`.
 
 Above `f_low` the line hands over to the reel-out tension curve via a smooth minimum
 (`soft_min`, sharpness `reel_in_beta`) rather than a hard `min`, so the handover has no
-kink. Larger `reel_in_beta` is sharper; the curve sits `log(2) / reel_in_beta` below the
-hard minimum right at the crossing, and matches it closely away from the crossing —
-including near the `(f_low, 0)` anchor itself, which the smoothing does not disturb.
+kink; the tension curve itself is HARD-clamped at `f_low` here (`softminus_beta` plays
+no part — it only smooths the plain, line-less curve used when `soft_lfc = false`).
+`reel_in_beta` is therefore the SOLE tuning knob for the whole handover, and changing it
+can never un-straighten the line below `f_low` (only the constant shift moves). Larger
+is sharper; the curve sits `log(2) / reel_in_beta` below the hard minimum right at
+`f_low`. Just above `f_low` the (hard-clamped) tension-curve inverse jumps from `0` to
+`kv * sqrt(f_low)` almost immediately rather than ramping up gently, so `reel_in_beta`
+needs to be sharp relative to that jump for the line to actually govern near `f_low`
+instead of a visible hump: `reel_in_beta * kv * sqrt(f_low) >= 8` (the shipped defaults
+above satisfy this comfortably). `WinchController` validates this, and every other
+`soft_lfc` invariant, at construction time.

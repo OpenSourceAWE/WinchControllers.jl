@@ -109,8 +109,18 @@ Numerically stable log-sum-exp form: `log(exp(-beta*a) + exp(-beta*b)) =
 """
 soft_min(a, b, beta) = min(a, b) - log1p(exp(-beta * abs(a - b))) / beta
 
+# shared by calc_vro_soft and WinchController; see calc_vro_soft's docstring.
+function _check_reel_in_beta(wcs::WCSettings, kv, f_low)
+    wcs.reel_in_beta * kv * sqrt(f_low) >= 8 ||
+        error("WCSettings.reel_in_beta = $(wcs.reel_in_beta) is too soft for " *
+              "kv = $kv, f_low = $f_low: need reel_in_beta * kv * sqrt(f_low) >= 8 " *
+              "(reel_in_beta >= $(8 / (kv * sqrt(f_low))) here), or the reel-in " *
+              "line-to-tension-curve handover shows a visible hump instead of a smooth corner.")
+end
+
 """
-    calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; soft_lfc=wcs.soft_lfc)
+    calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; soft_lfc=wcs.soft_lfc,
+                  use_awe_trim=0.0)
 
 Reel-out speed under SOFT force limiting: the exact inverse of the tension curve
 `T = (v/kv)²` soft-saturated at `f_high` and then at `f_low`, which is the curve
@@ -122,21 +132,62 @@ The saturations are undone in the reverse of the order they are applied: the
 lower one first, then the upper one. `wcs.v_sat` is load-bearing, not a guard —
 the inverse diverges as `force` approaches `f_high`.
 
-With `soft_lfc`, the law also replaces the `LowerForceController`: below `f_low`
-it follows a straight line through `(0, wcs.v_reel_in)` and `(f_low, 0)` — the
-whole physically valid range below `f_low`, since force is never negative, so
-no separate ramp-width setting is needed. Above `f_low` the returned speed is
-the [`soft_min`](@ref) of that same line and the tension-curve inverse (corner
-sharpness `wcs.reel_in_beta`), so the line governs near `f_low` and the
+With `soft_lfc`, the law also replaces the `LowerForceController`: below
+`f_low` it follows a straight line, SHIFTED DOWN by `log(2) / reel_in_beta`
+from the one through `(0, wcs.v_reel_in)` and `(f_low, 0)` — the whole
+physically valid range, since force is never negative, so no separate
+ramp-width setting is needed — clamped at `wcs.v_reel_in` near `force = 0`.
+Above `f_low` the returned speed is the [`soft_min`](@ref) of the UNSHIFTED
+line and the tension-curve inverse — HARD-clamped at `f_low` from below (no
+`softminus_beta` softening here; that parameter only smooths the non-`soft_lfc`
+branch above, where there is no line to fall back on and a soft corner is
+needed to avoid a dead band) — so the line governs near `f_low` and the
 tension curve takes back over once it exceeds the line, with a smooth corner
 rather than a kink where they cross — this also guarantees the command never
-exceeds what the tension curve allows (`soft_min <= min`, always). The line
-governs by such a wide margin near `f_low` itself (the tension-curve inverse
-is pinned near 0 there) that the smoothing is invisible until close to the
-actual crossing, well above `f_low`. Requires `wcs.softminus_beta * f_low >=
-8`, validated in [`WinchController`](@ref): a softer corner leaves the
-tension-curve inverse at 0 well above `f_low`, opening a dead band between the
-line and the curve.
+exceeds what the tension curve allows (`soft_min <= min`, always). The shift
+matters only right at the boundary: AT `force = f_low`, the (unshifted) line
+is `0` and the (hard-clamped) tension-curve inverse is `kv * sqrt(f_low)`, and
+`soft_min(a, b, beta) = min(a, b) - log1p(exp(-beta*|a-b|))/beta`, so unless
+the line below is shifted down to match, the two pieces disagree there by up
+to `log(2) / reel_in_beta` (a genuine jump, not a kink, when `a == b`; here
+the offset is smaller since `kv * sqrt(f_low) > 0`, but still real). Shifting
+the WHOLE line, rather than blending it into `soft_min` across the whole
+domain, is what keeps its slope exactly `m = -wcs.v_reel_in / f_low`
+throughout the reel-in region instead of only asymptotically. `reel_in_beta`
+is the SOLE tunable sharpness for this whole handover — changing it can never
+un-straighten the line below `f_low` (only the constant shift moves), and
+above `f_low` it purely controls how quickly `soft_min` settles onto the
+tension curve. It must be sharp enough that the transition is actually
+invisible rather than merely continuous: requires `wcs.reel_in_beta * wcs.kv
+* sqrt(f_low) >= 8`, checked HERE (not just in [`WinchController`](@ref)'s
+constructor, which this function bypasses whenever it is called directly, as
+`CalcVSetIn` and `examples/plot_winch_curve.jl` do) — `kv * sqrt(f_low)` is
+the tension-curve inverse's value right at `f_low` (its smallest possible
+separation from the line, which starts at `0` there), so this is the same
+"residual `<= exp(-8)`" margin `wcs.softminus_beta * f_low >= 8` uses for the
+non-`soft_lfc` corner, applied to this one instead.
+
+`use_awe_trim` blends this curve towards the curve that uses AWETrim's own
+tension-curve constants (`k_v = 0.0408`, `f_min = 350`, `f_max = 8000`,
+`softplus_beta = softminus_beta = 1e-3`, see `awetrim_tension` in
+`examples/plot_winch_curve.jl`) instead of `wcs`'s and `f_low`'s. At `0.0`
+(default) the law is exactly as before; at `1.0` it exactly reproduces
+AWETrim's curve; both by the closed-form inverse, [`_calc_vro_soft`](@ref).
+In between, the blend is done on the two FULL forward curves — force as a
+function of SPEED, `(1 - use_awe_trim) * F_own(v) + use_awe_trim *
+F_awe_trim(v)`, each obtained by numerically inverting [`_calc_vro_soft`](@ref)
+(no closed form exists for that inverse once `soft_lfc` mixes in the reel-in
+line) — and the blended forward curve is then itself inverted numerically to
+get the speed for the given `force`. Blending forward (force at a given
+speed), rather than the returned speed at a given force, is what makes the
+result sit the same distance from both curves on a speed-vs-force plot: the
+two curves are shaped very differently, so at a given FORCE their speeds can
+be close while at a given SPEED their forces are far apart (or the reverse),
+and it is the latter that a plot like `examples/plot_winch_curve.jl` shows.
+Both the outer and the two inner root-finds are plain bisections (the
+functions being inverted are monotonic by construction), 60 iterations each —
+overkill for Float64 precision, but cheap next to the `nlsolve` calls
+elsewhere in this file, even nested three deep.
 
 ## Parameters
 - wcs::[WCSettings](@ref): the settings struct; reads `kv`, `f_high`, `v_sat`,
@@ -145,6 +196,8 @@ line and the curve.
 - `f_low`: the lower force limit [N]; per-call, since `calc_v_set` takes one
   too, and it also sets the reel-in line's slope under `soft_lfc`
 - `soft_lfc`: selects the branch below `f_low`; defaults to `wcs.soft_lfc`
+- `use_awe_trim`: blend factor in `[0, 1]` towards AWETrim's curve; defaults
+  to `0.0` (current behaviour)
 
 ## Returns
 - the reel-out speed [m/s]. With `soft_lfc = false` (the default), in
@@ -153,17 +206,74 @@ line and the curve.
   `[wcs.v_reel_in, wcs.v_sat]`, and the `LowerForceController` must be held in
   reset (`WCSettings.soft_lfc` does this in [`WinchController`](@ref)).
 """
-function calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; soft_lfc=wcs.soft_lfc)
-    m = soft_lfc ? -wcs.v_reel_in / f_low : 0.0
-    if force <= f_low
-        soft_lfc && return max(m * (force - f_low), wcs.v_reel_in)
-        return 0.0
+function calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; soft_lfc=wcs.soft_lfc,
+                        use_awe_trim=0.0)
+    0.0 <= use_awe_trim <= 1.0 || throw(ArgumentError("use_awe_trim must be in [0, 1], got $use_awe_trim"))
+    use_awe_trim == 1.0 && return _calc_vro_soft(wcs, force, 350.0, soft_lfc, 0.0408, 8000.0, 1e-3, 1e-3)
+    soft_lfc && _check_reel_in_beta(wcs, wcs.kv, f_low)
+    own_softminus_beta = soft_lfc ? Inf : wcs.softminus_beta
+    use_awe_trim == 0.0 && return _calc_vro_soft(wcs, force, f_low, soft_lfc, wcs.kv, wcs.f_high,
+                                                  own_softminus_beta, wcs.softplus_beta)
+    v_lo = soft_lfc ? wcs.v_reel_in : 0.0
+    blended_force(v) = (1 - use_awe_trim) * _force_at_speed(wcs, v, f_low, soft_lfc, wcs.kv, wcs.f_high,
+                                                              own_softminus_beta, wcs.softplus_beta) +
+                        use_awe_trim * _force_at_speed(wcs, v, 350.0, soft_lfc, 0.0408, 8000.0, 1e-3, 1e-3)
+    _bisect_increasing(blended_force, force, v_lo, wcs.v_sat)
+end
+
+# closed-form v(F) behind calc_vro_soft's endpoints and _force_at_speed's inner root-find.
+# softminus_beta = Inf selects a HARD clamp at f_low (wcs's own soft_lfc = true curve,
+# where reel_in_beta alone governs the handover sharpness, see calc_vro_soft's
+# docstring); any finite value keeps the original soft corner there (AWETrim's OWN
+# curve genuinely uses softminus_beta = 1e-3 -- an externally fixed fact about AWETrim,
+# unrelated to wcs's redesign -- so its use_awe_trim = 1.0 endpoint must keep it).
+function _calc_vro_soft(wcs::WCSettings, force, f_low, soft_lfc, kv, f_high,
+                         softminus_beta, softplus_beta)
+    if !soft_lfc
+        force <= f_low && return 0.0
+        force >= f_high && return wcs.v_sat
+        t = f_low + sp_inv(softminus_beta * (force - f_low)) / softminus_beta
+        t = f_high - sp_inv(softplus_beta * (f_high - t)) / softplus_beta
+        return min(kv * sqrt(max(t, 0.0)), wcs.v_sat)
     end
-    force >= wcs.f_high && return wcs.v_sat
-    t = f_low + sp_inv(wcs.softminus_beta * (force - f_low)) / wcs.softminus_beta
-    t = wcs.f_high - sp_inv(wcs.softplus_beta * (wcs.f_high - t)) / wcs.softplus_beta
-    v_sqrt = min(wcs.kv * sqrt(max(t, 0.0)), wcs.v_sat)
-    soft_lfc ? soft_min(m * (force - f_low), v_sqrt, wcs.reel_in_beta) : v_sqrt
+    line = -wcs.v_reel_in / f_low * (force - f_low)
+    if force <= f_low
+        return max(line - log(2) / wcs.reel_in_beta, wcs.v_reel_in)
+    end
+    v_sqrt = if force >= f_high
+        wcs.v_sat
+    else
+        t = isinf(softminus_beta) ? force :
+            f_low + sp_inv(softminus_beta * (force - f_low)) / softminus_beta
+        t = f_high - sp_inv(softplus_beta * (f_high - t)) / softplus_beta
+        min(kv * sqrt(max(t, 0.0)), wcs.v_sat)
+    end
+    max(soft_min(line, v_sqrt, wcs.reel_in_beta), wcs.v_reel_in)
+end
+
+# bisection root-finder for a monotonic increasing scalar function `f`, such
+# that `f(result) ≈ target`, searched over `v ∈ [lo, hi]`.
+function _bisect_increasing(f, target, lo, hi; iters=60)
+    for _ in 1:iters
+        mid = 0.5 * (lo + hi)
+        if f(mid) < target
+            lo = mid
+        else
+            hi = mid
+        end
+    end
+    0.5 * (lo + hi)
+end
+
+# forward inverse of `_calc_vro_soft`: the force that produces speed `v` under
+# the given (kv, f_low, f_high, beta) parametrization. No closed form exists
+# once `soft_lfc` mixes the reel-in line into the tension-curve inverse via
+# `soft_min`, so `_calc_vro_soft` itself (monotonic increasing in force) is
+# inverted numerically. `2 * f_high` comfortably covers the plateau where
+# `_calc_vro_soft` already saturates at `wcs.v_sat`.
+function _force_at_speed(wcs::WCSettings, v, f_low, soft_lfc, kv, f_high, softminus_beta, softplus_beta)
+    _bisect_increasing(F -> _calc_vro_soft(wcs, F, f_low, soft_lfc, kv, f_high, softminus_beta, softplus_beta),
+                        v, 0.0, 2 * f_high)
 end
 
 """

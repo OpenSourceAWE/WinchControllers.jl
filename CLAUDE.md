@@ -73,23 +73,30 @@ only — older Pkg resolves subprojects standalone). `examples/Project.toml` sou
   - `calc_vro(wcs, force)`: `WCSettings.mode` selects the law's shape — `"piecewise"`
     (default) uses `vf_max`/`f_low`/`f_high`, signed (reel-in below `f_low`); `"reelout"`
     is the unsigned `kv * sqrt(force)` law. `test = true` also forces `"reelout"`.
-  - `calc_vro_soft(wcs, force, f_low; soft_lfc)`: continuous alternative, orthogonal to
-    `mode`, selected by `WCSettings.force_limit = "soft"` (default `"hard"`). Requires
-    `mode == "reelout"`; when active it replaces the `UpperForceController` as the upper
-    limiter (which is then held in permanent reset) via softplus/softminus corners
-    (`softplus_beta`/`softminus_beta`) and an optional asymmetric low-pass
-    (`force_limit_tau`/`force_limit_tau_rise`). `soft_lfc` (defaults to
-    `wcs.soft_lfc`) additionally replaces the `LowerForceController`: a straight
-    line through `(0, v_reel_in)` and `(f_low, 0)` — the whole physically valid range
-    below `f_low`, since force is never negative, so no separate ramp-width setting
-    exists — smoothly capped (`soft_min`, sharpness `reel_in_beta`) where the tension
-    curve overtakes it above `f_low`, rather than a hard `min` (kink-free handover;
-    `soft_min` is the same log-sum-exp construction as `sp`/`sp_inv` above, just
-    applied on the SPEED axis instead of force). Requires `softminus_beta * f_low >=
-    8`, checked in `WinchController` — the shipped `softminus_beta` default misses
-    this by roughly an order of magnitude and reopens a dead band of zero speed above
-    `f_low` if unmet; that is a real defect and independent of `reel_in_beta`, which
-    only rounds a kink.
+  - `calc_vro_soft(wcs, force, f_low; soft_lfc, use_awe_trim)`: continuous alternative,
+    orthogonal to `mode`, selected by `WCSettings.force_limit = "soft"` (default
+    `"hard"`). Requires `mode == "reelout"`; when active it replaces the
+    `UpperForceController` as the upper limiter (which is then held in permanent reset)
+    via softplus/softminus corners (`softplus_beta`/`softminus_beta`) and an optional
+    asymmetric low-pass (`force_limit_tau`/`force_limit_tau_rise`). `soft_lfc` (defaults
+    to `wcs.soft_lfc`) additionally replaces the `LowerForceController`: a straight
+    line, SHIFTED DOWN by `log(2) / reel_in_beta`, through `(0, v_reel_in)` and
+    `(f_low, 0)` — the whole physically valid range below `f_low`, since force is never
+    negative, so no separate ramp-width setting exists, and the shift keeps its slope
+    exact instead of eroding it — smoothly capped (`soft_min`, sharpness `reel_in_beta`)
+    where the tension curve, HARD-clamped at `f_low` here (`softminus_beta` plays no
+    part in this branch — only the line-less, `soft_lfc = false` branch above needs it,
+    to avoid a dead band with no line to fall back on), overtakes it above `f_low`,
+    rather than a hard `min` (kink-free handover; `soft_min` is the same log-sum-exp
+    construction as `sp`/`sp_inv` above, just applied on the SPEED axis instead of
+    force). `reel_in_beta` is the SOLE tunable sharpness for this whole handover.
+    Requires `reel_in_beta * kv * sqrt(f_low) >= 8`, checked in `WinchController` — the
+    tension-curve inverse jumps from `0` to `kv * sqrt(f_low)` almost immediately above
+    `f_low` rather than ramping up gently, so a `reel_in_beta` that is too soft relative
+    to that jump leaves a visible hump instead of a smooth corner. `use_awe_trim`
+    (`[0, 1]`, default `0`) blends this curve towards AWETrim's own tension-curve
+    constants — see its own docstring, particularly for why the blend is done on the
+    two FULL forward (force-at-a-given-speed) curves rather than on the returned speed.
 - **`winchcontroller.jl`** — `WinchController`, the top-level speed-output controller.
   `calc_v_set` drives one timestep: sets force/speed on the three sub-controllers, mixes
   their outputs through `Mixer_3CH` (channel selection = which sub-controller is active),
