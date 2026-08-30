@@ -261,6 +261,15 @@ $(TYPEDFIELDS)
     call site.
     """
     use_awe_trim = 0.0
+    """
+    Force ceiling [N] sent to AWETrim in place of `f_high` when a caller builds
+    its optimizer request off this struct (e.g. `winch_from_wc` in
+    SimpleKiteControllers.jl's `examples/awetrim_client.jl`). A single fixed
+    value, deliberately independent of wind speed — unlike `f_high` itself,
+    which the runtime winch enforces and this field never overrides. `0.0`
+    (the default) disables it, leaving such requests at the plain `f_high`.
+    """
+    f_high_awe_trim = 0.0
 end
 
 function pf_low_scaled(wcs::WCSettings)
