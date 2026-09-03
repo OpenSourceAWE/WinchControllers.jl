@@ -1,3 +1,32 @@
+### WinchControllers v0.6.1 2026-09-03
+#### Added
+- soft force limiting for REEL_OUT mode: `WCSettings.force_limit` (`"hard"`/`"soft"`)
+  replaces the `UpperForceController` with `calc_vro_soft`, a continuous law with no
+  threshold or hand-over
+- `calc_vro_soft`, the exact inverse of the `kv*sqrt(force)` tension curve, smoothly
+  saturated at `f_low` and `f_high` via `softminus_beta`/`softplus_beta` (helpers
+  `sp_inv`, `soft_min`)
+- `WCSettings.soft_lfc`: also replaces the `LowerForceController` with a straight
+  reel-in line through `(0, v_reel_in)`/`(f_low, 0)`, handed over to the tension curve
+  via `soft_min` (sharpness `reel_in_beta`); `WinchController` validates
+  `reel_in_beta * kv * sqrt(f_low) >= 8` and the other `soft_lfc` invariants at
+  construction time
+- `WCSettings.force_limit_tau`/`force_limit_tau_rise`: low-pass filtering (optionally
+  asymmetric attack/release) of the measured force before `calc_vro_soft` inverts it
+- `LowPass` component in `src/components.jl`, a first-order low-pass filter with
+  independent rise/fall time constants
+- `WCSettings.use_awe_trim`/`f_high_awe_trim`: blend `calc_vro_soft` towards AWETrim's
+  own tension-curve constants
+- `data/wc_settings_soft_lfc.yaml`/`data/system_soft_lfc.yaml` and
+  `examples/plot_winch_curve.jl`, plotting the soft-limited winch curve with and
+  without `soft_lfc`
+- `test/test_soft_limit.jl`, covering `calc_vro_soft`, `soft_min`, the `LowPass`
+  filter and the `WinchController` validation errors
+- documentation of soft force limiting in `docs/src/settings.md`
+#### Changed
+- `f_err(logger)` returns `0.0` instead of erroring when every logged force error is
+  `NaN` (e.g. under `soft_lfc`, where neither force controller ever activates)
+
 ### WinchControllers v0.6.0 2026-08-16
 #### Added
 - torque controllers, moved here from V3Kite.jl: `WinchPosController` (cascaded
