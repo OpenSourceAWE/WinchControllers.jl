@@ -53,7 +53,7 @@ reset too, and `calc_v_set` degenerates to `calc_vro_soft -> SpeedController`
 ever activate).
 
 ## Parameters
-- wcs::[WCSettings](@ref): the winch controller settings struct
+- wcs::[`WCSettings`](@ref): the winch controller settings struct
 
 ## Returns
 - a struct of type [WinchController](@ref)
@@ -186,7 +186,7 @@ Returns the current state of the given `WinchController` instance `wc`. The retu
 - `wc::WinchController`: The winch controller object whose state is to be retrieved.
 
 # Returns
-- @enum [WinchControllerState](@ref)
+- @enum [`WinchControllerState`](@ref)
 """
 function get_state(wc::WinchController)
     get_state(wc.mix3)

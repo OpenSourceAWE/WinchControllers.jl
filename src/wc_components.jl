@@ -18,7 +18,7 @@ Implemented as described in the PhD thesis of Uwe Fechner.
 Component for calculation `v_set_in`, using soft switching.
 
 ## Fields
-- wcs::[WCSettings](@ref)
+- wcs::[`WCSettings`](@ref)
 - mixer2::[Mixer_2CH](@ref): mixer component. Default: `Mixer_2CH(wcs.dt, wcs.t_blend)`
 - filter::[LowPass](@ref): low-pass on the force, `"soft"` force limiting only
 - `f_low`: lower force limit of the soft law; tracks `calc_v_set`'s argument
@@ -42,7 +42,7 @@ end
 Constructor for component for calculation `v_set_in`, using soft switching.
 
 ## Parameters
-- wcs:: [WCSettings](@ref): settings struct with the winch controller settings
+- wcs:: [`WCSettings`](@ref): settings struct with the winch controller settings
 
 ## Returns
 - a new struct of type [CalcVSetIn](@ref)
@@ -70,7 +70,7 @@ hand-over speeds `v_sw` are read off it under both settings, and the soft law of
 that purpose.
 
 ## Parameters
-- wcs::[WCSettings](@ref): the settings struct
+- wcs::[`WCSettings`](@ref): the settings struct
 - force: the tether force at the winch
 
 ## Returns
@@ -190,7 +190,7 @@ overkill for Float64 precision, but cheap next to the `nlsolve` calls
 elsewhere in this file, even nested three deep.
 
 ## Parameters
-- wcs::[WCSettings](@ref): the settings struct; reads `kv`, `f_high`, `v_sat`,
+- wcs::[`WCSettings`](@ref): the settings struct; reads `kv`, `f_high`, `v_sat`,
   both `beta`s and, under `soft_lfc`, `v_reel_in`/`reel_in_beta`
 - force: the tether force at the winch [N], filtered by the caller
 - `f_low`: the lower force limit [N]; per-call, since `calc_v_set` takes one
@@ -379,7 +379,7 @@ Constructor for a Winch struct, using the winch-controller settings and the gene
 as parameters.
 
 ## Parameters
-- wcs::[WCSettings](@ref): settings of the winch controller
+- wcs::[`WCSettings`](@ref): settings of the winch controller
 - set::[Settings](https://ufechner7.github.io/KiteUtils.jl/dev/types/#KiteUtils.Settings): general settings
 
 ## Returns
@@ -735,7 +735,7 @@ end
 Constructor for a LowerForceController, based on the winch controller settings.
 
 ## Parameters
-- wcs::[WCSettings](@ref): the winch controller settings struct
+- wcs::[`WCSettings`](@ref): the winch controller settings struct
 
 ## Returns
 - a struct of type [LowerForceController](@ref)
@@ -1023,7 +1023,7 @@ end
 Creates and returns an upper force controller using the provided `WCSettings`.
 
 # Arguments
-- wcs::[WCSettings](@ref): The settings structure containing configuration parameters for the winch controller.
+- wcs::[`WCSettings`](@ref): The settings structure containing configuration parameters for the winch controller.
 
 # Returns
 - An instance of the upper force controller configured according to the provided settings.

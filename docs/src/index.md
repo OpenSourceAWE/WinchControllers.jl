@@ -67,7 +67,7 @@ You should now see a terminal menu with some examples. Select one using the
 ## Provides
 - a set of generic control components, see [Generic Components](@ref)
 - a winch controller [WinchController](@ref), that limits the upper and lower force and controls the speed as function of the force
-- a winch controller settings struct [WCSettings](@ref) for the settings
+- a winch controller settings struct [`WCSettings`](@ref) for the settings
 - [Utility Functions and Macros](@ref)
 
 ## See also
