@@ -172,10 +172,10 @@ tension-curve constants (`k_v = 0.0408`, `f_min = 350`, `f_max = 8000`,
 `softplus_beta = softminus_beta = 1e-3`, see `awetrim_tension` in
 `examples/plot_winch_curve.jl`) instead of `wcs`'s and `f_low`'s. At `0.0`
 (default) the law is exactly as before; at `1.0` it exactly reproduces
-AWETrim's curve; both by the closed-form inverse, [`_calc_vro_soft`](@ref).
+AWETrim's curve; both by the closed-form inverse, `_calc_vro_soft`.
 In between, the blend is done on the two FULL forward curves — force as a
 function of SPEED, `(1 - use_awe_trim) * F_own(v) + use_awe_trim *
-F_awe_trim(v)`, each obtained by numerically inverting [`_calc_vro_soft`](@ref)
+F_awe_trim(v)`, each obtained by numerically inverting `_calc_vro_soft`
 (no closed form exists for that inverse once `soft_lfc` mixes in the reel-in
 line) — and the blended forward curve is then itself inverted numerically to
 get the speed for the given `force`. Blending forward (force at a given

@@ -29,6 +29,15 @@ calc_output(rl::RateLimiter, input)
 on_timer(rl::RateLimiter)
 ```
 
+## LowPass
+```@docs
+LowPass
+LowPass(dt, tau=1.0, tau_rise=tau)
+reset(lp::LowPass)
+calc_output(lp::LowPass, input)
+on_timer(lp::LowPass)
+```
+
 ## Mixer_2CH
 ```@docs
 Mixer_2CH

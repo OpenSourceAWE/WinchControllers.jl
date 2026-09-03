@@ -89,6 +89,9 @@ winch_force_torque!
 ```@docs
 WCSettings
 calc_vro
+calc_vro_soft
+sp_inv
+soft_min
 ```
 
 ## Logger
