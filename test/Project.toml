@@ -1,7 +1,6 @@
 [deps]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 ControlSystemsBase = "aaaaaaaa-a6ca-5380-bf3e-84a91bcd477e"
-Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 KiteUtils = "90980105-b163-44e5-ba9f-8b1c83bb0533"
 MakieControlPlots = "6d616b69-6563-4f6e-8472-6f6c706c6f74"
 NOMAD = "02130f1c-4665-5b79-af82-ff1385104aa0"
@@ -18,7 +17,6 @@ WinchControllers = {path = ".."}
 [compat]
 Aqua = "0.8.12"
 ControlSystemsBase = "1.15.1"
-Documenter = "1.11.4"
 MakieControlPlots = "0.1.11"
 NOMAD = "2.4.1"
 RobustAndOptimalControl = "0.4.39"
