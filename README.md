@@ -23,6 +23,7 @@ The goal of this package is to provide controllers for winches that consist of a
 - auto-tuning of the controller
 - disk based stability analysis of linearized system including the force controllers
 - torque controlled winches, holding either a length ([WinchPosController](https://opensourceawe.github.io/WinchControllers.jl/dev/winchcontroller/#WinchControllers.WinchPosController)) or a force ([WinchForceController](https://opensourceawe.github.io/WinchControllers.jl/dev/winchcontroller/#WinchControllers.WinchForceController))
+- soft force limiting for REEL_OUT mode, a continuous alternative to the upper/lower force controllers ([`WCSettings.force_limit`/`soft_lfc`](https://opensourceawe.github.io/WinchControllers.jl/dev/settings/))
 
 **Planned features**
 - improved, simplified system model using a quasi-steady tether model and an aerodynamic model including kite mass the cross-wind factor
@@ -74,7 +75,7 @@ to check out this project from git. You can do this with:
 ```bash
 git clone https://github.com/opensourceawe/WinchControllers.jl.git
 cd WinchControllers.jl
-git checkout v0.5.6
+git checkout v0.6.1
 ```
 For the checkout command, use the tag of the latest version.
 </details>
