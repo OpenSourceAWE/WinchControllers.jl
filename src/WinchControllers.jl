@@ -7,7 +7,7 @@ import Base.reset
 import Base.log
 import Base.length
 
-export WCSettings, WinchController, Winch, update
+export WCSettings, WinchController, MPCWinchController, Winch, update
 export WinchControllerState, wcsLowerForceLimit, wcsUpperForceLimit, wcsSpeedControl
 export Mixer_2CH, Mixer_3CH, Integrator, UnitDelay, RateLimiter, CalcVSetIn
 export set_f_set, set_v_sw, set_reset, set_inactive, set_vset_pc
@@ -19,6 +19,7 @@ export SpeedController, set_inactive, set_v_act, set_v_set, set_v_set_in, set_tr
 export LowerForceController, UpperForceController
 export get_startup, get_triangle_wind
 export WCLogger, log, f_err, v_err, gamma, damage, rms
+export get_τ_set
 
 abstract type AbstractForceController end
 const AFC = AbstractForceController
@@ -91,6 +92,7 @@ include("utils.jl")
 include("components.jl")
 include("wc_components.jl")
 include("winchcontroller.jl")
+include("mpc_controller.jl")
 include("logging.jl")
 
 end

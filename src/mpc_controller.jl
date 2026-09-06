@@ -1,5 +1,5 @@
 """
-    mutable struct WinchController
+    mutable struct MPCWinchController
 
 Winch controller using Model Predictive Control (MPC) for speed and force control, incorporating wind speed as a disturbance.
 
@@ -13,11 +13,11 @@ Winch controller using Model Predictive Control (MPC) for speed and force contro
 - `time::Float64`: Current simulation time.
 - `v_act::Float64`: Actual reel-out speed (m/s).
 - `force::Float64`: Actual tether force (N).
-- `v_set::Float64`: Set velocity output to the winch (m/s).
+- `τ_set::Float64`: Set velocity output to the winch (m/s).
 - `v_set_in::Float64`: Input set velocity to the controller (m/s).
 - `kv::Float64`: Velocity-force ratio setpoint.
 """
-@with_kw mutable struct WinchController @deftype Float64
+@with_kw mutable struct MPCWinchController @deftype Float64
     wcs::WCSettings
     set::Settings
     winch::TorqueControlledMachine
@@ -27,24 +27,24 @@ Winch controller using Model Predictive Control (MPC) for speed and force contro
     time = 0.0
     v_act = 0.0
     force = 0.0
-    v_set = 0.0
+    τ_set = 0.0
     v_set_in = 0.0
     kv = wcs.kv
 end
 
 """
-    WinchController(wcs::WCSettings, set::Settings)
+    MPCWinchController(wcs::WCSettings, set::Settings)
 
-Constructor for a WinchController using MPC.
+Constructor for a MPCWinchController using MPC.
 
 # Arguments
 - `wcs::WCSettings`: Winch controller settings.
 - `set::Settings`: System settings.
 
 # Returns
-- A `WinchController` instance.
+- A `MPCWinchController` instance.
 """
-function WinchController(wcs::WCSettings, set::Settings)
+function MPCWinchController(wcs::WCSettings, set::Settings)
     winch = TorqueControlledMachine(set)
     
     # Simplified kite force model
@@ -87,16 +87,16 @@ function WinchController(wcs::WCSettings, set::Settings)
     mpc = LinMPC(estim; Hp, Hc, Mwt, Nwt, Cwt=1e6)
     mpc = setconstraint!(mpc; umin, umax, ymin, ymax)
     
-    WinchController(wcs=wcs, set=set, winch=winch, model=model, plant=plant, mpc=mpc)
+    MPCWinchController(wcs=wcs, set=set, winch=winch, model=model, plant=plant, mpc=mpc)
 end
 
 """
-    calc_v_set(wc::WinchController, v_act, force, v_wind)
+    calc_τ_set(wc::MPCWinchController, v_act, force, v_wind)
 
 Calculate the set velocity for the winch using MPC.
 
 # Arguments
-- `wc::WinchController`: The winch controller instance.
+- `wc::MPCWinchController`: The winch controller instance.
 - `v_act`: Actual reel-out speed (m/s).
 - `force`: Measured tether force (N).
 - `v_wind`: Wind speed disturbance (m/s).
@@ -104,7 +104,7 @@ Calculate the set velocity for the winch using MPC.
 # Returns
 - The calculated set velocity (m/s).
 """
-function calc_τ_set(wc::WinchController, v_act, force, v_wind)
+function calc_τ_set(wc::MPCWinchController, v_act, force, v_wind)
     wc.v_act = v_act
     wc.force = force
     d = [v_wind]
@@ -123,109 +123,109 @@ function calc_τ_set(wc::WinchController, v_act, force, v_wind)
     updatestate!(wc.mpc, u, y[[1]], d)
     updatestate!(wc.plant, u, d)
     
-    wc.v_set = u[1] / wc.set.drum_radius * wc.set.gear_ratio
+    wc.τ_set = u[1]
     wc.v_set_in = ry[1]
-    wc.v_set
+    wc.τ_set
 end
 
 """
-    on_timer(wc::WinchController)
+    on_timer(wc::MPCWinchController)
 
 Update the controller state based on a timer event.
 
 # Arguments
-- `wc::WinchController`: The winch controller instance.
+- `wc::MPCWinchController`: The winch controller instance.
 """
-function on_timer(wc::WinchController)
+function on_timer(wc::MPCWinchController)
     wc.time += wc.wcs.dt
 end
 
 """
-    get_state(wc::WinchController)
+    get_state(wc::MPCWinchController)
 
 Get the current state of the winch controller.
 
 # Returns
-- `WinchControllerState`: The current state (e.g., wcsSpeedControl).
+- `MPCWinchControllerState`: The current state (e.g., wcsSpeedControl).
 """
-function get_state(wc::WinchController)
+function get_state(wc::MPCWinchController)
     wc.state
 end
 
 """
-    get_status(wc::WinchController)
+    get_status(wc::MPCWinchController)
 
 Retrieve the controller status for logging.
 
 # Returns
-- Array containing: reset (false), active (true), force, f_set (0.0), v_set_out, v_set_lfc (0.0), v_set_ufc (0.0).
+- Array containing: reset (false), active (true), force, f_set (0.0), τ_set_out, τ_set_lfc (0.0), τ_set_ufc (0.0).
 """
-function get_status(wc::WinchController)
-    [false, true, wc.force, 0.0, wc.v_set, 0.0, 0.0]
+function get_status(wc::MPCWinchController)
+    [false, true, wc.force, 0.0, wc.τ_set, 0.0, 0.0]
 end
 
 """
-    get_v_err(wc::WinchController)
+    get_v_err(wc::MPCWinchController)
 
 Compute the velocity error.
 
 # Returns
 - Velocity error (m/s) or NaN if not applicable.
 """
-function get_v_err(wc::WinchController)
+function get_v_err(wc::MPCWinchController)
     abs(wc.v_set_in - wc.v_act)
 end
 
 """
-    get_f_err(wc::WinchController)
+    get_f_err(wc::MPCWinchController)
 
 Compute the force error.
 
 # Returns
 - Force error (N) or NaN if not applicable.
 """
-function get_f_err(wc::WinchController)
+function get_f_err(wc::MPCWinchController)
     NaN
 end
 
 """
-    get_v_set(wc::WinchController)
+    get_τ_set(wc::MPCWinchController)
 
 Get the set velocity.
 
 # Returns
 - Set velocity (m/s) or NaN if not applicable.
 """
-function get_v_set(wc::WinchController)
-    wc.v_set
+function get_τ_set(wc::MPCWinchController)
+    wc.τ_set
 end
 
 """
-    get_v_set_in(wc::WinchController)
+    get_v_set_in(wc::MPCWinchController)
 
 Get the input set velocity.
 
 # Returns
 - Input set velocity (m/s) or NaN if not applicable.
 """
-function get_v_set_in(wc::WinchController)
+function get_v_set_in(wc::MPCWinchController)
     wc.v_set_in
 end
 
 """
-    sim_adapt!(wc::WinchController, lg::WCLogger, V_WIND::Vector{Float64})
+    sim_adapt!(wc::MPCWinchController, lg::WCLogger, V_WIND::Vector{Float64})
 
 Simulate the winch controller with adaptive MPC.
 
 # Arguments
-- `wc::WinchController`: The winch controller instance.
+- `wc::MPCWinchController`: The winch controller instance.
 - `lg::WCLogger`: Logger for simulation data.
 - `V_WIND`: Vector of wind speed disturbances.
 
 # Returns
 - `SimResult`: Simulation results containing input, output, and state data.
 """
-function sim_adapt!(wc::WinchController, lg::WCLogger, V_WIND::Vector{Float64})
+function sim_adapt!(wc::MPCWinchController, lg::WCLogger, V_WIND::Vector{Float64})
     N = length(lg)
     U_data = zeros(wc.plant.nu, N)
     Y_data = zeros(wc.plant.ny, N)
@@ -244,14 +244,14 @@ function sim_adapt!(wc::WinchController, lg::WCLogger, V_WIND::Vector{Float64})
         force = calc_force(v_wind, v_act)
         set_force(wc.winch, force)
         
-        v_set = calc_v_set(wc, v_act, force, v_wind)
-        set_v_set(wc.winch, v_set)
+        τ_set = calc_τ_set(wc, v_act, force, v_wind)
+        set_τ_set(wc.winch, τ_set)
         
         on_timer(wc.winch)
         on_timer(wc)
         
         status = get_status(wc)
-        U_data[:,i] = [v_set * wc.set.drum_radius / wc.set.gear_ratio]
+        U_data[:,i] = [τ_set * wc.set.drum_radius / wc.set.gear_ratio]
         Y_data[:,i] = [v_act, force, v_act / sqrt(force + 1e-8)]
         D_data[:,i] = [v_wind]
         Ry_data[:,i] = [sqrt(force) * wc.kv, force, wc.kv]
@@ -260,7 +260,7 @@ function sim_adapt!(wc::WinchController, lg::WCLogger, V_WIND::Vector{Float64})
         
         log(lg; v_ro=v_act, acc=get_acc(wc.winch), state=Int(get_state(wc)), reset=status[1], active=status[2],
             force=status[3], jerk=wc.winch.jerk, f_set=status[4], f_err=get_f_err(wc), v_err=get_v_err(wc),
-            v_set=get_v_set(wc), v_set_out=v_set, v_set_in=get_v_set_in(wc))
+            τ_set=get_τ_set(wc), τ_set_out=τ_set, v_set_in=get_v_set_in(wc))
     end
     
     SimResult(wc.mpc, U_data, Y_data, D_data; Ry_data, X̂_data, X_data)
