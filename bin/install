@@ -39,8 +39,11 @@ fi
 unset _required_kb _available_kb _available_gb
 
 # Ask which Julia version to use
-# Default to 1.12 if it is already installed and is the current default, otherwise 1.11
-if juliaup status 2>/dev/null | grep '^\s*\*' | grep -q '1\.12'; then
+# Default to the newest of 1.12/1.13 if it is already installed and is the current default, otherwise 1.11
+if juliaup status 2>/dev/null | grep '^\s*\*' | grep -q '1\.13'; then
+    _default_choice=3
+    _default_julia="1.13"
+elif juliaup status 2>/dev/null | grep '^\s*\*' | grep -q '1\.12'; then
     _default_choice=2
     _default_julia="1.12"
 else
@@ -50,7 +53,8 @@ fi
 echo "Which Julia version do you want to use?"
 echo "  1) Julia 1.11"
 echo "  2) Julia 1.12"
-read -rp "Enter 1 or 2 [default: ${_default_choice}]: " _julia_choice
+echo "  3) Julia 1.13"
+read -rp "Enter 1, 2 or 3 [default: ${_default_choice}]: " _julia_choice
 case "${_julia_choice}" in
     1)
         _desired_julia="1.11"
@@ -58,11 +62,14 @@ case "${_julia_choice}" in
     2)
         _desired_julia="1.12"
         ;;
+    3)
+        _desired_julia="1.13"
+        ;;
     "")
         _desired_julia="${_default_julia}"
         ;;
     *)
-        echo "Invalid choice: '${_julia_choice}'. Please enter 1 or 2."
+        echo "Invalid choice: '${_julia_choice}'. Please enter 1, 2 or 3."
         exit 1
         ;;
 esac
@@ -106,9 +113,9 @@ if test -f "$SOFILE"; then
     rm -f "$SOFILE"
 fi
 
-# Only accept Julia 1.11 and 1.12
-if [[ $julia_major != "1.11" ]] && [[ $julia_major != "1.12" ]]; then
-    echo "Error: Julia $julia_major is not supported. Only Julia 1.11 and 1.12 are supported."
+# Only accept Julia 1.11, 1.12 and 1.13
+if [[ $julia_major != "1.11" ]] && [[ $julia_major != "1.12" ]] && [[ $julia_major != "1.13" ]]; then
+    echo "Error: Julia $julia_major is not supported. Only Julia 1.11, 1.12 and 1.13 are supported."
     echo "You can install Julia 1.11 with the following commands:"
     echo "juliaup add 1.11"
     echo "juliaup default 1.11"
@@ -116,23 +123,12 @@ if [[ $julia_major != "1.11" ]] && [[ $julia_major != "1.12" ]]; then
 fi
 
 # Copy the appropriate default manifest
-if [[ $julia_major == "1.11" ]]; then
-    if [ -f "Manifest-v1.11.toml.default" ]; then
-        cp Manifest-v1.11.toml.default Manifest-v1.11.toml
-        echo "Copied Manifest-v1.11.toml.default to Manifest-v1.11.toml"
-    else
-        echo "Warning: Manifest-v1.11.toml.default not found"
-        exit 1
-    fi
+if [[ -f "Manifest-v${julia_major}.toml.default" ]]; then
+    cp "Manifest-v${julia_major}.toml.default" "Manifest-v${julia_major}.toml"
+    echo "Copied Manifest-v${julia_major}.toml.default to Manifest-v${julia_major}.toml"
 else
-    # Default to 1.12 for newer versions
-    if [ -f "Manifest-v1.12.toml.default" ]; then
-        cp Manifest-v1.12.toml.default Manifest-v1.12.toml
-        echo "Copied Manifest-v1.12.toml.default to Manifest-v1.12.toml"
-    else
-        echo "Warning: Manifest-v1.12.toml.default not found"
-        exit 1
-    fi
+    echo "Warning: Manifest-v${julia_major}.toml.default not found"
+    exit 1
 fi
 
 # Remove any existing Manifest.toml symlink (left by a previous install run) so Julia
@@ -285,6 +281,7 @@ if [[ $julia_major == "1.11" ]]; then
     normalize_manifest_name "test"
     normalize_manifest_name "docs"
 else
+    # Julia 1.12 and 1.13 use the workspace-based flow
     echo "Julia $julia_major: instantiating all sub-projects..."
     # Seed test and docs manifests from the already-resolved main manifest so that
     # path-sourced packages (e.g. WinchControllers) with tight compat requirements
@@ -293,22 +290,22 @@ else
     cp "Manifest-v${julia_major}.toml" "test/Manifest-v${julia_major}.toml"
     cp "Manifest-v${julia_major}.toml" "docs/Manifest-v${julia_major}.toml"
     _ec=0; run_resolve_with_retry "examples" 0 || _ec=$?
-    if [[ $_ec -eq 2 ]]; then RETRIED_RESOLVES+=("examples (1.12)")
-    elif [[ $_ec -ne 0 ]]; then FAILED_RESOLVES+=("examples (1.12)"); fi
+    if [[ $_ec -eq 2 ]]; then RETRIED_RESOLVES+=("examples (${julia_major})")
+    elif [[ $_ec -ne 0 ]]; then FAILED_RESOLVES+=("examples (${julia_major})"); fi
     echo "Precompiling examples project..."
     julia --project=examples -e 'using Pkg; Pkg.precompile()'
     _ec=0; run_resolve_with_retry "test" 0 || _ec=$?
-    if [[ $_ec -eq 2 ]]; then RETRIED_RESOLVES+=("test (1.12)")
-    elif [[ $_ec -ne 0 ]]; then FAILED_RESOLVES+=("test (1.12)"); fi
+    if [[ $_ec -eq 2 ]]; then RETRIED_RESOLVES+=("test (${julia_major})")
+    elif [[ $_ec -ne 0 ]]; then FAILED_RESOLVES+=("test (${julia_major})"); fi
     _ec=0; run_resolve_with_retry "docs" 0 || _ec=$?
-    if [[ $_ec -eq 2 ]]; then RETRIED_RESOLVES+=("docs (1.12)")
-    elif [[ $_ec -ne 0 ]]; then FAILED_RESOLVES+=("docs (1.12)"); fi
+    if [[ $_ec -eq 2 ]]; then RETRIED_RESOLVES+=("docs (${julia_major})")
+    elif [[ $_ec -ne 0 ]]; then FAILED_RESOLVES+=("docs (${julia_major})"); fi
     echo "Precompiling test project and running the tests..."
     julia --project=test -e 'using Pkg; Pkg.precompile()'
     echo "Precompiling docs project..."
     julia --project=docs -e 'using Pkg; Pkg.precompile()'
     julia --project -e 'using Pkg; Pkg.test()'
-    # Julia 1.12: do not keep manifests in sub-project folders (workspace resolves through root)
+    # Julia 1.12/1.13: do not keep manifests in sub-project folders (workspace resolves through root)
     rm -f "examples/Manifest-v${julia_major}.toml" examples/Manifest.toml
     rm -f "test/Manifest-v${julia_major}.toml" test/Manifest.toml
     rm -f "docs/Manifest-v${julia_major}.toml" docs/Manifest.toml
