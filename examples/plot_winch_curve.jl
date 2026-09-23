@@ -20,6 +20,10 @@ load_settings("system_soft_lfc.yaml")
 wcs = WCSettings(dt=0.02)
 update(wcs)
 
+# Set true to plot only the `soft_lfc = true` curve, e.g. to inspect it in
+# isolation without the other curves cluttering the plot.
+SOFT_LFC_ONLY = true
+
 # Both curves, in the style of a motor/winch datasheet torque-speed curve: speed
 # on the x-axis, force on the y-axis. Sweep force past f_high to show all
 # regions: the reel-in line below f_low, the soft-saturated section, and the
@@ -59,8 +63,14 @@ force_awetrim = awetrim_tension.(v_awetrim)
 # curve it is meant to sit between AWETrim and.
 speed_blend = calc_vro_soft.(Ref(wcs), force; soft_lfc=true, use_awe_trim=0.5)
 
-p = plotxy([speed_false, speed_true, speed_blend, v_awetrim], [force, force, force, force_awetrim];
-           xlabel="speed [m/s]", ylabel="force [N]",
-           legend=["soft_lfc = false", "soft_lfc = true", "use_awe_trim = 0.5", "AWETrim (v03, 3 m/s)"],
-           fig="winch_curve")
+if SOFT_LFC_ONLY
+    p = plotxy([speed_true], [force];
+               xlabel="speed [m/s]", ylabel="force [N]",
+               fig="winch_curve")
+else
+    p = plotxy([speed_false, speed_true, speed_blend, v_awetrim], [force, force, force, force_awetrim];
+               xlabel="speed [m/s]", ylabel="force [N]",
+               legend=["soft_lfc = false", "soft_lfc = true", "use_awe_trim = 0.5", "AWETrim (v03, 3 m/s)"],
+               fig="winch_curve")
+end
 display(p)
