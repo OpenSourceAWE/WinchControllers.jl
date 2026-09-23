@@ -119,6 +119,20 @@ function _check_reel_in_beta(wcs::WCSettings, kv, f_low)
 end
 
 """
+    AWE_TRIM_KV, AWE_TRIM_F_MIN, AWE_TRIM_F_MAX, AWE_TRIM_BETA
+
+The winch curve AWETrim plans against, as SimpleKiteControllers.jl's
+`winch_from_wc` sends it at 3 m/s wind (`examples/awetrim_client.jl`): gain
+`k_v`, force limits `f_min`/`f_max` [N] and the corner sharpness of both soft
+force limits [1/N]. `AWE_TRIM_F_MAX` follows that project's `f_high` (7900 N
+since 2026-09-23, was 8000). Used by [`calc_vro_soft`](@ref)'s `use_awe_trim`.
+"""
+const AWE_TRIM_KV = 0.0408
+const AWE_TRIM_F_MIN = 350.0
+const AWE_TRIM_F_MAX = 7900.0
+const AWE_TRIM_BETA = 1e-3
+
+"""
     calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; soft_lfc=wcs.soft_lfc,
                   use_awe_trim=wcs.use_awe_trim)
 
@@ -168,9 +182,11 @@ separation from the line, which starts at `0` there), so this is the same
 non-`soft_lfc` corner, applied to this one instead.
 
 `use_awe_trim` blends this curve towards the curve that uses AWETrim's own
-tension-curve constants (`k_v = 0.0408`, `f_min = 350`, `f_max = 8000`,
-`softplus_beta = softminus_beta = 1e-3`, see `awetrim_tension` in
-`examples/plot_winch_curve.jl`) instead of `wcs`'s and `f_low`'s. At `0.0`
+tension-curve constants ([`AWE_TRIM_KV`](@ref), `AWE_TRIM_F_MIN`,
+`AWE_TRIM_F_MAX`, `AWE_TRIM_BETA` for both softplus and softminus, see
+`awetrim_tension` in `examples/plot_winch_curve.jl`) instead of `wcs`'s and
+`f_low`'s. Both curves share `wcs`'s soft `v_sat` clamp, which AWETrim also
+applies since it receives `v_sat_beta`. At `0.0`
 (default) the law is exactly as before; at `1.0` it exactly reproduces
 AWETrim's curve; both by the closed-form inverse, `_calc_vro_soft`.
 In between, the blend is done on the two FULL forward curves — force as a
@@ -209,7 +225,8 @@ elsewhere in this file, even nested three deep.
 function calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; soft_lfc=wcs.soft_lfc,
                         use_awe_trim=wcs.use_awe_trim)
     0.0 <= use_awe_trim <= 1.0 || throw(ArgumentError("use_awe_trim must be in [0, 1], got $use_awe_trim"))
-    use_awe_trim == 1.0 && return _calc_vro_soft(wcs, force, 350.0, soft_lfc, 0.0408, 8000.0, 1e-3, 1e-3)
+    use_awe_trim == 1.0 && return _calc_vro_soft(wcs, force, AWE_TRIM_F_MIN, soft_lfc, AWE_TRIM_KV,
+                                                  AWE_TRIM_F_MAX, AWE_TRIM_BETA, AWE_TRIM_BETA)
     soft_lfc && _check_reel_in_beta(wcs, wcs.kv, f_low)
     own_softminus_beta = soft_lfc ? Inf : wcs.softminus_beta
     use_awe_trim == 0.0 && return _calc_vro_soft(wcs, force, f_low, soft_lfc, wcs.kv, wcs.f_high,
@@ -217,7 +234,8 @@ function calc_vro_soft(wcs::WCSettings, force, f_low=wcs.f_low; soft_lfc=wcs.sof
     v_lo = soft_lfc ? wcs.v_reel_in : 0.0
     blended_force(v) = (1 - use_awe_trim) * _force_at_speed(wcs, v, f_low, soft_lfc, wcs.kv, wcs.f_high,
                                                               own_softminus_beta, wcs.softplus_beta) +
-                        use_awe_trim * _force_at_speed(wcs, v, 350.0, soft_lfc, 0.0408, 8000.0, 1e-3, 1e-3)
+                        use_awe_trim * _force_at_speed(wcs, v, AWE_TRIM_F_MIN, soft_lfc, AWE_TRIM_KV,
+                                                       AWE_TRIM_F_MAX, AWE_TRIM_BETA, AWE_TRIM_BETA)
     _bisect_increasing(blended_force, force, v_lo, wcs.v_sat)
 end
 

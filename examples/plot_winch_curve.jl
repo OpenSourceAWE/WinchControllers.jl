@@ -36,21 +36,30 @@ speed_true  = calc_vro_soft.(Ref(wcs), force; soft_lfc=true)
 
 # Third curve: AWETrim's own forward tension curve (`Winch.tension_curve` in
 # AWETrim/src/awetrim/system/winch.py), independently re-derived here (AWETrim
-# is Python, out of reach at plot time) -- T(v) = (v/k_v)^2, soft-clamped from
-# ABOVE at f_max first, then from BELOW at f_min (the order calc_vro_soft's own
-# docstring says its inversion UNDOES in reverse). AWETrim never inverts this to
-# v(F) itself, so it is plotted directly as force(speed), unlike the two curves
-# above. Reel-out only (AWETrim's server rejects mode="reelin"), hence v >= 0.
+# is Python, out of reach at plot time) -- T(v) = (v_raw/k_v)^2, soft-clamped
+# from ABOVE at f_max first, then from BELOW at f_min (the order calc_vro_soft's
+# own docstring says its inversion UNDOES in reverse). `v_raw` undoes the soft
+# v_sat clamp (`Winch._undo_v_sat_clamp`, applied since AWETrim receives
+# `v_sat_beta`): `v = soft_min(v_raw, v_sat, v_sat_beta)` inverted in closed
+# form, its gap to v_sat floored at 1e-6 m/s as there, so the curve rises to
+# f_max at v_sat instead of ending short of it. AWETrim evaluates this curve
+# only as a function of speed, so it is plotted as force(speed), unlike the
+# two curves above. Reel-out only (AWETrim's server rejects mode="reelin"),
+# hence v >= 0.
 #
-# Parameters are the literal WinchParams examples/awetrim_client.jl's
-# `winch_from_wc` sends for the v03 (3 m/s wind) reel-out scenario in
-# SimpleKiteControllers.jl, cross-checked against the archived
-# output/scenarios/v03/reelout_150m_opt.yaml -- see PlanWinchCurve.md, "Can you
-# plot the function that AWETrim uses".
+# Parameters: WinchControllers' AWE_TRIM_* constants, the WinchParams
+# SimpleKiteControllers.jl's `winch_from_wc` sends at 3 m/s wind, and this
+# file's v_sat/v_sat_beta, which that client sends as v_max/v_sat_beta.
 sp_fwd(x) = max(x, 0.0) + log1p(exp(-abs(x)))
-function awetrim_tension(v; k_v = 0.0408, f_min = 350.0, f_max = 8000.0,
-                          softplus_beta = 0.001, softminus_beta = 0.001)
-    t = (v / k_v)^2
+function awetrim_tension(v; k_v = WinchControllers.AWE_TRIM_KV,
+                          f_min = WinchControllers.AWE_TRIM_F_MIN,
+                          f_max = WinchControllers.AWE_TRIM_F_MAX,
+                          softplus_beta = WinchControllers.AWE_TRIM_BETA,
+                          softminus_beta = WinchControllers.AWE_TRIM_BETA,
+                          v_sat = wcs.v_sat, v_sat_beta = wcs.v_sat_beta)
+    gap = max(v_sat - v, 1e-6)
+    v_raw = isinf(v_sat_beta) ? v : v - log(-expm1(-v_sat_beta * gap)) / v_sat_beta
+    t = (v_raw / k_v)^2
     t = t - sp_fwd(softplus_beta * (t - f_max)) / softplus_beta
     t + sp_fwd(softminus_beta * (f_min - t)) / softminus_beta
 end
@@ -70,7 +79,7 @@ if SOFT_LFC_ONLY
 else
     p = plotxy([speed_false, speed_true, speed_blend, v_awetrim], [force, force, force, force_awetrim];
                xlabel="speed [m/s]", ylabel="force [N]",
-               legend=["soft_lfc = false", "soft_lfc = true", "use_awe_trim = 0.5", "AWETrim (v03, 3 m/s)"],
+               legend=["soft_lfc = false", "soft_lfc = true", "use_awe_trim = 0.5", "AWETrim (3 m/s)"],
                fig="winch_curve")
 end
 display(p)

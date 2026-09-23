@@ -24,7 +24,7 @@ wc_settings:
     ktf_low: 8.0        # tracking constant of the lower force controller
     f_low: 350          # lower force limit [N]
     f_reelin: 700       # set force for reel-in phase [N]
-    f_high: 8000.0      # upper force limit [N]
+    f_high: 7900.0      # upper force limit [N]; = SimpleKiteControllers.jl wc_settings.yaml
     pf_high: 0.0002304  # P constant of upper force controller
     if_high: 0.012      # I constant of upper force controller
     df_high: 0.000034   # D constant of upper force controller
