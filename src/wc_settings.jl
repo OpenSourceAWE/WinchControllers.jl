@@ -228,6 +228,14 @@ $(TYPEDFIELDS)
     """
     softminus_beta = 1e-3
     """
+    `"soft"` only: corner sharpness of the `v_sat` clamp [s/m]. `Inf` (default)
+    is a hard `min(v, v_sat)`; a finite value replaces it with
+    [`soft_min`](@ref), which rounds the corner where the tension-curve inverse
+    reaches `v_sat` below `f_high` (i.e. whenever `kv * sqrt(f_high) > v_sat`).
+    At the crossing the speed sits `log(2) / v_sat_beta` below `v_sat`.
+    """
+    v_sat_beta = Inf
+    """
     `"soft"` only: time constant of the low-pass on the measured force before it
     is inverted [s]; `0` disables the filter. The inverse is near-vertical close
     to `f_high` — `dv/dF` rises by a factor 50 over the last kN — so the force

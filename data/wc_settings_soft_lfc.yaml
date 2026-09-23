@@ -42,6 +42,7 @@ wc_settings:
     # --- Soft force limiting (REEL_OUT mode), see calc_vro_soft --------------
     force_limit: "soft"    # replace the UpperForceController with the soft law
     softplus_beta: 1e-3    # corner sharpness of the UPPER limit [1/N]
+    v_sat_beta: 10.0       # corner sharpness of the v_sat clamp [s/m]; Inf = hard clamp
     softminus_beta: 1e-3   # corner sharpness of the LOWER limit [1/N]; unused here (soft_lfc
                             # hard-clamps at f_low instead), left at the package default
     soft_lfc: true     # also replace the LowerForceController with a reel-in line

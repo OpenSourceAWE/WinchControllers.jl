@@ -234,7 +234,7 @@ function _calc_vro_soft(wcs::WCSettings, force, f_low, soft_lfc, kv, f_high,
         force >= f_high && return wcs.v_sat
         t = f_low + sp_inv(softminus_beta * (force - f_low)) / softminus_beta
         t = f_high - sp_inv(softplus_beta * (f_high - t)) / softplus_beta
-        return min(kv * sqrt(max(t, 0.0)), wcs.v_sat)
+        return _clamp_v_sat(wcs, kv * sqrt(max(t, 0.0)))
     end
     line = -wcs.v_reel_in / f_low * (force - f_low)
     if force <= f_low
@@ -246,10 +246,14 @@ function _calc_vro_soft(wcs::WCSettings, force, f_low, soft_lfc, kv, f_high,
         t = isinf(softminus_beta) ? force :
             f_low + sp_inv(softminus_beta * (force - f_low)) / softminus_beta
         t = f_high - sp_inv(softplus_beta * (f_high - t)) / softplus_beta
-        min(kv * sqrt(max(t, 0.0)), wcs.v_sat)
+        _clamp_v_sat(wcs, kv * sqrt(max(t, 0.0)))
     end
     max(soft_min(line, v_sqrt, wcs.reel_in_beta), wcs.v_reel_in)
 end
+
+# Inf * 0 would be NaN inside soft_min, hence the explicit hard branch.
+_clamp_v_sat(wcs::WCSettings, v) =
+    isinf(wcs.v_sat_beta) ? min(v, wcs.v_sat) : soft_min(v, wcs.v_sat, wcs.v_sat_beta)
 
 # bisection root-finder for a monotonic increasing scalar function `f`, such
 # that `f(result) ≈ target`, searched over `v ∈ [lo, hi]`.
