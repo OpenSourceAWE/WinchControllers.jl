@@ -1,3 +1,29 @@
+### WinchControllers v0.6.2 2026-09-24
+#### Added
+- acceleration feed-forward in `winch_position_torque!`: new keyword `inertia` (drum
+  inertia seen from the motor) and `WinchPosController.acc_ff`, set from the new
+  `WCSettings.winch_acc_ff`, add `acc_ff·inertia·a_ref·gear_ratio/drum_radius`,
+  where `a_ref` is the slope of the rate-limited speed setpoint; the default `0.0`
+  keeps the old behaviour
+- `WCSettings.v_sat_beta`: optional soft `v_sat` clamp in `calc_vro_soft` via
+  `soft_min`; the default `Inf` keeps the hard `min(v, v_sat)`
+- constants `AWE_TRIM_KV`, `AWE_TRIM_F_MIN`, `AWE_TRIM_F_MAX` and `AWE_TRIM_BETA`,
+  the AWETrim winch curve that `use_awe_trim` blends towards
+- `examples/plot_winch_curve.jl`: `SOFT_LFC_ONLY` mode, plotting force and winch power
+  over reel-out speed with aligned axis zeros in the paper's font and saving it as
+  `winch_curve.pdf`
+- support for Julia 1.13 in `bin/install`, with the default manifest
+  `Manifest-v1.13.toml.default`
+- a testset for the acceleration feed-forward in `test/test_torque_controllers.jl`
+#### Changed
+- `AWE_TRIM_F_MAX` (the AWETrim `f_max`) lowered from 8000 N to 7200 N
+- `data/wc_settings_soft_lfc.yaml`: `f_low` 350 → 700 N, `f_high` 8000 → 7200 N,
+  `reel_in_beta` 11 → 20, and `v_sat_beta: 10.0`
+- `examples/plot_winch_curve.jl`: the AWETrim curve now undoes the soft `v_sat`
+  clamp; force swept up to 8400 N, the V3 winch's rated force
+- compat for `MakieControlPlots` in the examples and test projects raised to 0.1.18
+- compat for `julia`, `LinearAlgebra`, `Pkg` and `Test` extended to 1.13
+
 ### WinchControllers v0.6.1 2026-09-03
 #### Added
 - soft force limiting for REEL_OUT mode: `WCSettings.force_limit` (`"hard"`/`"soft"`)
