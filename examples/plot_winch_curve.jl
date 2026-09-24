@@ -84,13 +84,18 @@ const FIGURES_DIR = normpath(joinpath(@__DIR__, "..", "..", "LearningControl", "
 
 if SOFT_LFC_ONLY
     power = force .* speed_true ./ 1000
+    # Same relative margin below zero on both axes, so their zeros line up.
+    margin = 0.05
+    f_top = 1.05 * maximum(force)
+    p_top = 1.05 * maximum(power)
+    ylims = ((-margin * f_top, f_top), (-margin * p_top, p_top))
     # savefig re-runs the builder, so the theme must be active for the save too.
     Makie.with_theme(PAPER_THEME) do
         plot(speed_true, force, power;
              xlabel="reel-out speed [m/s]", ylabels=["force [N]", "power [kW]"],
              labels=["force", "power"],
              xticks=floor(Int, minimum(speed_true)):ceil(Int, maximum(speed_true)),
-             yticks=(nothing, 5),
+             yticks=(nothing, 5), ylims,
              labelsize=22, legendsize=16,
              disp=true, fig="winch_curve")
         mkpath(FIGURES_DIR)
