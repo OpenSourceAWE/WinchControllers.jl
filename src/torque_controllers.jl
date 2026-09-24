@@ -59,6 +59,8 @@ Base.@kwdef mutable struct WinchPosController
     kp_pos::Float64 = WCSettings().winch_pos_kp
     "Scale on the force feed-forward; < 1 makes the drum pay out under load"
     ff_scale::Float64 = WCSettings().winch_ff_scale
+    "Scale on the acceleration feed-forward `J·a_ref·G/r`; 0 turns it off"
+    acc_ff::Float64 = WCSettings().winch_acc_ff
     "Rate-limited speed setpoint carried between steps [m/s]"
     v_sp_prev::Float64 = 0.0
 end
@@ -68,7 +70,7 @@ function WinchPosController(wcs::WCSettings; dt = wcs.dt)
                             Ts = dt, umin = -wcs.winch_torque_limit,
                             umax = wcs.winch_torque_limit)
     WinchPosController(; speed_pid, kp_pos = wcs.winch_pos_kp,
-                       ff_scale = wcs.winch_ff_scale)
+                       ff_scale = wcs.winch_ff_scale, acc_ff = wcs.winch_acc_ff)
 end
 
 """
@@ -131,23 +133,31 @@ oscillation and delays it by over a second, on top of a standing length error of
 *error* to correct and removes both. The default `0.0` reproduces the
 pure-feedback behaviour exactly, so a caller holding a constant length is
 unaffected.
+
+`inertia` is the drum inertia seen from the motor [kg·m²]. With
+`wpc.acc_ff > 0` the torque that accelerates it along the rate-limited setpoint,
+`acc_ff·inertia·a_ref·gear_ratio/drum_radius`, is added up front instead of
+being left to the inner PI; `a_ref` is bounded by `acceleration_limit`.
 """
 function winch_position_torque!(wpc::WinchPosController, set_length, l_actual, speed,
                                  force, drum_radius, gear_ratio, friction, dt,
-                                 speed_limit, acceleration_limit; v_ff = 0.0)
+                                 speed_limit, acceleration_limit; v_ff = 0.0,
+                                 inertia = 0.0)
     # Outer P loop: length error → speed setpoint, on top of the commanded speed.
     v_sp = v_ff + wpc.kp_pos * (set_length - l_actual)
     # Both limits act on the TOTAL setpoint: they are the drum's, not the loop's.
     v_sp = clamp(v_sp, -speed_limit, speed_limit)
     dv_max = acceleration_limit * dt
     v_sp = clamp(v_sp, wpc.v_sp_prev - dv_max, wpc.v_sp_prev + dv_max)
+    a_ref = (v_sp - wpc.v_sp_prev) / dt
     wpc.v_sp_prev = v_sp
     # Inner PI loop: speed error → torque correction.
     dtau = wpc.speed_pid(v_sp, speed, 0.0)
     # Only the load term is scaled; friction compensation stays at full size.
     tau_ff = force_to_torque(force, drum_radius, gear_ratio, friction;
                              ff_scale = wpc.ff_scale)
-    return tau_ff + dtau
+    tau_acc = wpc.acc_ff * inertia * a_ref * gear_ratio / drum_radius
+    return tau_ff + tau_acc + dtau
 end
 
 """

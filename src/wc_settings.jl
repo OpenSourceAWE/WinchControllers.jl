@@ -127,6 +127,14 @@ $(TYPEDFIELDS)
     """
     winch_ff_scale = 1.0
     """
+    Scale on the acceleration feed-forward of [`winch_position_torque!`](@ref),
+    `J·a_ref·G/r`, where `a_ref` is the slope of the rate-limited speed setpoint
+    and `J` the drum inertia seen from the motor. `0.0` (the default) leaves it
+    to the inner PI to find the torque that accelerates the drum; `1.0` supplies
+    it up front.
+    """
+    winch_acc_ff = 0.0
+    """
     Force mode only ([`winch_force_torque!`](@ref)): time constant of the low-pass
     that turns the measured winch force into the reference force [s]. The drum
     yields to everything faster than this and holds everything slower, so this is

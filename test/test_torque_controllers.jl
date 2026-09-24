@@ -38,6 +38,32 @@ end
     @test wpc_ramp.v_sp_prev ≈ 2dv_max
 end
 
+@testset "winch_position_torque! acceleration feed-forward" begin
+    dt = 0.1
+    wcs = WCSettings(dt=dt)
+    r, G, J = 0.2, 5.0, 0.4
+    args(wpc) = (wpc, 1000.0, 0.0, 0.0, 0.0, r, G, 0.0, dt, 100.0, 1.0)
+
+    # off by default: identical torque with and without an inertia
+    wpc_a, wpc_b = WinchPosController(wcs; dt), WinchPosController(wcs; dt)
+    @test wpc_a.acc_ff == 0.0
+    @test winch_position_torque!(args(wpc_a)...; inertia = J) ≈
+          winch_position_torque!(args(wpc_b)...)
+
+    # on: adds J·a_ref·G/r, with a_ref the rate-limited setpoint slope (1 m/s²)
+    wpc_on, wpc_off = WinchPosController(wcs; dt), WinchPosController(wcs; dt)
+    wpc_on.acc_ff = 1.0
+    t_on = winch_position_torque!(args(wpc_on)...; inertia = J)
+    t_off = winch_position_torque!(args(wpc_off)...; inertia = J)
+    @test t_on - t_off ≈ J * 1.0 * G / r
+
+    # a held setpoint has no slope, so no acceleration torque
+    wpc_hold = WinchPosController(wcs; dt)
+    wpc_hold.acc_ff = 1.0
+    @test winch_position_torque!(wpc_hold, 0.0, 0.0, 0.0, 1000.0, r, G, 0.0, dt, 2.0, 100.0;
+                                 inertia = J) ≈ force_to_torque(1000.0, r, G, 0.0)
+end
+
 @testset "winch_force_torque! f_lpf init and force floor" begin
     dt = 0.1
     wcs = WCSettings(dt=dt)
