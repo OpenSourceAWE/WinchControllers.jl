@@ -4,7 +4,7 @@ if ! ("MakieControlPlots" ∈ keys(Pkg.project().dependencies))
     Pkg.activate(@__DIR__)
 end
 using WinchControllers, MakieControlPlots, KiteUtils
-import MakieControlPlots: plotxy
+import MakieControlPlots: plotxy, Makie
 
 # Winch curve under SOFT force limiting, with and without the reel-in extension
 # (`WCSettings.soft_lfc`): a straight line through `(0, v_reel_in)` and
@@ -30,7 +30,8 @@ SOFT_LFC_ONLY = true
 # v_sat plateau above f_high. The two curves diverge in SPEED at a given force,
 # not the other way round, so they need independent X series -- `plotxy` rather
 # than `plot`.
-force = range(0.0, 1.1 * wcs.f_high, 500)
+# Up to 8400 N, the V3 winch's rated force (SimpleKiteControllers.jl's max-force criterion).
+force = range(0.0, 8400.0, 500)
 speed_false = calc_vro_soft.(Ref(wcs), force; soft_lfc=false)
 speed_true  = calc_vro_soft.(Ref(wcs), force; soft_lfc=true)
 
@@ -72,14 +73,33 @@ force_awetrim = awetrim_tension.(v_awetrim)
 # curve it is meant to sit between AWETrim and.
 speed_blend = calc_vro_soft.(Ref(wcs), force; soft_lfc=true, use_awe_trim=0.5)
 
+# Font of the LearningControl paper (TeX Gyre Termes = the Times of the Copernicus
+# class), same theme as SimpleKiteControllers.jl's plot_powercurve.jl.
+const PAPER_THEME = Makie.Theme(
+    fonts = (; regular = "TeX Gyre Termes", bold = "TeX Gyre Termes Bold",
+               italic = "TeX Gyre Termes Italic"),
+    Axis = (; xticklabelsize = 20, yticklabelsize = 20),
+)
+const FIGURES_DIR = normpath(joinpath(@__DIR__, "..", "..", "LearningControl", "figures"))
+
 if SOFT_LFC_ONLY
-    p = plotxy([speed_true], [force];
-               xlabel="speed [m/s]", ylabel="force [N]",
-               fig="winch_curve")
+    power = force .* speed_true ./ 1000
+    # savefig re-runs the builder, so the theme must be active for the save too.
+    Makie.with_theme(PAPER_THEME) do
+        plot(speed_true, force, power;
+             xlabel="reel-out speed [m/s]", ylabels=["force [N]", "power [kW]"],
+             labels=["force", "power"],
+             xticks=floor(Int, minimum(speed_true)):ceil(Int, maximum(speed_true)),
+             yticks=(nothing, 5),
+             labelsize=22, legendsize=16,
+             disp=true, fig="winch_curve")
+        mkpath(FIGURES_DIR)
+        savefig(joinpath(FIGURES_DIR, "winch_curve.pdf"))
+    end
 else
     p = plotxy([speed_false, speed_true, speed_blend, v_awetrim], [force, force, force, force_awetrim];
                xlabel="speed [m/s]", ylabel="force [N]",
                legend=["soft_lfc = false", "soft_lfc = true", "use_awe_trim = 0.5", "AWETrim (3 m/s)"],
                fig="winch_curve")
+    display(p)
 end
-display(p)

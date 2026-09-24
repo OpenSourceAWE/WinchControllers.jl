@@ -124,12 +124,12 @@ end
 The winch curve AWETrim plans against, as SimpleKiteControllers.jl's
 `winch_from_wc` sends it at 3 m/s wind (`examples/awetrim_client.jl`): gain
 `k_v`, force limits `f_min`/`f_max` [N] and the corner sharpness of both soft
-force limits [1/N]. `AWE_TRIM_F_MAX` follows that project's `f_high` (7900 N
-since 2026-09-23, was 8000). Used by [`calc_vro_soft`](@ref)'s `use_awe_trim`.
+force limits [1/N]. `AWE_TRIM_F_MAX` follows that project's `f_high` (7200 N
+since 2026-09-24; 7900 N from 2026-09-23, 8000 before). Used by [`calc_vro_soft`](@ref)'s `use_awe_trim`.
 """
 const AWE_TRIM_KV = 0.0408
 const AWE_TRIM_F_MIN = 350.0
-const AWE_TRIM_F_MAX = 7900.0
+const AWE_TRIM_F_MAX = 7200.0
 const AWE_TRIM_BETA = 1e-3
 
 """

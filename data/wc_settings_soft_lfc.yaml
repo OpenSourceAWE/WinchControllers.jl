@@ -22,9 +22,9 @@ wc_settings:
     nf_low:  7.0        # filter constant n of lower force controller
     kbf_low: 1.0        # back calculation constant for the anti-windup loop of the lower force controller
     ktf_low: 8.0        # tracking constant of the lower force controller
-    f_low: 350          # lower force limit [N]
+    f_low: 700          # lower force limit [N]; = SimpleKiteControllers.jl winch_kv_table.yaml at 4-12 m/s
     f_reelin: 700       # set force for reel-in phase [N]
-    f_high: 7900.0      # upper force limit [N]; = SimpleKiteControllers.jl wc_settings.yaml
+    f_high: 7200.0      # upper force limit [N]; = SimpleKiteControllers.jl wc_settings.yaml
     pf_high: 0.0002304  # P constant of upper force controller
     if_high: 0.012      # I constant of upper force controller
     df_high: 0.000034   # D constant of upper force controller
@@ -47,8 +47,8 @@ wc_settings:
                             # hard-clamps at f_low instead), left at the package default
     soft_lfc: true     # also replace the LowerForceController with a reel-in line
     v_reel_in: -2.0        # reel-in speed at zero force [m/s]
-    reel_in_beta: 11.0     # sharpness of the smooth line/curve handover [s/m]; needs
-                            # * kv * sqrt(f_low) >= 8, i.e. >= 10.48 here -- calc_vro_soft
+    reel_in_beta: 20.0     # sharpness of the smooth line/curve handover [s/m]; needs
+                            # * kv * sqrt(f_low) >= 8, i.e. >= 7.41 here -- calc_vro_soft
                             # itself now throws if this is violated
 
     # --- Torque controllers: cascaded length loop (winch_position_torque!) ---
