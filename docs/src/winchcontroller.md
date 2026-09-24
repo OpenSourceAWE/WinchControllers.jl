@@ -92,6 +92,7 @@ calc_vro
 calc_vro_soft
 sp_inv
 soft_min
+AWE_TRIM_KV
 ```
 
 ## Logger

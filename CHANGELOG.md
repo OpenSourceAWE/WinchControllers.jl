@@ -23,6 +23,7 @@
   clamp; force swept up to 8400 N, the V3 winch's rated force
 - compat for `MakieControlPlots` in the examples and test projects raised to 0.1.18
 - compat for `julia`, `LinearAlgebra`, `Pkg` and `Test` extended to 1.13
+- `scripts/build_docu.jl` installs `LiveServer` in the global environment if it is missing
 
 ### WinchControllers v0.6.1 2026-09-03
 #### Added
