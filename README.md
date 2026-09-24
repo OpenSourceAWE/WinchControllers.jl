@@ -36,7 +36,7 @@ The goal of this package is to provide controllers for winches that consist of a
 <details>
   <summary>Installation of Julia</summary>
 
-If you do not have Julia installed yet, please read [Installation](https://github.com/aenarete/KiteSimulators.jl/blob/main/docs/Installation.md).
+Install Julia 1.12 or later. If you do not have Julia installed yet, please read [Installation](https://github.com/aenarete/KiteSimulators.jl/blob/main/docs/Installation.md).
 
 </details>
 

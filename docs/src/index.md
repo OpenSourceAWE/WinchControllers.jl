@@ -33,7 +33,7 @@ The goal of this package is to provide controllers for winches that consist of a
 - improved, simplified system model using a quasi-steady tether model and an aerodynamic model including kite mass the cross-wind factor
 
 ## Installation
-Install [Julia 1.10](https://ufechner7.github.io/2024/08/09/installing-julia-with-juliaup.html) or later, if you haven't already.
+Install [Julia 1.12](https://ufechner7.github.io/2024/08/09/installing-julia-with-juliaup.html) or later, if you haven't already.
 Before installing this software it is suggested to create a new project, for example like this:
 ```bash
 mkdir test
