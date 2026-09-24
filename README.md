@@ -17,13 +17,17 @@ The goal of this package is to provide controllers for winches that consist of a
 **Implemented features:**
 - lower force control (assure that there is always a minimal cable tension)
 - upper force control (keep the maximal force limited)
-- reel-out speed control proportional to the square root of the force (other relationships can easily be added)
+- reel-out speed control proportional to the square root of the force (other relationships can easily be added),
+  either piecewise between the force limits or as a pure `kv * sqrt(force)` law (`WCSettings.mode = "reelout"`)
 - control of asynchronous motors/ generators
 - speed control
 - auto-tuning of the controller
 - disk based stability analysis of linearized system including the force controllers
-- torque controlled winches, holding either a length ([WinchPosController](https://opensourceawe.github.io/WinchControllers.jl/dev/winchcontroller/#WinchControllers.WinchPosController)) or a force ([WinchForceController](https://opensourceawe.github.io/WinchControllers.jl/dev/winchcontroller/#WinchControllers.WinchForceController))
-- soft force limiting for REEL_OUT mode, a continuous alternative to the upper/lower force controllers ([`WCSettings.force_limit`/`soft_lfc`](https://opensourceawe.github.io/WinchControllers.jl/dev/settings/))
+- torque controlled winches, holding either a length ([WinchPosController](https://opensourceawe.github.io/WinchControllers.jl/dev/winchcontroller/#WinchControllers.WinchPosController)) or a force ([WinchForceController](https://opensourceawe.github.io/WinchControllers.jl/dev/winchcontroller/#WinchControllers.WinchForceController)); the length controller has an optional acceleration feed-forward
+  (`WCSettings.winch_acc_ff`)
+- soft force limiting for REEL_OUT mode, a continuous alternative to the upper/lower force controllers ([`WCSettings.force_limit`/`soft_lfc`](https://opensourceawe.github.io/WinchControllers.jl/dev/settings/)):
+  a smoothly saturated inverse of the tension curve, a reel-in line below `f_low`, an optional low-pass filter
+  of the measured force and an optional soft clamp at the maximal reel-out speed
 
 **Planned features**
 - improved, simplified system model using a quasi-steady tether model and an aerodynamic model including kite mass the cross-wind factor
@@ -75,20 +79,29 @@ to check out this project from git. You can do this with:
 ```bash
 git clone https://github.com/opensourceawe/WinchControllers.jl.git
 cd WinchControllers.jl
-git checkout v0.6.1
+git checkout v0.6.2
 ```
 For the checkout command, use the tag of the latest version.
+
+Then run the installation script:
+```bash
+bin/install
+```
+It asks which Julia version to use (1.11, 1.12 or 1.13), installs the matching default manifest,
+instantiates and precompiles the main, examples, test and docs projects and, on Julia 1.12 and 1.13,
+also runs the tests.
 </details>
 
 ### Running the examples
 To run the examples, launch Julia with:
 ```
-julia --project
+bin/run_julia
 ```
 and then, in the Julia REPL, type:
 ```
-include("examples/menu.jl")
+menu()
 ```
+Alternatively, launch Julia with `julia --project` and type `include("examples/menu.jl")`.
 You should now see a terminal menu with some examples. Select one using the
 `<cursor up\>` and `<cursor down\>` keys, and press `ENTER` to run the selected example.
 
@@ -110,24 +123,25 @@ are respected.
 In power production mode it does not require any input but the measured tether force.
 Output is the set speed of the asynchronous motor.
 
-For a usage example look at the script [test_winchcontroller.jl](./examples/test_winchcontroller.jl) .
+For a usage example look at the script [test_winchcontroller.jl](./examples/test_winchcontroller.jl), for the
+REEL_OUT mode at [test_reelout.jl](./examples/test_reelout.jl). The winch curve with soft force limiting is
+plotted by [plot_winch_curve.jl](./examples/plot_winch_curve.jl).
 
 ## License
 This project is licensed under the MIT License. Please see the below WAIVER in association with the license.
 
 ## WAIVER
-Technische Universiteit Delft hereby disclaims all copyright interest in the package “KiteController.jl” (controllers for airborne wind energy systems) written by the Author(s).
+Technische Universiteit Delft hereby disclaims all copyright interest in the package “WinchController.jl” (controllers for airborne wind energy systems) written by the Author(s).
 
 Prof.dr. H.G.C. (Henri) Werij, Dean of Aerospace Engineering
 
 ## Scientific background
 [A Methodology for the Design of Kite-Power Control Systems](https://research.tudelft.nl/en/publications/a-methodology-for-the-design-of-kite-power-control-systems)
 
-## Donations
-If you like this software, please consider donating to https://gofund.me/df0ae77d .
-
 ## Related
 - [Research Fechner](https://research.tudelft.nl/en/publications/?search=wind+Fechner&pageSize=50&ordering=rating&descending=true) for the scientific background of this code
 - The meta package [KiteSimulators](https://github.com/aenarete/KiteSimulators.jl) which contains all packages from Julia Kite Power Tools.
 - the packages [KiteModels](https://github.com/ufechner7/KiteModels.jl) and [WinchModels](https://github.com/aenarete/WinchModels.jl) and [AtmosphericModels](https://github.com/aenarete/AtmosphericModels.jl)
+- the package [SimpleKiteControllers](https://github.com/OpenSourceAWE/SimpleKiteControllers.jl), which uses the soft force
+  limiting and the torque controllers of this package to fly a single line kite
 - the packages [KiteViewers](https://github.com/aenarete/KiteViewers.jl) and [KiteUtils](https://github.com/ufechner7/KiteUtils.jl)
