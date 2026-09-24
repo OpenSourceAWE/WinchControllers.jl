@@ -9,7 +9,7 @@
 Discrete controllers for Winches.
 
 This package is part of Julia Kite Power Tools, which consists of the following packages:
-<p align="center"><img src="./docs/kite_power_tools.png" width="500" /></p>
+<p align="center"><img src="docs/src/kite_power_tools.png" width="500" /></p>
 
 ## Goals of this package
 The goal of this package is to provide controllers for winches that consist of a motor/generator connected to a drum (with or without gearbox). On the drum is a tether that is connected to a load or a kite. Currently operation in air is assumed, but the package could also be extended for winches connected to under-water cables. While the main use case of the author are airborne wind energy systems, I am open to add features needed for other use cases.
