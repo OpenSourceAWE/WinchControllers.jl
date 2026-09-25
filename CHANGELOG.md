@@ -38,8 +38,8 @@
   via `soft_min` (sharpness `reel_in_beta`); `WinchController` validates
   `reel_in_beta * kv * sqrt(f_low) >= 8` and the other `soft_lfc` invariants at
   construction time
-- `WCSettings.force_limit_tau`/`force_limit_tau_rise`: low-pass filtering (optionally
-  asymmetric attack/release) of the measured force before `calc_vro_soft` inverts it
+- `WCSettings.force_limit_tau`: low-pass filtering of the measured force before
+  `calc_vro_soft` inverts it
 - `LowPass` component in `src/components.jl`, a first-order low-pass filter with
   independent rise/fall time constants
 - `WCSettings.use_awe_trim`/`f_high_awe_trim`: blend `calc_vro_soft` towards AWETrim's

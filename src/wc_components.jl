@@ -28,9 +28,7 @@ Component for calculation `v_set_in`, using soft switching.
 @with_kw mutable struct CalcVSetIn @deftype Float64
     wcs::WCSettings
     mixer2::Mixer_2CH = Mixer_2CH(wcs.dt, wcs.t_blend)
-    filter::LowPass   = LowPass(wcs.dt, wcs.force_limit_tau,
-                                isnan(wcs.force_limit_tau_rise) ? wcs.force_limit_tau :
-                                                                  wcs.force_limit_tau_rise)
+    filter::LowPass   = LowPass(wcs.dt, wcs.force_limit_tau)
     f_low       = wcs.f_low
     input_a     = 0
     input_b     = 0

@@ -76,7 +76,6 @@ wc_settings:
     softplus_beta: 1e-3     # "soft" only: corner sharpness of the UPPER limit [1/N]
     softminus_beta: 1e-3    # "soft" only: corner sharpness of the LOWER limit [1/N]
     force_limit_tau: 1.0    # "soft" only: low-pass time constant on the force [s]
-    force_limit_tau_rise: NaN  # "soft" only: same, while the force is RISING [s]; NaN = symmetric
     soft_lfc: false     # "soft" only: also replace the LowerForceController with a reel-in line
     v_reel_in: -2.0         # soft_lfc only: reel-in speed at zero force [m/s]
     reel_in_beta: 20.0      # soft_lfc only: sharpness of the smooth line/curve handover [s/m]

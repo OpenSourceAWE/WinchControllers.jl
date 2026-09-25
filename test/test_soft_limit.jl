@@ -87,34 +87,6 @@ end
     end
 end
 
-@testset "force_limit_tau_rise defaults to symmetric" begin
-    # The sentinel is NaN, resolved where the filter is built. A plain default of
-    # `force_limit_tau` would freeze the STRUCT default, so a settings file (or a
-    # caller) that sets only `force_limit_tau` would get a silently asymmetric
-    # filter -- rising on 1.0 s while falling on whatever was configured.
-    wcs = soft_settings()
-    @test isnan(wcs.force_limit_tau_rise)
-    wcs.force_limit_tau = 2.48              # as a YAML load would leave it
-    wc = WinchController(wcs)
-    @test wc.calc.filter.tau == 2.48
-    @test wc.calc.filter.tau_rise == 2.48   # follows tau, not the struct default
-
-    # And an explicit value is honoured.
-    wcs2 = soft_settings()
-    wcs2.force_limit_tau = 2.48
-    wcs2.force_limit_tau_rise = 0.25
-    wc2 = WinchController(wcs2)
-    @test wc2.calc.filter.tau == 2.48
-    @test wc2.calc.filter.tau_rise == 0.25
-
-    # `force_limit_tau = 0` must stay a pass-through in BOTH directions.
-    wcs3 = soft_settings()
-    wcs3.force_limit_tau = 0.0
-    wc3 = WinchController(wcs3)
-    @test wc3.calc.filter.tau == 0.0
-    @test wc3.calc.filter.tau_rise == 0.0
-end
-
 @testset "calc_vro_soft" begin
     wcs = soft_settings()
 

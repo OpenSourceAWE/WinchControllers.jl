@@ -78,7 +78,7 @@ only — older Pkg resolves subprojects standalone). `examples/Project.toml` sou
     `"hard"`). Requires `mode == "reelout"`; when active it replaces the
     `UpperForceController` as the upper limiter (which is then held in permanent reset)
     via softplus/softminus corners (`softplus_beta`/`softminus_beta`) and an optional
-    asymmetric low-pass (`force_limit_tau`/`force_limit_tau_rise`). `soft_lfc` (defaults
+    low-pass (`force_limit_tau`). `soft_lfc` (defaults
     to `wcs.soft_lfc`) additionally replaces the `LowerForceController`: a straight
     line, SHIFTED DOWN by `log(2) / reel_in_beta`, through `(0, v_reel_in)` and
     `(f_low, 0)` — the whole physically valid range below `f_low`, since force is never
