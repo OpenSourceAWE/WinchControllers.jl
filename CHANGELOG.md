@@ -1,3 +1,8 @@
+### WinchControllers v0.7.0 (unreleased)
+#### Removed
+- `WCSettings.force_limit_tau_rise`; the force low-pass of the soft limiter is now
+  always symmetric (`force_limit_tau`). `LowPass` still supports `tau_rise`.
+
 ### WinchControllers v0.6.2 2026-09-24
 #### Added
 - acceleration feed-forward in `winch_position_torque!`: new keyword `inertia` (drum
