@@ -1,4 +1,7 @@
 ### WinchControllers v0.7.0 (unreleased)
+#### Changed
+- `[compat]` accepts KiteUtils 0.13 as well as 0.11.1 and 0.12
+
 #### Removed
 - `WCSettings.force_limit_tau_rise`; the force low-pass of the soft limiter is now
   always symmetric (`force_limit_tau`). `LowPass` still supports `tau_rise`.
