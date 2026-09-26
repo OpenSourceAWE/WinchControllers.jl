@@ -32,8 +32,9 @@ In a live REPL, `include("test/runtests.jl")` for everything, or `include("test/
 (etc.) for one file's testset alone. `bin/run_julia` starts a REPL on the project and
 defines `menu()`/`menu2()`, which `include` `examples/menu.jl`/`examples/menu2.jl` — an
 interactive terminal menu (cursor up/down, Enter) to run the example scripts. `bin/install`
-bootstraps Julia via juliaup, resolves/instantiates the root, `examples/`, `test/` and
-`docs/` projects, and precompiles everything; run it once per machine, not per session.
+installs the tracked `Manifest-v<major>.toml.default`, then instantiates and precompiles the
+root, `examples/`, `test/` and `docs/` projects (`-y` no prompt, `--update` updates instead,
+`-h` help).
 
 Docs build/doctest (mirrors the CI `docs` job):
 

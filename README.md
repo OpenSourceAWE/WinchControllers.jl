@@ -87,9 +87,9 @@ Then run the installation script:
 ```bash
 bin/install
 ```
-It asks which Julia version to use (1.11, 1.12 or 1.13), installs the matching default manifest,
-instantiates and precompiles the main, examples, test and docs projects and, on Julia 1.12 and 1.13,
-also runs the tests.
+It asks which Julia version to use (1.11, 1.12 or 1.13), installs the matching default manifest and
+instantiates and precompiles the main, examples, test and docs projects. `bin/install -h` lists its
+options: `-y` to skip the question, `--update` to update the packages instead.
 </details>
 
 ### Running the examples
