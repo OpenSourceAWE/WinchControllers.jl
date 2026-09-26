@@ -1,4 +1,4 @@
-### WinchControllers v0.7.0 (unreleased)
+### WinchControllers v0.6.3 2026-09-26
 #### Changed
 - `[compat]` accepts KiteUtils 0.13 as well as 0.11.1 and 0.12
 
