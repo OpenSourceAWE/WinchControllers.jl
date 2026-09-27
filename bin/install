@@ -8,7 +8,7 @@ Usage: bin/install [-y] [--update] [-h]
 
 Install the tracked Manifest-v<major>.toml.default as Manifest-v<major>.toml,
 then instantiate and precompile the project and its examples, test and docs
-subprojects. Nothing outside the repository is changed.
+subprojects. Needs Julia 1.12 or newer. Nothing outside the repository is changed.
 
   -y        no prompt: use the julia on the PATH
   --update  Pkg.update the live manifest instead; the .default stays untouched
@@ -35,15 +35,13 @@ if $yes; then
     exec </dev/null
 else
     echo "Which Julia version do you want to use?"
-    echo "  1) Julia 1.11"
-    echo "  2) Julia 1.12"
-    echo "  3) Julia 1.13"
+    echo "  1) Julia 1.12"
+    echo "  2) Julia 1.13"
     echo "  Enter) the julia on the PATH"
-    read -rp "Enter 1, 2 or 3: " choice
+    read -rp "Enter 1 or 2: " choice
     case "$choice" in
-        1) channel=1.11 ;;
-        2) channel=1.12 ;;
-        3) channel=1.13 ;;
+        1) channel=1.12 ;;
+        2) channel=1.13 ;;
         "") channel="" ;;
         *) echo "Invalid choice: '$choice'."; exit 1 ;;
     esac
@@ -68,25 +66,15 @@ fi
 export JULIA_PKG_SERVER_REGISTRY_PREFERENCE=eager
 rm -f Manifest.toml
 if $update; then
-    pkg_step="Pkg.update()"
+    pkg_step="Pkg.update(workspace=true)"
 else
     cp "${manifest}.default" "$manifest"
     echo "Copied ${manifest}.default to $manifest"
-    pkg_step="Pkg.instantiate()"
+    pkg_step="Pkg.instantiate(workspace=true)"
 fi
 
-if [[ "$julia_major" == "1.11" ]]; then
-    # Pkg 1.11 has no workspaces: each subproject gets its own copy of the root manifest.
-    "${julia_cmd[@]}" --startup-file=no --project -e "using Pkg; $pkg_step; Pkg.precompile()"
-    for sub in examples test docs; do
-        cp "$manifest" "$sub/$manifest"
-        "${julia_cmd[@]}" --startup-file=no --project="$sub" -e \
-            "using Pkg; $pkg_step; Pkg.precompile()"
-    done
-else
-    "${julia_cmd[@]}" --startup-file=no --project -e \
-        "using Pkg; ${pkg_step/()/(workspace=true)}; Pkg.precompile(workspace=true)"
-fi
+"${julia_cmd[@]}" --startup-file=no --project -e \
+    "using Pkg; $pkg_step; Pkg.precompile(workspace=true)"
 
 if [[ ! -f .JETLSConfig.toml ]]; then
     cp .JETLSConfig.toml.default .JETLSConfig.toml

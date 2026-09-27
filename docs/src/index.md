@@ -65,7 +65,7 @@ git checkout v0.6.2
 bin/install
 ```
 For the checkout command, use the tag of the latest version. The installation script asks which Julia version
-to use (1.11, 1.12 or 1.13), installs the matching default manifest and instantiates and precompiles the main,
+to use (1.12 or 1.13), installs the matching default manifest and instantiates and precompiles the main,
 examples, test and docs projects. `bin/install -h` lists its options: `-y` to skip the question, `--update`
 to update the packages instead.
 
