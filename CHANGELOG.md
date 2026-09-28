@@ -1,3 +1,12 @@
+### WinchControllers v0.6.4 2026-09-28
+#### Added
+- an Acknowledgements section in the README, crediting the MERIDIONAL project (EU Horizon
+  Europe grant agreement no. 101084216)
+
+#### Changed
+- `Manifest-v1.13.toml.default` re-resolved with Julia 1.13.1; its Pkg also hashes
+  `[sources]`, so a manifest from 1.13.0 warned that the project had changed
+
 ### WinchControllers v0.6.3 2026-09-26
 #### Changed
 - `[compat]` accepts KiteUtils 0.13 as well as 0.11.1 and 0.12
