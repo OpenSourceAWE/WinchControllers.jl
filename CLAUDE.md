@@ -32,8 +32,9 @@ In a live REPL, `include("test/runtests.jl")` for everything, or `include("test/
 (etc.) for one file's testset alone. `bin/run_julia` starts a REPL on the project and
 defines `menu()`/`menu2()`, which `include` `examples/menu.jl`/`examples/menu2.jl` — an
 interactive terminal menu (cursor up/down, Enter) to run the example scripts. `bin/install`
-bootstraps Julia via juliaup, resolves/instantiates the root, `examples/`, `test/` and
-`docs/` projects, and precompiles everything; run it once per machine, not per session.
+installs the tracked `Manifest-v<major>.toml.default`, then instantiates and precompiles the
+root, `examples/`, `test/` and `docs/` projects (`-y` no prompt, `--update` updates instead,
+`-h` help).
 
 Docs build/doctest (mirrors the CI `docs` job):
 
@@ -46,8 +47,8 @@ julia --project=docs docs/make.jl
 
 Root `Project.toml` declares `[workspace] projects = ["examples", "docs", "test"]`, so
 each subproject keeps its own `Project.toml` but resolves against the single
-`Manifest-v1.11.toml`/`Manifest-v1.12.toml` at the root (Julia-version-specific; Pkg 1.11+
-only — older Pkg resolves subprojects standalone). `examples/Project.toml` sources
+`Manifest-v<major>.toml` at the root (Julia-version-specific; workspaces need Pkg 1.12+,
+so `bin/install` supports only 1.12 and newer). `examples/Project.toml` sources
 `WinchControllers` itself via `[sources] path = ".."`.
 
 ## Architecture
