@@ -66,7 +66,10 @@ Base.@kwdef mutable struct WinchPosController
 end
 
 function WinchPosController(wcs::WCSettings; dt = wcs.dt)
+    # Anti-windup tracking time Tt = Ti. Left unset, DiscretePIDs falls back to
+    # 10 s for a PI (no Td), and the integrator unwinds 5x slower than it winds up.
     speed_pid = DiscretePID(; K = wcs.winch_speed_k, Ti = wcs.winch_speed_ti,
+                            Tt = wcs.winch_speed_ti,
                             Ts = dt, umin = -wcs.winch_torque_limit,
                             umax = wcs.winch_torque_limit)
     WinchPosController(; speed_pid, kp_pos = wcs.winch_pos_kp,
