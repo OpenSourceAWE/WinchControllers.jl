@@ -93,7 +93,9 @@ echo "$notes"
 echo "----------------------------------------"
 
 # --- sync CITATION.cff -------------------------------------------------------
-release_date=$(echo "$header" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' || date +%F)
+release_date=$(echo "$header" | grep -oE '[0-9]{2}-[0-9]{2}-[0-9]{4}' \
+    | sed -E 's/(..)-(..)-(....)/\3-\2-\1/' || true)
+release_date=${release_date:-$(date +%F)}
 if [[ -f CITATION.cff ]]; then
     sed -i -E "s/^version: .*/version: \"$version\"/" CITATION.cff
     sed -i -E "s/^date-released: .*/date-released: \"$release_date\"/" CITATION.cff
