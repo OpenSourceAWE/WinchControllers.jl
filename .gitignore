@@ -14,3 +14,4 @@ examples/Manifest-v1.11.toml
 test/Manifest-v1.11.toml
 build/
 output/winch_curve.pdf
+LocalPreferences.toml
