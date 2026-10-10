@@ -1,4 +1,4 @@
-## WinchControllers v0.6.4 28-09-2026
+## WinchControllers v0.6.4 2026-09-28
 ### Added
 - an Acknowledgements section in the README, crediting the MERIDIONAL project (EU Horizon
   Europe grant agreement no. 101084216)
@@ -7,7 +7,7 @@
 - `Manifest-v1.13.toml.default` re-resolved with Julia 1.13.1; its Pkg also hashes
   `[sources]`, so a manifest from 1.13.0 warned that the project had changed
 
-## WinchControllers v0.6.3 26-09-2026
+## WinchControllers v0.6.3 2026-09-26
 ### Changed
 - `[compat]` accepts KiteUtils 0.13 as well as 0.11.1 and 0.12
 
@@ -15,7 +15,7 @@
 - `WCSettings.force_limit_tau_rise`; the force low-pass of the soft limiter is now
   always symmetric (`force_limit_tau`). `LowPass` still supports `tau_rise`.
 
-## WinchControllers v0.6.2 24-09-2026
+## WinchControllers v0.6.2 2026-09-24
 ### Added
 - acceleration feed-forward in `winch_position_torque!`: new keyword `inertia` (drum
   inertia seen from the motor) and `WinchPosController.acc_ff`, set from the new
@@ -42,7 +42,7 @@
 - compat for `julia`, `LinearAlgebra`, `Pkg` and `Test` extended to 1.13
 - `scripts/build_docu.jl` installs `LiveServer` in the global environment if it is missing
 
-## WinchControllers v0.6.1 03-09-2026
+## WinchControllers v0.6.1 2026-09-03
 ### Added
 - soft force limiting for REEL_OUT mode: `WCSettings.force_limit` (`"hard"`/`"soft"`)
   replaces the `UpperForceController` with `calc_vro_soft`, a continuous law with no
@@ -71,7 +71,7 @@
 - `f_err(logger)` returns `0.0` instead of erroring when every logged force error is
   `NaN` (e.g. under `soft_lfc`, where neither force controller ever activates)
 
-## WinchControllers v0.6.0 16-08-2026
+## WinchControllers v0.6.0 2026-08-16
 ### Added
 - torque controllers, moved here from V3Kite.jl: `WinchPosController` (cascaded
   length/speed control) and `WinchForceController` (compliant force mode), with
@@ -90,7 +90,7 @@
 - `WCSettings.dt` defaults to `NaN` instead of `0.02`, so a caller that forgets
   to set it fails loudly instead of silently running at the wrong timestep
 
-## WinchControllers v0.5.6 14-08-2026
+## WinchControllers v0.5.6 2026-08-14
 ### Added
 - REEL_OUT winch-controller mode: `WCSettings.mode` (`"piecewise"`/`"reelout"`), dispatched in
   `calc_vro`; `test = true` still selects `"reelout"` for backwards compatibility
@@ -108,12 +108,12 @@
 - improved `bin/install`
 - CI workflow fixes
 
-## WinchControllers v0.5.5 23-03-2026
+## WinchControllers v0.5.5 2026-03-23
 ### Added
 - `CITATION.cff` file
 - `.markdownlint` configuration file
 
-## WinchControllers v0.5.4 03-03-2026
+## WinchControllers v0.5.4 2026-03-03
 ### Added
 - the package `RobustAndOptimalControl`
 - the example `stability_ufc.jl` which tests the stability of the upper force controller
@@ -122,20 +122,20 @@
 - use subprojects instead of TestEnv
 - fix warnings
 
-## WinchControllers v0.5.3 31-05-2025
+## WinchControllers v0.5.3 2025-05-31
 ### Added
 - the functions `get_v_set()`, `get_f_err()`
 - the script `autotune.jl`, using the **NOMAD** optimizer
 - added a documentation page for the autotuning feature
 - added the function `install_examples()` and updated the docu accordingly
 
-## WinchControllers v0.5.2 29-05-2025
+## WinchControllers v0.5.2 2025-05-29
 ### Added
 - the script `test_components.jl`
 ### Changed
 - export `saturate()`
 
-## WinchControllers v0.5.1 28-05-2025
+## WinchControllers v0.5.1 2025-05-28
 ### Added
 - all public functions document
 - add page `Performance Indicators` to documentation
