@@ -1,4 +1,14 @@
 ### WinchControllers v0.6.5 (unreleased)
+#### Added
+- `bin/update_default_manifests` updates `Manifest-v<version>.toml.default` for Julia 1.11,
+  1.12 and 1.13 one after the other; it stops at the first version whose installation or
+  tests fail, so a new default manifest is only written if all tests pass
+- `bin/install` has the new options `--update` (update all packages instead of using the
+  default manifest), `-y`/`--yes` (no questions, use the default Julia version),
+  `--version X.Y` or `+X.Y` (use Julia X.Y for this run without changing the juliaup
+  default) and `--test` (also run the tests on Julia 1.11; on Julia 1.12 and 1.13 they
+  always run), and `-h`/`--help`
+
 #### Changed
 - `[compat]` accepts NLsolve 5 as well as 4.5.1, so WinchControllers can be used together
   with KiteModels 0.13 on the SciMLBase 3 stack

@@ -34,6 +34,11 @@ defines `menu()`/`menu2()`, which `include` `examples/menu.jl`/`examples/menu2.j
 interactive terminal menu (cursor up/down, Enter) to run the example scripts. `bin/install`
 bootstraps Julia via juliaup, resolves/instantiates the root, `examples/`, `test/` and
 `docs/` projects, and precompiles everything; run it once per machine, not per session.
+Its options (`bin/install --help`): `--update` (`Pkg.update()` instead of the
+`Manifest-v<version>.toml.default`), `-y` (no questions), `--version X.Y` / `+X.Y` (use that
+Julia for this run without changing the juliaup default) and `--test` (also run the tests on
+Julia 1.11). `bin/update_default_manifests` runs `bin/install --update -y --test --version X.Y`
+for 1.11, 1.12 and 1.13 and copies each resulting manifest to its `.default` file.
 
 Docs build/doctest (mirrors the CI `docs` job):
 
