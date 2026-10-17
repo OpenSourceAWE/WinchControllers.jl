@@ -403,7 +403,8 @@ fi
 $JULIA --startup-file=no --project -e "using Pkg; Pkg.resolve(), Pkg.instantiate(); Pkg.precompile()"
 $JULIA --startup-file=no --project -e "using KiteUtils, WinchControllers"
 $JULIA --startup-file=no --project=test -e "using MakieControlPlots, ControlSystemsBase, RobustAndOptimalControl"
-$JULIA --startup-file=no --project=docs -e "using Pkg; Pkg.resolve(), Pkg.instantiate(); Pkg.precompile(); using LiveServer, Documenter"
+# LiveServer is not a dependency of the docs project; scripts/build_docu.jl installs it when needed
+$JULIA --startup-file=no --project=docs -e "using Pkg; Pkg.resolve(), Pkg.instantiate(); Pkg.precompile(); using Documenter"
 
 echo
 printf "\033[1;32mInstallation complete!\033[0m\n"

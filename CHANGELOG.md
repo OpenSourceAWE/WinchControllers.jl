@@ -32,6 +32,10 @@
   parent folder (`[sources]`), which is only valid inside this repository, and the examples
   activated it. Now these files are not copied, and the examples activate their own folder
   only if it contains a `Project.toml`.
+- `bin/install` (and therefore `bin/update_default_manifests`) failed at its last step in a
+  fresh Julia environment, because it loaded LiveServer in the docs project, which does not
+  declare it. It now loads only Documenter; `scripts/build_docu.jl` installs LiveServer when
+  it is needed.
 - `WinchPosController` sets the anti-windup tracking time of its speed PI to
   `Tt = winch_speed_ti`. It was unset, so `DiscretePIDs` used its 10 s fallback, and after
   a long torque saturation the integrator unwound five times slower than it wound up.
