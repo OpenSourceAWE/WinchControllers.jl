@@ -1,3 +1,49 @@
+## WinchControllers v0.6.5 2026-10-17
+### Added
+- `bin/update_default_manifests` updates `Manifest-v<version>.toml.default` for Julia 1.12
+  and 1.13 one after the other; it stops at the first version whose installation or tests
+  fail, so a new default manifest is only written if all tests pass
+- `bin/install` has the new options `--update` (update all packages instead of using the
+  default manifest), `-y`/`--yes` (no questions, use the default Julia version),
+  `--version X.Y` or `+X.Y` (use Julia X.Y for this run without changing the juliaup
+  default), and `-h`/`--help`
+
+### Changed
+- BREAKING: Julia 1.10 and 1.11 are no longer supported (`[compat]` of the main, test and
+  docs projects); `Manifest-v1.11.toml.default` is removed, and `bin/install` offers only
+  Julia 1.12 and 1.13
+- `[compat]` accepts NLsolve 5 as well as 4.5.1, so WinchControllers can be used together
+  with KiteModels 0.13 on the SciMLBase 3 stack
+- the `docs` project accepts KiteUtils 0.13; it allowed only 0.11 and 0.12, which held the
+  whole workspace on KiteUtils 0.12
+- README and documentation: the `git checkout` tag is now `v0.6.5`, the links to KiteModels,
+  KiteUtils, AtmosphericModels, KiteViewers, KitePodModels and KiteControllers point to
+  OpenSourceAWE, and the usage section of the README explains the modes `"piecewise"` and
+  `"reelout"` of `WCSettings.mode`. The home page of the documentation got the same usage
+  section and a link to KiteModels.
+
+### Fixed
+- `install_examples()` did not add ControlSystemsBase, RobustAndOptimalControl and
+  FiniteDiff, which `stability_lfc.jl` and `stability_ufc.jl` need, but LaTeXStrings and
+  StatsBase, which no example uses. It now adds the packages the examples need in one
+  `Pkg.add` call.
+- `copy_examples()` and `install_examples()` copied the `Project.toml` (and any manifest) of
+  the `examples` folder into the project of the user. It loads WinchControllers from the
+  parent folder (`[sources]`), which is only valid inside this repository, and the examples
+  activated it. Now these files are not copied, and the examples activate their own folder
+  only if it contains a `Project.toml`.
+- new tests `test/test_install_examples.jl` run `copy_examples()` and `install_examples()` in
+  a temporary folder and environment (without precompilation) and check that all packages of
+  `examples/Project.toml` are added
+- `bin/install` (and therefore `bin/update_default_manifests`) failed at its last step in a
+  fresh Julia environment, because it loaded LiveServer in the docs project, which does not
+  declare it. It now loads only Documenter; `scripts/build_docu.jl` installs LiveServer when
+  it is needed.
+- `WinchPosController` sets the anti-windup tracking time of its speed PI to
+  `Tt = winch_speed_ti`. It was unset, so `DiscretePIDs` used its 10 s fallback, and after
+  a long torque saturation the integrator unwound five times slower than it wound up.
+  Changes the output only during and after a saturation at `winch_torque_limit`.
+
 ## WinchControllers v0.6.4 2026-09-28
 ### Added
 - an Acknowledgements section in the README, crediting the MERIDIONAL project (EU Horizon
