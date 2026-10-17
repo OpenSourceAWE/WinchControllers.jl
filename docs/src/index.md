@@ -30,7 +30,7 @@ The goal of this package is to provide controllers for winches that consist of a
   clamp at the maximal reel-out speed
 
 **Planned features**
-- improved, simplified system model using a quasi-steady tether model and an aerodynamic model including kite mass the cross-wind factor
+- improved, simplified system model using a quasi-steady tether model and an aerodynamic model including kite mass and the cross-wind factor
 
 ## Installation
 Install [Julia 1.12](https://ufechner7.github.io/2024/08/09/installing-julia-with-juliaup.html) or later, if you haven't already.
@@ -61,7 +61,7 @@ If you want to modify, tune and understand the controllers, it is better to chec
 ```bash
 git clone https://github.com/OpenSourceAWE/WinchControllers.jl.git
 cd WinchControllers.jl
-git checkout v0.6.2
+git checkout v0.6.5
 bin/install
 ```
 For the checkout command, use the tag of the latest version. The installation script asks which Julia version
@@ -94,9 +94,9 @@ You should now see a terminal menu with some examples. Select one using the
 ## See also
 - [Research Fechner](https://research.tudelft.nl/en/publications/?search=Fechner+wind&pageSize=50&ordering=rating&descending=true) for the scientific background of this code
 - The meta-package  [KiteSimulators](https://github.com/aenarete/KiteSimulators.jl)
-- the package [KiteUtils](https://github.com/ufechner7/KiteUtils.jl)
-- the packages [WinchModels](https://github.com/aenarete/WinchModels.jl) and [KitePodModels](https://github.com/aenarete/KitePodModels.jl) and [AtmosphericModels](https://github.com/aenarete/AtmosphericModels.jl)
-- the packages [KiteControllers](https://github.com/aenarete/KiteControllers.jl) and [KiteViewers](https://github.com/aenarete/KiteViewers.jl)
+- the package [KiteUtils](https://github.com/OpenSourceAWE/KiteUtils.jl)
+- the packages [WinchModels](https://github.com/aenarete/WinchModels.jl) and [KitePodModels](https://github.com/OpenSourceAWE/KitePodModels.jl) and [AtmosphericModels](https://github.com/OpenSourceAWE/AtmosphericModels.jl)
+- the packages [KiteControllers](https://github.com/OpenSourceAWE/KiteControllers.jl) and [KiteViewers](https://github.com/OpenSourceAWE/KiteViewers.jl)
 - the package [SimpleKiteControllers](https://github.com/OpenSourceAWE/SimpleKiteControllers.jl), which uses the soft force
   limiting and the torque controllers of this package to fly a single line kite
 

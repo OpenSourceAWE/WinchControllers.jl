@@ -16,8 +16,21 @@
   with KiteModels 0.13 on the SciMLBase 3 stack
 - the `docs` project accepts KiteUtils 0.13; it allowed only 0.11 and 0.12, which held the
   whole workspace on KiteUtils 0.12
+- README and documentation: the `git checkout` tag is now `v0.6.5`, the links to KiteModels,
+  KiteUtils, AtmosphericModels, KiteViewers, KitePodModels and KiteControllers point to
+  OpenSourceAWE, and the usage section of the README explains the modes `"piecewise"` and
+  `"reelout"` of `WCSettings.mode`
 
 #### Fixed
+- `install_examples()` did not add ControlSystemsBase, RobustAndOptimalControl and
+  FiniteDiff, which `stability_lfc.jl` and `stability_ufc.jl` need, but LaTeXStrings and
+  StatsBase, which no example uses. It now adds the packages the examples need in one
+  `Pkg.add` call.
+- `copy_examples()` and `install_examples()` copied the `Project.toml` (and any manifest) of
+  the `examples` folder into the project of the user. It loads WinchControllers from the
+  parent folder (`[sources]`), which is only valid inside this repository, and the examples
+  activated it. Now these files are not copied, and the examples activate their own folder
+  only if it contains a `Project.toml`.
 - `WinchPosController` sets the anti-windup tracking time of its speed PI to
   `Tt = winch_speed_ti`. It was unset, so `DiscretePIDs` used its 10 s fallback, and after
   a long torque saturation the integrator unwound five times slower than it wound up.

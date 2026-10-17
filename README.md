@@ -30,7 +30,7 @@ The goal of this package is to provide controllers for winches that consist of a
   of the measured force and an optional soft clamp at the maximal reel-out speed
 
 **Planned features**
-- improved, simplified system model using a quasi-steady tether model and an aerodynamic model including kite mass the cross-wind factor
+- improved, simplified system model using a quasi-steady tether model and an aerodynamic model including kite mass and the cross-wind factor
 
 ## Installation
 <details>
@@ -79,7 +79,7 @@ to check out this project from git. You can do this with:
 ```bash
 git clone https://github.com/opensourceawe/WinchControllers.jl.git
 cd WinchControllers.jl
-git checkout v0.6.2
+git checkout v0.6.5
 ```
 For the checkout command, use the tag of the latest version.
 
@@ -125,6 +125,14 @@ are respected.
 In power production mode it does not require any input but the measured tether force.
 Output is the set speed of the asynchronous motor.
 
+In power production mode, `WCSettings.mode` selects how the reel-out speed is calculated
+from the force:
+- `"piecewise"` (default): a signed square-root law between the force limits `f_low` and
+  `f_high`, with the maximal reel-out speed `vf_max`; below `f_low` it commands reel-in.
+- `"reelout"`: the REEL_OUT law `v_set = kv * sqrt(force)`, which never commands reel-in;
+  below `f_low` the lower force controller takes over. Soft force limiting
+  (`WCSettings.force_limit = "soft"`) requires this mode.
+
 For a usage example look at the script [test_winchcontroller.jl](./examples/test_winchcontroller.jl), for the
 REEL_OUT mode at [test_reelout.jl](./examples/test_reelout.jl). The winch curve with soft force limiting is
 plotted by [plot_winch_curve.jl](./examples/plot_winch_curve.jl).
@@ -146,7 +154,7 @@ This work has been supported by the MERIDIONAL project, which receives funding f
 ## Related
 - [Research Fechner](https://research.tudelft.nl/en/publications/?search=wind+Fechner&pageSize=50&ordering=rating&descending=true) for the scientific background of this code
 - The meta package [KiteSimulators](https://github.com/aenarete/KiteSimulators.jl) which contains all packages from Julia Kite Power Tools.
-- the packages [KiteModels](https://github.com/ufechner7/KiteModels.jl) and [WinchModels](https://github.com/aenarete/WinchModels.jl) and [AtmosphericModels](https://github.com/aenarete/AtmosphericModels.jl)
+- the packages [KiteModels](https://github.com/OpenSourceAWE/KiteModels.jl) and [WinchModels](https://github.com/aenarete/WinchModels.jl) and [AtmosphericModels](https://github.com/OpenSourceAWE/AtmosphericModels.jl)
 - the package [SimpleKiteControllers](https://github.com/OpenSourceAWE/SimpleKiteControllers.jl), which uses the soft force
   limiting and the torque controllers of this package to fly a single line kite
-- the packages [KiteViewers](https://github.com/aenarete/KiteViewers.jl) and [KiteUtils](https://github.com/ufechner7/KiteUtils.jl)
+- the packages [KiteViewers](https://github.com/OpenSourceAWE/KiteViewers.jl) and [KiteUtils](https://github.com/OpenSourceAWE/KiteUtils.jl)
