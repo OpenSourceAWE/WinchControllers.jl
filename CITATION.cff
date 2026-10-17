@@ -12,8 +12,8 @@ authors:
 repository-code: "https://github.com/OpenSourceAWE/WinchControllers.jl"
 url: "https://opensourceawe.github.io/WinchControllers.jl/dev"
 license: MIT
-version: "0.6.4"
-date-released: "2026-09-28"
+version: "0.6.5"
+date-released: "2026-10-17"
 keywords:
   - winch
   - controller

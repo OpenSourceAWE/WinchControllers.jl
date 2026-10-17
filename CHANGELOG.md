@@ -1,4 +1,4 @@
-### WinchControllers v0.6.5 (unreleased)
+### WinchControllers v0.6.5 2026-10-17
 #### Added
 - `bin/update_default_manifests` updates `Manifest-v<version>.toml.default` for Julia 1.12
   and 1.13 one after the other; it stops at the first version whose installation or tests
