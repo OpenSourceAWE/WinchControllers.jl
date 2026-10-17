@@ -25,7 +25,10 @@ while [[ $# -gt 0 ]]; do
         -y|--yes) yes=true ;;
         --update) update=true ;;
         --version)
-            [[ $# -ge 2 ]] || { echo "--version needs a value, e.g. --version 1.12"; exit 1; }
+            if [[ $# -lt 2 ]]; then
+                echo "--version needs a value, e.g. --version 1.12"
+                exit 1
+            fi
             channel="$2"; shift ;;
         +*) channel="${1#+}" ;;
         -h|--help) usage; exit 0 ;;
@@ -67,7 +70,7 @@ manifest="Manifest-v${julia_major}.toml"
 echo "Using Julia $julia_major"
 
 if [[ ! -f "${manifest}.default" ]]; then
-    echo "Error: ${manifest}.default not found; supported: $(ls Manifest-v*.toml.default | tr '\n' ' ')"
+    echo "Error: ${manifest}.default not found; supported:" Manifest-v*.toml.default
     exit 1
 fi
 

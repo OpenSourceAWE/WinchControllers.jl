@@ -1,9 +1,3 @@
-### Unreleased
-#### Changed
-- `bin/install` no longer changes anything outside the repository: no `juliaup default`,
-  no Revise in the global environment, and no test run. `-y` uses the `julia` on the PATH
-  unless `--version X.Y` names one. `bin/update_default_manifests` now runs the tests itself.
-
 ### WinchControllers v0.6.5 2026-10-17
 #### Added
 - `bin/update_default_manifests` updates `Manifest-v<version>.toml.default` for Julia 1.12
