@@ -19,7 +19,8 @@
 - README and documentation: the `git checkout` tag is now `v0.6.5`, the links to KiteModels,
   KiteUtils, AtmosphericModels, KiteViewers, KitePodModels and KiteControllers point to
   OpenSourceAWE, and the usage section of the README explains the modes `"piecewise"` and
-  `"reelout"` of `WCSettings.mode`
+  `"reelout"` of `WCSettings.mode`. The home page of the documentation got the same usage
+  section and a link to KiteModels.
 
 #### Fixed
 - `install_examples()` did not add ControlSystemsBase, RobustAndOptimalControl and
