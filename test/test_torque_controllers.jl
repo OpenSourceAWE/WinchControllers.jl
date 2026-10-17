@@ -38,6 +38,26 @@ end
     @test wpc_ramp.v_sp_prev ≈ 2dv_max
 end
 
+@testset "winch_position_torque! saturation recovery" begin
+    # A stalled drum: speed 0 against a 1 m/s setpoint, the P term alone (30 N·m)
+    # above the torque limit (20 N·m), held long enough for the integrator to settle.
+    dt = 0.1
+    wcs = WCSettings(dt=dt, winch_torque_limit=20.0)
+    wpc = WinchPosController(wcs; dt)
+    @test wpc.speed_pid.Tt == wcs.winch_speed_ti
+    for _ in 1:400
+        winch_position_torque!(wpc, 0.0, 0.0, 0.0, 0.0, 0.2, 5.0, 0.0, dt, 100.0, 100.0;
+                               v_ff = 1.0)
+    end
+    # With Tt = Ti the wound-up integrator settles at the limit itself
+    # (I = umax + K·e·(Tt/Ti - 1)); the 10 s fallback would leave it at 140 N·m.
+    @test wpc.speed_pid.I ≈ wcs.winch_torque_limit atol = 0.1
+    # so the output leaves the clamp on the first step the error changes sign
+    torque = winch_position_torque!(wpc, 0.0, 0.0, 1.1, 0.0, 0.2, 5.0, 0.0, dt, 100.0, 100.0;
+                                    v_ff = 1.0)
+    @test torque < wcs.winch_torque_limit - 1.0
+end
+
 @testset "winch_position_torque! acceleration feed-forward" begin
     dt = 0.1
     wcs = WCSettings(dt=dt)

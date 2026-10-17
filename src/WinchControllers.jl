@@ -45,14 +45,18 @@ end
 
 Copy all example scripts to the folder "examples"
 (it will be created if it doesn't exist).
+
+The `Project.toml` and the manifests of the examples folder are not copied: they load
+WinchControllers from the parent folder, which is only valid inside this repository.
 """
 function copy_examples()
     PATH = "examples"
-    if ! isdir(PATH) 
+    if ! isdir(PATH)
         mkdir(PATH)
     end
     src_path = joinpath(dirname(pathof(@__MODULE__)), "..", PATH)
-    copy_files("examples", readdir(src_path))
+    files = filter(f -> f != "Project.toml" && ! startswith(f, "Manifest"), readdir(src_path))
+    copy_files("examples", files)
 end
 
 function copy_model_settings()
@@ -68,13 +72,8 @@ function install_examples(add_packages=true)
     copy_settings()
     copy_model_settings()
     if add_packages
-        Pkg.add("KiteUtils")
-        Pkg.add("WinchModels")
-        Pkg.add("MakieControlPlots")
-        Pkg.add("LaTeXStrings")
-        Pkg.add("StatsBase")
-        Pkg.add("Timers")
-        Pkg.add("NOMAD")
+        Pkg.add(["KiteUtils", "WinchModels", "MakieControlPlots", "Timers", "NOMAD",
+                 "ControlSystemsBase", "RobustAndOptimalControl", "FiniteDiff"])
     end
 end
 

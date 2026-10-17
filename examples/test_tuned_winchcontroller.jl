@@ -1,6 +1,6 @@
 # activate the test environment if needed
 using Pkg
-if ! ("MakieControlPlots" ∈ keys(Pkg.project().dependencies))
+if ! ("MakieControlPlots" ∈ keys(Pkg.project().dependencies)) && isfile(joinpath(@__DIR__, "Project.toml"))
     Pkg.activate(@__DIR__)
 end
 using Timers, Statistics; tic()

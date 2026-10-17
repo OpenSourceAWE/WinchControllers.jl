@@ -34,6 +34,12 @@
             <mxPoint x="905.05" y="520" as="targetPoint" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="sam-kiteutils-arrow" value="" style="shape=flexArrow;endArrow=classic;html=1;rounded=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;endSize=5;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="785" y="411" as="sourcePoint" />
+            <mxPoint x="785" y="520" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="BlHllgQ8ryy6FbMsw3fR-11" value="" style="shape=flexArrow;endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;endSize=5;" parent="1" source="BlHllgQ8ryy6FbMsw3fR-7" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="515" y="620" as="sourcePoint" />

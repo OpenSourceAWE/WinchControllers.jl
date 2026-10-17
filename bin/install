@@ -3,37 +3,43 @@
 # SPDX-License-Identifier: MIT
 
 usage() {
-    cat <<EOF
-Usage: bin/install [-y] [--update] [-h]
+    cat <<USAGE
+Usage: bin/install [-y] [--update] [--version X.Y | +X.Y] [-h]
 
 Install the tracked Manifest-v<major>.toml.default as Manifest-v<major>.toml,
 then instantiate and precompile the project and its examples, test and docs
 subprojects. Needs Julia 1.12 or newer. Nothing outside the repository is changed.
 
-  -y        no prompt: use the julia on the PATH
-  --update  Pkg.update the live manifest instead; the .default stays untouched
-  -h        show this help
-EOF
+  -y, --yes         no prompt: use the julia on the PATH
+  --update          Pkg.update the live manifest instead; the .default stays untouched
+  --version X.Y     use juliaup's Julia X.Y for this run (also +X.Y)
+  -h, --help        show this help
+USAGE
 }
 
 yes=false
 update=false
-for arg in "$@"; do
-    case "$arg" in
-        -y) yes=true ;;
+channel=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -y|--yes) yes=true ;;
         --update) update=true ;;
+        --version)
+            [[ $# -ge 2 ]] || { echo "--version needs a value, e.g. --version 1.12"; exit 1; }
+            channel="$2"; shift ;;
+        +*) channel="${1#+}" ;;
         -h|--help) usage; exit 0 ;;
-        *) echo "Unknown option: $arg"; usage; exit 1 ;;
+        *) echo "Unknown option: $1"; usage; exit 1 ;;
     esac
+    shift
 done
 
 cd "$(dirname "$0")/.."
 
-julia_cmd=(julia)
 if $yes; then
     # Julia loses piped output when started with stdin closed.
     exec </dev/null
-else
+elif [[ -z "$channel" ]]; then
     echo "Which Julia version do you want to use?"
     echo "  1) Julia 1.12"
     echo "  2) Julia 1.13"
@@ -42,16 +48,18 @@ else
     case "$choice" in
         1) channel=1.12 ;;
         2) channel=1.13 ;;
-        "") channel="" ;;
+        "") ;;
         *) echo "Invalid choice: '$choice'."; exit 1 ;;
     esac
-    if [[ -n "$channel" ]]; then
-        if ! juliaup status 2>/dev/null | grep -q " $channel "; then
-            echo "Julia $channel is not installed; install it with: juliaup add $channel"
-            exit 1
-        fi
-        julia_cmd=(julia "+$channel")
+fi
+
+julia_cmd=(julia)
+if [[ -n "$channel" ]]; then
+    if ! juliaup status 2>/dev/null | grep -q " $channel "; then
+        echo "Julia $channel is not installed; install it with: juliaup add $channel"
+        exit 1
     fi
+    julia_cmd=(julia "+$channel")
 fi
 
 julia_major=$("${julia_cmd[@]}" --version | awk '{split($3, v, "."); print v[1] "." v[2]}')

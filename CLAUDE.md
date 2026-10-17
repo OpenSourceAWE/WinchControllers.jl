@@ -33,8 +33,10 @@ In a live REPL, `include("test/runtests.jl")` for everything, or `include("test/
 defines `menu()`/`menu2()`, which `include` `examples/menu.jl`/`examples/menu2.jl` — an
 interactive terminal menu (cursor up/down, Enter) to run the example scripts. `bin/install`
 installs the tracked `Manifest-v<major>.toml.default`, then instantiates and precompiles the
-root, `examples/`, `test/` and `docs/` projects (`-y` no prompt, `--update` updates instead,
-`-h` help).
+root, `examples/`, `test/` and `docs/` projects (`-y` no prompt, `--version X.Y` / `+X.Y` that
+juliaup Julia for this run, `--update` updates instead, `-h` help); it changes nothing outside
+the repo. `bin/update_default_manifests` runs `bin/install --update -y --version X.Y` and the
+tests for 1.12 and 1.13 and copies each resulting manifest to its `.default` file.
 
 Docs build/doctest (mirrors the CI `docs` job):
 
