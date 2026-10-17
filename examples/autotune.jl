@@ -1,6 +1,6 @@
 # this script tunes the controller parameters (well, eight of them)
 using Pkg
-if ! ("NOMAD" ∈ keys(Pkg.project().dependencies))
+if ! ("NOMAD" ∈ keys(Pkg.project().dependencies)) && isfile(joinpath(@__DIR__, "Project.toml"))
     Pkg.activate(@__DIR__)
 end
 using MakieControlPlots, KiteUtils, NOMAD, WinchControllers

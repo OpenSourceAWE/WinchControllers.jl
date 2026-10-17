@@ -36,6 +36,10 @@ end
     include("test_soft_limit.jl")
 end
 
+@testset verbose=true "install_examples    " begin
+    include("test_install_examples.jl")
+end
+
 @testset verbose=true "aqua.jl             " begin
     include("aqua.jl")
 end
