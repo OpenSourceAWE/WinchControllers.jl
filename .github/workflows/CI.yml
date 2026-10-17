@@ -48,6 +48,11 @@ jobs:
       - uses: julia-actions/julia-runtest@v1
         with:
           prefix: xvfb-run -a
+          # On Julia 1.12, --check-bounds=yes is part of the package image configuration,
+          # so the stdlib Statistics is compiled outside of the system image and all its
+          # dependents are recompiled in every run instead of being restored from the cache.
+          # Julia 1.13 still runs the tests with bounds checking.
+          check_bounds: ${{ matrix.version == '1.12' && 'auto' || 'yes' }}
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v7
         with:

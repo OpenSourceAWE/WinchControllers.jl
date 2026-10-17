@@ -1,4 +1,10 @@
 ### WinchControllers v0.6.5 (unreleased)
+#### Changed
+- the CI job for Julia 1.12 runs the tests without `--check-bounds=yes`. With it, Julia 1.12
+  compiled the stdlib Statistics outside of the system image and recompiled about 440 packages
+  in every run (only 41 were restored from the cache, against 432 on Julia 1.13). The job
+  for Julia 1.13 still runs the tests with bounds checking.
+
 #### Fixed
 - `WinchPosController` sets the anti-windup tracking time of its speed PI to
   `Tt = winch_speed_ti`. It was unset, so `DiscretePIDs` used its 10 s fallback, and after
