@@ -35,10 +35,10 @@ interactive terminal menu (cursor up/down, Enter) to run the example scripts. `b
 bootstraps Julia via juliaup, resolves/instantiates the root, `examples/`, `test/` and
 `docs/` projects, and precompiles everything; run it once per machine, not per session.
 Its options (`bin/install --help`): `--update` (`Pkg.update()` instead of the
-`Manifest-v<version>.toml.default`), `-y` (no questions), `--version X.Y` / `+X.Y` (use that
-Julia for this run without changing the juliaup default) and `--test` (also run the tests on
-Julia 1.11). `bin/update_default_manifests` runs `bin/install --update -y --test --version X.Y`
-for 1.11, 1.12 and 1.13 and copies each resulting manifest to its `.default` file.
+`Manifest-v<version>.toml.default`), `-y` (no questions) and `--version X.Y` / `+X.Y` (use
+that Julia for this run without changing the juliaup default); it always runs the tests.
+`bin/update_default_manifests` runs `bin/install --update -y --version X.Y` for 1.12 and 1.13
+and copies each resulting manifest to its `.default` file.
 
 Docs build/doctest (mirrors the CI `docs` job):
 
@@ -51,8 +51,8 @@ julia --project=docs docs/make.jl
 
 Root `Project.toml` declares `[workspace] projects = ["examples", "docs", "test"]`, so
 each subproject keeps its own `Project.toml` but resolves against the single
-`Manifest-v1.11.toml`/`Manifest-v1.12.toml` at the root (Julia-version-specific; Pkg 1.11+
-only — older Pkg resolves subprojects standalone). `examples/Project.toml` sources
+`Manifest-v1.12.toml`/`Manifest-v1.13.toml` at the root (Julia-version-specific). Only Julia
+1.12 and 1.13 are supported. `examples/Project.toml` sources
 `WinchControllers` itself via `[sources] path = ".."`.
 
 ## Architecture

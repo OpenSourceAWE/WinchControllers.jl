@@ -9,9 +9,9 @@ if [[ $(basename $(pwd)) == "bin" ]]; then
     cd ..
 fi
 
-for julia_major in 1.11 1.12 1.13; do
+for julia_major in 1.12 1.13; do
     echo "Updating the manifest for Julia ${julia_major}..."
-    ./bin/install --update -y --test --version "${julia_major}"
+    ./bin/install --update -y --version "${julia_major}"
     cp "Manifest-v${julia_major}.toml" "Manifest-v${julia_major}.toml.default"
     rm -rf ~/.julia/compiled/v${julia_major}/WinchControllers/
     echo "Updated Manifest-v${julia_major}.toml.default !"

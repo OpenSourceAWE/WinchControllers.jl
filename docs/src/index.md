@@ -65,11 +65,11 @@ git checkout v0.6.2
 bin/install
 ```
 For the checkout command, use the tag of the latest version. The installation script asks which Julia version
-to use (1.11, 1.12 or 1.13), installs the matching default manifest, instantiates and precompiles the main,
-examples, test and docs projects and, on Julia 1.12 and 1.13, also runs the tests. `bin/install --help` lists
-its options, for example `--update` to update all packages instead of using the default manifest.
-`bin/update_default_manifests` updates the default manifests for Julia 1.11, 1.12 and 1.13; it stops at the
-first version whose installation or tests fail.
+to use (1.12 or 1.13), installs the matching default manifest, instantiates and precompiles the main,
+examples, test and docs projects and runs the tests. `bin/install --help` lists its options, for example
+`--update` to update all packages instead of using the default manifest. `bin/update_default_manifests`
+updates the default manifests for Julia 1.12 and 1.13; it stops at the first version whose installation or
+tests fail.
 
 ## Running the examples
 To run the examples, launch Julia with:
