@@ -32,6 +32,9 @@
   parent folder (`[sources]`), which is only valid inside this repository, and the examples
   activated it. Now these files are not copied, and the examples activate their own folder
   only if it contains a `Project.toml`.
+- new tests `test/test_install_examples.jl` run `copy_examples()` and `install_examples()` in
+  a temporary folder and environment (without precompilation) and check that all packages of
+  `examples/Project.toml` are added
 - `bin/install` (and therefore `bin/update_default_manifests`) failed at its last step in a
   fresh Julia environment, because it loaded LiveServer in the docs project, which does not
   declare it. It now loads only Documenter; `scripts/build_docu.jl` installs LiveServer when
