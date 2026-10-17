@@ -1,4 +1,10 @@
 ### WinchControllers v0.6.5 (unreleased)
+#### Changed
+- `[compat]` accepts NLsolve 5 as well as 4.5.1, so WinchControllers can be used together
+  with KiteModels 0.13 on the SciMLBase 3 stack
+- the `docs` project accepts KiteUtils 0.13; it allowed only 0.11 and 0.12, which held the
+  whole workspace on KiteUtils 0.12
+
 #### Fixed
 - `WinchPosController` sets the anti-windup tracking time of its speed PI to
   `Tt = winch_speed_ti`. It was unset, so `DiscretePIDs` used its 10 s fallback, and after
