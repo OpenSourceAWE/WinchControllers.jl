@@ -1,5 +1,5 @@
-### WinchControllers v0.6.5 2026-10-17
-#### Added
+## WinchControllers v0.6.5 2026-10-17
+### Added
 - `bin/update_default_manifests` updates `Manifest-v<version>.toml.default` for Julia 1.12
   and 1.13 one after the other; it stops at the first version whose installation or tests
   fail, so a new default manifest is only written if all tests pass
@@ -8,7 +8,7 @@
   `--version X.Y` or `+X.Y` (use Julia X.Y for this run without changing the juliaup
   default), and `-h`/`--help`
 
-#### Changed
+### Changed
 - BREAKING: Julia 1.10 and 1.11 are no longer supported (`[compat]` of the main, test and
   docs projects); `Manifest-v1.11.toml.default` is removed, and `bin/install` offers only
   Julia 1.12 and 1.13
@@ -22,7 +22,7 @@
   `"reelout"` of `WCSettings.mode`. The home page of the documentation got the same usage
   section and a link to KiteModels.
 
-#### Fixed
+### Fixed
 - `install_examples()` did not add ControlSystemsBase, RobustAndOptimalControl and
   FiniteDiff, which `stability_lfc.jl` and `stability_ufc.jl` need, but LaTeXStrings and
   StatsBase, which no example uses. It now adds the packages the examples need in one
@@ -44,25 +44,25 @@
   a long torque saturation the integrator unwound five times slower than it wound up.
   Changes the output only during and after a saturation at `winch_torque_limit`.
 
-### WinchControllers v0.6.4 2026-09-28
-#### Added
+## WinchControllers v0.6.4 2026-09-28
+### Added
 - an Acknowledgements section in the README, crediting the MERIDIONAL project (EU Horizon
   Europe grant agreement no. 101084216)
 
-#### Changed
+### Changed
 - `Manifest-v1.13.toml.default` re-resolved with Julia 1.13.1; its Pkg also hashes
   `[sources]`, so a manifest from 1.13.0 warned that the project had changed
 
-### WinchControllers v0.6.3 2026-09-26
-#### Changed
+## WinchControllers v0.6.3 2026-09-26
+### Changed
 - `[compat]` accepts KiteUtils 0.13 as well as 0.11.1 and 0.12
 
-#### Removed
+### Removed
 - `WCSettings.force_limit_tau_rise`; the force low-pass of the soft limiter is now
   always symmetric (`force_limit_tau`). `LowPass` still supports `tau_rise`.
 
-### WinchControllers v0.6.2 2026-09-24
-#### Added
+## WinchControllers v0.6.2 2026-09-24
+### Added
 - acceleration feed-forward in `winch_position_torque!`: new keyword `inertia` (drum
   inertia seen from the motor) and `WinchPosController.acc_ff`, set from the new
   `WCSettings.winch_acc_ff`, add `acc_ff·inertia·a_ref·gear_ratio/drum_radius`,
@@ -78,7 +78,7 @@
 - support for Julia 1.13 in `bin/install`, with the default manifest
   `Manifest-v1.13.toml.default`
 - a testset for the acceleration feed-forward in `test/test_torque_controllers.jl`
-#### Changed
+### Changed
 - `AWE_TRIM_F_MAX` (the AWETrim `f_max`) lowered from 8000 N to 7200 N
 - `data/wc_settings_soft_lfc.yaml`: `f_low` 350 → 700 N, `f_high` 8000 → 7200 N,
   `reel_in_beta` 11 → 20, and `v_sat_beta: 10.0`
@@ -88,8 +88,8 @@
 - compat for `julia`, `LinearAlgebra`, `Pkg` and `Test` extended to 1.13
 - `scripts/build_docu.jl` installs `LiveServer` in the global environment if it is missing
 
-### WinchControllers v0.6.1 2026-09-03
-#### Added
+## WinchControllers v0.6.1 2026-09-03
+### Added
 - soft force limiting for REEL_OUT mode: `WCSettings.force_limit` (`"hard"`/`"soft"`)
   replaces the `UpperForceController` with `calc_vro_soft`, a continuous law with no
   threshold or hand-over
@@ -113,12 +113,12 @@
 - `test/test_soft_limit.jl`, covering `calc_vro_soft`, `soft_min`, the `LowPass`
   filter and the `WinchController` validation errors
 - documentation of soft force limiting in `docs/src/settings.md`
-#### Changed
+### Changed
 - `f_err(logger)` returns `0.0` instead of erroring when every logged force error is
   `NaN` (e.g. under `soft_lfc`, where neither force controller ever activates)
 
-### WinchControllers v0.6.0 2026-08-16
-#### Added
+## WinchControllers v0.6.0 2026-08-16
+### Added
 - torque controllers, moved here from V3Kite.jl: `WinchPosController` (cascaded
   length/speed control) and `WinchForceController` (compliant force mode), with
   `winch_position_torque!`, `winch_force_torque!`, `force_to_torque` and
@@ -132,12 +132,12 @@
   the saturation/rate-limiting of `winch_position_torque!` and the `f_lpf`
   initialization/force floor of `winch_force_torque!`
 - `build/` to `.gitignore`
-#### Changed
+### Changed
 - `WCSettings.dt` defaults to `NaN` instead of `0.02`, so a caller that forgets
   to set it fails loudly instead of silently running at the wrong timestep
 
-### WinchControllers v0.5.6 2026-08-14
-#### Added
+## WinchControllers v0.5.6 2026-08-14
+### Added
 - REEL_OUT winch-controller mode: `WCSettings.mode` (`"piecewise"`/`"reelout"`), dispatched in
   `calc_vro`; `test = true` still selects `"reelout"` for backwards compatibility
 - the examples `test_reelout.jl` (bench-test plot of the REEL_OUT law) and `test/test_reelout.jl`
@@ -147,42 +147,42 @@
 - `bin/install` script
 - default manifests `Manifest-v1.11.toml.default` and `Manifest-v1.12.toml.default`
 - CI badge in `README.md`
-#### Changed
+### Changed
 - switched from `ControlPlots` to `MakieControlPlots` throughout `examples/`, `test/`, `mwes/` and
   the `src/` docstrings
 - `bin/run_julia`: forwards arguments to `julia` and `cd`s to the repo root when invoked from `bin/`
 - improved `bin/install`
 - CI workflow fixes
 
-### WinchControllers v0.5.5 2026-03-23
-#### Added
+## WinchControllers v0.5.5 2026-03-23
+### Added
 - `CITATION.cff` file
 - `.markdownlint` configuration file
 
-### WinchControllers v0.5.4 2026-03-03
-#### Added
+## WinchControllers v0.5.4 2026-03-03
+### Added
 - the package `RobustAndOptimalControl`
 - the example `stability_ufc.jl` which tests the stability of the upper force controller
-#### Changed
+### Changed
 - bump KiteUtils to 0.11.1
 - use subprojects instead of TestEnv
 - fix warnings
 
-### WinchControllers v0.5.3 2025-05-31
-#### Added
+## WinchControllers v0.5.3 2025-05-31
+### Added
 - the functions `get_v_set()`, `get_f_err()`
 - the script `autotune.jl`, using the **NOMAD** optimizer
 - added a documentation page for the autotuning feature
 - added the function `install_examples()` and updated the docu accordingly
 
-### WinchControllers v0.5.2
-#### Added
+## WinchControllers v0.5.2 2025-05-29
+### Added
 - the script `test_components.jl`
-#### Changed
+### Changed
 - export `saturate()`
 
-### WinchControllers v0.5.1 2025-05-28
-#### Added
+## WinchControllers v0.5.1 2025-05-28
+### Added
 - all public functions document
 - add page `Performance Indicators` to documentation
 - add page `Tests` to documentation
@@ -190,7 +190,7 @@
 - add `menu.jl` to the folder examples
 - the functions `f_err()`, `v_err()` and `gamma()` to calculate the performance indicators of the winch controller based on the log file of a test case 
 
-#### Changed
+### Changed
 - reduced `df_high` in `wc_settings.yaml` to reduce oscillations
 - all examples are making use of `wc_settings.yaml` now
 - the function `get_v_err` returns now `NaN` instead of zero when the speed controller is inactive
