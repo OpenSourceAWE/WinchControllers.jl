@@ -36,7 +36,7 @@ The goal of this package is to provide controllers for winches that consist of a
 <details>
   <summary>Installation of Julia</summary>
 
-Install Julia 1.12 or later. If you do not have Julia installed yet, please read [Installation](https://github.com/aenarete/KiteSimulators.jl/blob/main/docs/Installation.md).
+Install Julia 1.12 or later. If you do not have Julia installed yet, please read [Installing Julia 1.13 and VSCode](https://ufechner7.github.io/2026/10/24/installing-julia-1.13-and-vscode.html).
 
 </details>
 
@@ -153,8 +153,7 @@ This work has been supported by the MERIDIONAL project, which receives funding f
 
 ## Related
 - [Research Fechner](https://research.tudelft.nl/en/publications/?search=wind+Fechner&pageSize=50&ordering=rating&descending=true) for the scientific background of this code
-- The meta package [KiteSimulators](https://github.com/aenarete/KiteSimulators.jl) which contains all packages from Julia Kite Power Tools.
 - the packages [KiteModels](https://github.com/OpenSourceAWE/KiteModels.jl) and [WinchModels](https://github.com/aenarete/WinchModels.jl) and [AtmosphericModels](https://github.com/OpenSourceAWE/AtmosphericModels.jl)
-- the package [SimpleKiteControllers](https://github.com/OpenSourceAWE/SimpleKiteControllers.jl), which uses the soft force
+- the package [RobustKiteControllers](https://github.com/OpenSourceAWE/RobustKiteControllers.jl), which uses the soft force
   limiting and the torque controllers of this package to fly a single line kite
 - the packages [KiteViewers](https://github.com/OpenSourceAWE/KiteViewers.jl) and [KiteUtils](https://github.com/OpenSourceAWE/KiteUtils.jl)
