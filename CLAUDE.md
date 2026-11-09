@@ -32,13 +32,11 @@ In a live REPL, `include("test/runtests.jl")` for everything, or `include("test/
 (etc.) for one file's testset alone. `bin/run_julia` starts a REPL on the project and
 defines `menu()`/`menu2()`, which `include` `examples/menu.jl`/`examples/menu2.jl` — an
 interactive terminal menu (cursor up/down, Enter) to run the example scripts. `bin/install`
-bootstraps Julia via juliaup, resolves/instantiates the root, `examples/`, `test/` and
-`docs/` projects, and precompiles everything; run it once per machine, not per session.
-Its options (`bin/install --help`): `--update` (`Pkg.update()` instead of the
-`Manifest-v<version>.toml.default`), `-y` (no questions) and `--version X.Y` / `+X.Y` (use
-that Julia for this run without changing the juliaup default); it always runs the tests.
-`bin/update_default_manifests` runs `bin/install --update -y --version X.Y` for 1.12 and 1.13
-and copies each resulting manifest to its `.default` file.
+installs the tracked `Manifest-v<major>.toml.default`, then instantiates and precompiles the
+root, `examples/`, `test/` and `docs/` projects (`-y` no prompt, `--version X.Y` / `+X.Y` that
+juliaup Julia for this run, `--update` updates instead, `-h` help); it changes nothing outside
+the repo. `bin/update_default_manifests` runs `bin/install --update -y --version X.Y` and the
+tests for 1.12 and 1.13 and copies each resulting manifest to its `.default` file.
 
 Docs build/doctest (mirrors the CI `docs` job):
 
@@ -51,8 +49,8 @@ julia --project=docs docs/make.jl
 
 Root `Project.toml` declares `[workspace] projects = ["examples", "docs", "test"]`, so
 each subproject keeps its own `Project.toml` but resolves against the single
-`Manifest-v1.12.toml`/`Manifest-v1.13.toml` at the root (Julia-version-specific). Only Julia
-1.12 and 1.13 are supported. `examples/Project.toml` sources
+`Manifest-v<major>.toml` at the root (Julia-version-specific; workspaces need Pkg 1.12+,
+so `bin/install` supports only 1.12 and newer). `examples/Project.toml` sources
 `WinchControllers` itself via `[sources] path = ".."`.
 
 ## Architecture
