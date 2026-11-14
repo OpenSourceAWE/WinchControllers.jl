@@ -1,7 +1,7 @@
 name = "WinchControllers"
 uuid = "9e74470a-8ab1-4f32-b878-f32ebd236ea2"
 authors = ["Uwe Fechner <u.fechner-1@tudelft.nl> and contributors"]
-version = "0.6.5"
+version = "0.6.6"
 
 [workspace]
 projects = ["examples", "docs", "test"]
@@ -26,7 +26,7 @@ YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 DiscretePIDs = "0.1, 1"
 DocStringExtensions = "0.9.4"
 FiniteDiff = "2.27.0"
-KiteUtils = "0.11.1, 0.12, 0.13"
+KiteUtils = "0.11.1, 0.12, 0.13, 0.14"
 LinearAlgebra = "1.12, 1.13"
 NLsolve = "4.5.1, 5"
 Parameters = "0.12.3, 0.13"
