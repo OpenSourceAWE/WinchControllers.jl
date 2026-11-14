@@ -1,3 +1,7 @@
+## WinchControllers v0.6.6 2026-11-14
+### Changed
+- `[compat]` of the main and docs projects accepts KiteUtils 0.14
+
 ## WinchControllers v0.6.5 2026-10-17
 ### Added
 - `bin/update_default_manifests` updates `Manifest-v<version>.toml.default` for Julia 1.12
